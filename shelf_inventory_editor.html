@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelf Inventory Editor Pro</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #111827; 
+            color: #e5e7eb;
+            overflow: hidden; 
+        }
+
+        /* Fixed Grid Layout Configuration */
+        :root { --cell-size: 18px; }
+
+        #shelf-grid {
+            display: grid;
+            grid-template-columns: repeat(30, var(--cell-size));
+            grid-template-rows: repeat(34, var(--cell-size));
+            gap: 1px;
+            background-color: #374151;
+            border: 4px solid #1f2937;
+            position: relative;
+            width: max-content; 
+            margin: 0 auto;
+        }
+
+        .grid-cell { background-color: #4b5563; transition: opacity 0.3s; }
+        .grid-cell.gap-wall { background-color: #030712 !important; }
+        .section-disabled { opacity: 0.2; pointer-events: none; filter: grayscale(80%); }
+
+        /* Draggable Items Base Styles */
+        .draggable-item {
+            cursor: grab;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2px;
+            box-sizing: border-box;
+            transition: opacity 0.2s, outline 0.1s;
+        }
+        .draggable-item:active { cursor: grabbing; }
+        .draggable-item.dragging { opacity: 0.6; }
+        .draggable-item.selected {
+            outline: 3px solid #60a5fa;
+            outline-offset: 2px;
+            z-index: 20;
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.6);
+        }
+
+        /* Specific Item Types */
+        .akro-bin {
+            background: linear-gradient(145deg, #ef4444, #dc2626);
+            border: 1px solid #7f1d1d;
+            border-radius: 3px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .white-sign {
+            background: #ffffff;
+            border: 2px solid #d1d5db;
+            border-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .macro-rack {
+            background-color: #6b7280; /* Grid line color for the macro rack */
+            border: 2px solid #374151;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            padding: 1px;
+            /* Remove standard flex centering for the macro container */
+            display: grid !important; 
+        }
+
+        /* Macro Sub-Bins */
+        .sub-bin {
+            background-color: #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+        .sub-bin:hover { filter: brightness(1.1); }
+        .sub-bin.selected-sub {
+            box-shadow: inset 0 0 0 2px #3b82f6;
+            background-color: #e5e7eb;
+        }
+
+        /* General Label formatting */
+        .bin-name {
+            pointer-events: none; /* Let clicks pass to the container */
+            word-break: break-word;
+            width: 100%;
+            line-height: 1.1;
+        }
+
+        #preview-box {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            display: none;
+            border-width: 2px;
+            border-style: dashed;
+        }
+        
+        /* Tooltip */
+        #hover-tooltip {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+            background: rgba(17, 24, 39, 0.95);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #374151;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            max-width: 200px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Sidebar Buttons */
+        .d-pad-btn {
+            background-color: #374151;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .d-pad-btn:hover:not(:disabled) { background-color: #4b5563; }
+        .d-pad-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .search-dimmed {
+            opacity: 0.15 !important;
+            filter: grayscale(100%);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col">
+
+    <!-- Global Hover Tooltip Element -->
+    <div id="hover-tooltip"></div>
+
+    <!-- Hidden Input for File Upload -->
+    <input type="file" id="jsonUploadInput" accept=".json" class="hidden">
+
+    <!-- Top Header & Search -->
+    <header class="h-14 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-6 shrink-0 z-20">
+        <div class="flex items-center gap-3 text-blue-500 font-bold text-lg tracking-wider">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            SHELFLOGIC PRO
+        </div>
+        
+        <div class="flex items-center gap-4">
+            
+            <div class="flex gap-2 mr-4 border-r border-gray-700 pr-4">
+                <button onclick="document.getElementById('jsonUploadInput').click()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 text-xs font-bold rounded flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Upload JSON
+                </button>
+                <button onclick="downloadJSON()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 text-xs font-bold rounded flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download JSON
+                </button>
+            </div>
+
+            <div class="relative w-[400px]">
+                <svg class="w-5 h-5 absolute left-3 top-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="searchInput" placeholder="Search inventory by name, contents, or keywords..." class="w-full bg-gray-800 border border-gray-600 rounded text-gray-200 pl-10 pr-4 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-sm">
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+        
+        <!-- Left Sidebar: Controls & Palette -->
+        <aside class="w-72 bg-gray-800 border-r border-gray-700 flex flex-col shrink-0 z-10 overflow-y-auto">
+            
+            <!-- Section Toggles -->
+            <div class="p-4 border-b border-gray-700">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Shelf Sections</h2>
+                <div class="space-y-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="toggleLeft" checked class="w-4 h-4 accent-blue-500">
+                        <span class="text-sm">Enable Left (6 cols)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="toggleMain" checked class="w-4 h-4 accent-blue-500">
+                        <span class="text-sm">Enable Main (16 cols)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="toggleRight" checked class="w-4 h-4 accent-blue-500">
+                        <span class="text-sm">Enable Right (6 cols)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Bin Palette -->
+            <div class="p-4 border-b border-gray-700">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Draggable Items</h2>
+                
+                <div class="grid grid-cols-2 gap-3 justify-items-center mb-4">
+                    <!-- Standard Red Bins -->
+                    <div class="draggable-item akro-bin w-8 h-8" draggable="true" ondragstart="startDragTemplate(event, 'red', 2, 2)">
+                        <span class="bin-name text-[8px] font-bold text-white">2x2</span>
+                    </div>
+                    <div class="draggable-item akro-bin w-12 h-12" draggable="true" ondragstart="startDragTemplate(event, 'red', 3, 3)">
+                        <span class="bin-name text-[10px] font-bold text-white">3x3</span>
+                    </div>
+                    <div class="draggable-item akro-bin w-16 h-16" draggable="true" ondragstart="startDragTemplate(event, 'red', 4, 4)">
+                        <span class="bin-name text-xs font-bold text-white">4x4</span>
+                    </div>
+                    <div class="draggable-item akro-bin w-24 h-16" draggable="true" ondragstart="startDragTemplate(event, 'red', 6, 4)">
+                        <span class="bin-name text-sm font-bold text-white">6x4</span>
+                    </div>
+                </div>
+
+                <!-- Signs and Racks -->
+                <div class="space-y-3">
+                    <div class="draggable-item white-sign w-full h-10" draggable="true" ondragstart="startDragTemplate(event, 'sign', 6, 3)">
+                        <span class="bin-name text-sm font-bold text-black">Sign (6x3)</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="draggable-item macro-rack w-16 h-36 relative" draggable="true" ondragstart="startDragTemplate(event, 'macro', 4, 9)">
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                                <span class="bg-gray-800 text-white text-[10px] px-1 py-0.5 rounded opacity-80">Drag 4x9</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Grey Rack<br>4x9 Grid<br>Custom Sub-bins
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movement D-Pad -->
+            <div class="p-4">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Move Selected</h2>
+                <div class="flex flex-col items-center gap-1">
+                    <button class="d-pad-btn w-10 h-10" id="btnUp" onclick="moveSelected(-1, 0)" disabled>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                    </button>
+                    <div class="flex gap-1">
+                        <button class="d-pad-btn w-10 h-10" id="btnLeft" onclick="moveSelected(0, -1)" disabled>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <div class="w-10 h-10 rounded bg-gray-900 border border-gray-700"></div> 
+                        <button class="d-pad-btn w-10 h-10" id="btnRight" onclick="moveSelected(0, 1)" disabled>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                    <button class="d-pad-btn w-10 h-10" id="btnDown" onclick="moveSelected(1, 0)" disabled>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area: Scrollable Grid Container -->
+        <main class="flex-1 bg-gray-950 p-8 overflow-auto flex items-start justify-center relative" id="mainContainer">
+            <div id="shelf-grid">
+                <!-- Hover Preview Box -->
+                <div id="preview-box"></div>
+                <!-- Generated by JS -->
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Info & Edit Panel -->
+        <aside class="w-72 bg-gray-800 border-l border-gray-700 flex flex-col shrink-0 z-10">
+            <div class="p-4 border-b border-gray-700 bg-gray-800/80">
+                <h2 class="text-sm font-bold text-white flex items-center gap-2" id="editPanelTitle">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Bin Details
+                </h2>
+            </div>
+            
+            <div id="noSelectionMsg" class="p-6 text-sm text-gray-500 text-center italic">
+                Click a placed bin or macro sub-bin to edit details.
+            </div>
+
+            <div id="editForm" class="p-4 space-y-4 hidden overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Bin Name</label>
+                    <input type="text" id="editName" class="w-full bg-gray-900 border border-gray-600 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="e.g. M4 Hex Bolts">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Bin Contents</label>
+                    <textarea id="editContents" rows="2" class="w-full bg-gray-900 border border-gray-600 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-500 resize-none" placeholder="Detailed description of contents..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Keywords</label>
+                    <input type="text" id="editKeywords" class="w-full bg-gray-900 border border-gray-600 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="hardware, metal...">
+                </div>
+
+                <div class="pt-2 border-t border-gray-700">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Font Styles</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-500 block mb-1">Size (px)</span>
+                            <input type="number" id="editFontSize" min="6" max="32" class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-center">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-500 block mb-1">Color</span>
+                            <input type="color" id="editColor" class="w-full h-[30px] bg-gray-900 border border-gray-600 rounded cursor-pointer p-0.5">
+                        </div>
+                    </div>
+                    <label class="flex items-center gap-2 mt-3 cursor-pointer">
+                        <input type="checkbox" id="editBold" class="w-4 h-4 accent-blue-500">
+                        <span class="text-sm">Bold Text</span>
+                    </label>
+                </div>
+
+                <div class="pt-4 border-t border-gray-700 space-y-2">
+                    <button id="deleteBtn" onclick="deleteSelectedTarget()" class="w-full py-2 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors text-xs font-bold uppercase tracking-wide">
+                        Delete Selection
+                    </button>
+                    <p id="deleteHelpText" class="text-[10px] text-gray-500 text-center leading-tight">
+                        Deleting a sub-bin only clears its text. To remove the rack, click the rack border.
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const ROWS = 34;
+        const COLS = 30; // 6 L + 1 Gap + 16 M + 1 Gap + 6 R
+        const CELL_SIZE = 18;
+        const GAP_COLS = [7, 24];
+        
+        let config = { left: true, main: true, right: true };
+        
+        // State
+        let gridState = Array(ROWS + 1).fill(null).map(() => Array(COLS + 1).fill(null));
+        let binsData = {}; 
+        
+        // Tracking what is selected
+        let selectedBinId = null;
+        let selectedSubKey = null; // Used for macro racks
+
+        let dragData = { active: false, source: null, id: null, type: null, w: 0, h: 0 };
+
+        const shelfGrid = document.getElementById('shelf-grid');
+        const previewBox = document.getElementById('preview-box');
+        const tooltip = document.getElementById('hover-tooltip');
+        
+        // --- INITIALIZATION ---
+        function initGrid() {
+            for (let r = 1; r <= ROWS; r++) {
+                for (let c = 1; c <= COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    if (GAP_COLS.includes(c)) cell.classList.add('gap-wall');
+                    if (c < 7) cell.classList.add('sec-left');
+                    else if (c > 7 && c < 24) cell.classList.add('sec-main');
+                    else if (c > 24) cell.classList.add('sec-right');
+                    cell.style.gridArea = `${r} / ${c} / span 1 / span 1`;
+                    shelfGrid.appendChild(cell);
+                }
+            }
+        }
+
+        function updateSectionVisibility() {
+            config.left = document.getElementById('toggleLeft').checked;
+            config.main = document.getElementById('toggleMain').checked;
+            config.right = document.getElementById('toggleRight').checked;
+            const toggleClass = (selector, isEnabled) => {
+                document.querySelectorAll(selector).forEach(el => {
+                    isEnabled ? el.classList.remove('section-disabled') : el.classList.add('section-disabled');
+                });
+            };
+            toggleClass('.sec-left', config.left);
+            toggleClass('.sec-main', config.main);
+            toggleClass('.sec-right', config.right);
+
+            applySearch(); // Re-trigger visual updates
+        }
+
+        document.getElementById('toggleLeft').addEventListener('change', updateSectionVisibility);
+        document.getElementById('toggleMain').addEventListener('change', updateSectionVisibility);
+        document.getElementById('toggleRight').addEventListener('change', updateSectionVisibility);
+
+        function isSectionEnabledForCol(c) {
+            if (c < 7) return config.left;
+            if (c > 7 && c < 24) return config.main;
+            if (c > 24) return config.right;
+            return false;
+        }
+
+        // --- DEFAULTS GENERATOR ---
+        function getStyleDefaults(type, w, h) {
+            if (type === 'sign') return { fontSize: 16, color: '#000000', bold: true };
+            if (type === 'red') {
+                if(w >= 6) return { fontSize: 16, color: '#ffffff', bold: true };
+                if(w >= 4) return { fontSize: 14, color: '#ffffff', bold: true };
+                if(w >= 3) return { fontSize: 12, color: '#ffffff', bold: true };
+                return { fontSize: 10, color: '#ffffff', bold: true };
+            }
+            return { fontSize: 12, color: '#000000', bold: false };
+        }
+
+        function createMacroData(id, r, c) {
+            let subBins = {};
+            // 32 standard 1x1 sub-bins
+            for(let i=1; i<=8; i++) {
+                for(let j=1; j<=4; j++) {
+                    subBins[`${i}_${j}`] = { name: '', contents: '', keywords: '', fontSize: 8, color: '#000000', bold: false };
+                }
+            }
+            // Bottom 4x1 bin
+            subBins[`9_1`] = { name: '', contents: '', keywords: '', fontSize: 10, color: '#000000', bold: true };
+            return { id, type: 'macro', r, c, w: 4, h: 9, subBins };
+        }
+
+        // --- DRAG AND DROP ---
+        function startDragTemplate(e, type, w, h) {
+            dragData = { active: true, source: 'template', id: null, type, w, h };
+            e.dataTransfer.setData('text/plain', 'template'); 
+            e.dataTransfer.effectAllowed = 'copy';
+            deselectTarget();
+        }
+
+        function startDragPlaced(e, binId) {
+            // Do not initiate drag if dragging from a sub-bin internally. Only parent triggers this.
+            const bin = binsData[binId];
+            dragData = { active: true, source: 'grid', id: binId, type: bin.type, w: bin.w, h: bin.h };
+            e.dataTransfer.setData('text/plain', 'grid');
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => {
+                const el = document.getElementById(binId);
+                if(el) el.classList.add('dragging');
+            }, 0);
+        }
+
+        shelfGrid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!dragData.active) return;
+
+            const rect = shelfGrid.getBoundingClientRect();
+            const fullCell = CELL_SIZE + 1; // 1px gap
+            let c = Math.floor((e.clientX - rect.left) / fullCell) + 1;
+            let r = Math.floor((e.clientY - rect.top) / fullCell) + 1;
+            c = Math.max(1, Math.min(c, COLS));
+            r = Math.max(1, Math.min(r, ROWS));
+            showPreview(r, c, dragData.w, dragData.h, dragData.id);
+        });
+
+        shelfGrid.addEventListener('dragleave', (e) => {
+            if (e.target === shelfGrid) previewBox.style.display = 'none';
+        });
+
+        shelfGrid.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!dragData.active) return;
+            previewBox.style.display = 'none';
+            
+            const rect = shelfGrid.getBoundingClientRect();
+            const fullCell = CELL_SIZE + 1;
+            let c = Math.floor((e.clientX - rect.left) / fullCell) + 1;
+            let r = Math.floor((e.clientY - rect.top) / fullCell) + 1;
+
+            const validPos = findNearestValidPos(r, c, dragData.w, dragData.h, dragData.id);
+
+            if (validPos) {
+                if (dragData.source === 'template') {
+                    placeNewItem(dragData.type, validPos.r, validPos.c, dragData.w, dragData.h);
+                } else if (dragData.source === 'grid') {
+                    moveBinLogic(dragData.id, validPos.r, validPos.c);
+                    document.getElementById(dragData.id).classList.remove('dragging');
+                    selectBin(dragData.id); 
+                }
+            } else {
+                if(dragData.source === 'grid' && dragData.id) {
+                    const el = document.getElementById(dragData.id);
+                    if(el) el.classList.remove('dragging');
+                }
+            }
+            dragData.active = false;
+        });
+
+        function isValidPlacement(startR, startC, w, h, ignoreBinId = null) {
+            if (startR < 1 || startR + h - 1 > ROWS || startC < 1 || startC + w - 1 > COLS) return false;
+            for (let r = startR; r < startR + h; r++) {
+                for (let c = startC; c < startC + w; c++) {
+                    if (GAP_COLS.includes(c)) return false;
+                    if (!isSectionEnabledForCol(c)) return false;
+                    if (gridState[r][c] !== null && gridState[r][c] !== ignoreBinId) return false;
+                }
+            }
+            return true;
+        }
+
+        function findNearestValidPos(startR, startC, w, h, ignoreId) {
+            if (isValidPlacement(startR, startC, w, h, ignoreId)) return { r: startR, c: startC };
+            const maxRad = 4; 
+            for (let rad = 1; rad <= maxRad; rad++) {
+                for (let dy = -rad; dy <= rad; dy++) {
+                    for (let dx = -rad; dx <= rad; dx++) {
+                        if (Math.abs(dy) === rad || Math.abs(dx) === rad) {
+                            if (isValidPlacement(startR + dy, startC + dx, w, h, ignoreId)) {
+                                return { r: startR + dy, c: startC + dx };
+                            }
+                        }
+                    }
+                }
+            }
+            return null; 
+        }
+
+        function showPreview(r, c, w, h, ignoreId) {
+            previewBox.style.display = 'block';
+            previewBox.style.gridArea = `${r} / ${c} / span ${h} / span ${w}`;
+            if (isValidPlacement(r, c, w, h, ignoreId)) {
+                previewBox.style.backgroundColor = 'rgba(74, 222, 128, 0.4)';
+                previewBox.style.borderColor = '#22c55e';
+            } else {
+                previewBox.style.backgroundColor = 'rgba(248, 113, 113, 0.4)';
+                previewBox.style.borderColor = '#ef4444';
+            }
+        }
+
+        function markGridState(startR, startC, w, h, val) {
+            for (let r = startR; r < startR + h; r++) {
+                for (let c = startC; c < startC + w; c++) gridState[r][c] = val;
+            }
+        }
+
+        // --- RENDERING & PLACEMENT ---
+        function placeNewItem(type, r, c, w, h) {
+            const binId = 'item_' + Date.now();
+            if (type === 'macro') {
+                binsData[binId] = createMacroData(binId, r, c);
+            } else {
+                const styles = getStyleDefaults(type, w, h);
+                binsData[binId] = { id: binId, type, r, c, w, h, name: '', contents: '', keywords: '', ...styles };
+            }
+            markGridState(r, c, w, h, binId);
+            renderItemToDOM(binId);
+            applySearch();
+            selectBin(binId); 
+        }
+
+        function moveBinLogic(binId, newR, newC) {
+            const bin = binsData[binId];
+            markGridState(bin.r, bin.c, bin.w, bin.h, null); 
+            bin.r = newR; bin.c = newC;
+            markGridState(newR, newC, bin.w, bin.h, binId); 
+            const el = document.getElementById(binId);
+            el.style.gridArea = `${newR} / ${newC} / span ${bin.h} / span ${bin.w}`;
+            applySearch(); // Update section dimming if moved across borders
+        }
+
+        function renderItemToDOM(binId) {
+            const bin = binsData[binId];
+            const el = document.createElement('div');
+            el.id = binId;
+            el.className = 'draggable-item';
+            el.draggable = true;
+            el.style.gridArea = `${bin.r} / ${bin.c} / span ${bin.h} / span ${bin.w}`;
+
+            if (bin.type === 'macro') {
+                el.classList.add('macro-rack');
+                Object.keys(bin.subBins).forEach(subKey => {
+                    const sub = bin.subBins[subKey];
+                    const subEl = document.createElement('div');
+                    subEl.className = 'sub-bin';
+                    subEl.id = `${binId}_${subKey}`;
+                    subEl.dataset.binId = binId;
+                    subEl.dataset.subKey = subKey;
+                    
+                    if(subKey === '9_1') subEl.style.gridColumn = '1 / span 4';
+                    
+                    const label = document.createElement('span');
+                    label.className = 'bin-name';
+                    applyFontStyles(label, sub);
+                    label.innerText = sub.name;
+                    subEl.appendChild(label);
+                    
+                    if(sub.contents) subEl.dataset.tooltip = sub.contents;
+
+                    el.appendChild(subEl);
+                });
+            } else {
+                el.classList.add(bin.type === 'sign' ? 'white-sign' : 'akro-bin');
+                const label = document.createElement('span');
+                label.className = 'bin-name';
+                applyFontStyles(label, bin);
+                label.innerText = bin.name || `${bin.w}x${bin.h}`;
+                el.appendChild(label);
+                
+                if(bin.contents) el.dataset.tooltip = bin.contents;
+            }
+
+            el.addEventListener('dragstart', (e) => startDragPlaced(e, binId));
+            
+            // Selection logic
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (bin.type === 'macro') {
+                    const subEl = e.target.closest('.sub-bin');
+                    if (subEl) selectBin(binId, subEl.dataset.subKey);
+                    else selectBin(binId); // Select rack itself
+                } else {
+                    selectBin(binId);
+                }
+            });
+
+            shelfGrid.appendChild(el);
+        }
+
+        function applyFontStyles(element, data) {
+            element.style.fontSize = (data.fontSize || 12) + 'px';
+            element.style.color = data.color || '#ffffff';
+            element.style.fontWeight = data.bold ? 'bold' : 'normal';
+        }
+
+        // --- HOVER TOOLTIP ---
+        document.addEventListener('mousemove', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if(target && target.dataset.tooltip.trim() !== '') {
+                tooltip.textContent = target.dataset.tooltip;
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+                tooltip.style.display = 'block';
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+
+
+        // --- EDITING LOGIC ---
+        const noSelectionMsg = document.getElementById('noSelectionMsg');
+        const editForm = document.getElementById('editForm');
+        const editPanelTitle = document.getElementById('editPanelTitle');
+        const deleteHelpText = document.getElementById('deleteHelpText');
+        
+        // Form Inputs
+        const fName = document.getElementById('editName');
+        const fContents = document.getElementById('editContents');
+        const fKeywords = document.getElementById('editKeywords');
+        const fSize = document.getElementById('editFontSize');
+        const fColor = document.getElementById('editColor');
+        const fBold = document.getElementById('editBold');
+        const dPadBtns = document.querySelectorAll('.d-pad-btn');
+
+        function selectBin(binId, subKey = null) {
+            deselectTarget(); 
+            selectedBinId = binId;
+            selectedSubKey = subKey;
+            
+            const bin = binsData[binId];
+            let targetData = bin;
+            
+            if (subKey) {
+                targetData = bin.subBins[subKey];
+                document.getElementById(`${binId}_${subKey}`).classList.add('selected-sub');
+                editPanelTitle.innerHTML = `<svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Sub-Bin Details`;
+                deleteHelpText.style.display = 'block';
+                document.getElementById('deleteBtn').innerText = 'Clear Sub-Bin';
+            } else {
+                document.getElementById(binId).classList.add('selected');
+                editPanelTitle.innerHTML = `<svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> ${bin.type === 'macro' ? 'Rack Settings' : 'Bin Details'}`;
+                deleteHelpText.style.display = 'none';
+                document.getElementById('deleteBtn').innerText = 'Delete Item';
+            }
+
+            fName.value = targetData.name || '';
+            fContents.value = targetData.contents || '';
+            fKeywords.value = targetData.keywords || '';
+            fSize.value = targetData.fontSize || 12;
+            fColor.value = targetData.color || '#ffffff';
+            fBold.checked = targetData.bold || false;
+
+            // If it's the macro wrapper itself being selected, we disable standard text inputs 
+            // since the text exists on the sub-bins.
+            const isMacroWrapper = (bin.type === 'macro' && !subKey);
+            fName.disabled = isMacroWrapper;
+            fContents.disabled = isMacroWrapper;
+            fKeywords.disabled = isMacroWrapper;
+            
+            noSelectionMsg.classList.add('hidden');
+            editForm.classList.remove('hidden');
+            dPadBtns.forEach(btn => btn.disabled = false);
+        }
+
+        function deselectTarget() {
+            if (selectedBinId) {
+                const bin = binsData[selectedBinId];
+                if (selectedSubKey) {
+                    const subEl = document.getElementById(`${selectedBinId}_${selectedSubKey}`);
+                    if(subEl) subEl.classList.remove('selected-sub');
+                }
+                const mainEl = document.getElementById(selectedBinId);
+                if(mainEl) mainEl.classList.remove('selected');
+            }
+            selectedBinId = null;
+            selectedSubKey = null;
+            
+            noSelectionMsg.classList.remove('hidden');
+            editForm.classList.add('hidden');
+            dPadBtns.forEach(btn => btn.disabled = true);
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.draggable-item') && !e.target.closest('aside') && !e.target.closest('header')) {
+                deselectTarget();
+            }
+        });
+
+        // Live updating data from inputs
+        const updateData = () => {
+            if(!selectedBinId) return;
+            const bin = binsData[selectedBinId];
+            if (bin.type === 'macro' && !selectedSubKey) return; // Cannot edit wrapper text
+
+            let targetData = selectedSubKey ? bin.subBins[selectedSubKey] : bin;
+            let el = document.getElementById(selectedSubKey ? `${selectedBinId}_${selectedSubKey}` : selectedBinId);
+
+            targetData.name = fName.value.trim();
+            targetData.contents = fContents.value.trim();
+            targetData.keywords = fKeywords.value.trim();
+            targetData.fontSize = parseInt(fSize.value) || 12;
+            targetData.color = fColor.value;
+            targetData.bold = fBold.checked;
+
+            const label = el.querySelector('.bin-name');
+            label.innerText = targetData.name || (selectedSubKey ? '' : `${bin.w}x${bin.h}`);
+            applyFontStyles(label, targetData);
+            el.dataset.tooltip = targetData.contents;
+            
+            applySearch();
+        };
+
+        ['input', 'change'].forEach(evt => {
+            fName.addEventListener(evt, updateData);
+            fContents.addEventListener(evt, updateData);
+            fKeywords.addEventListener(evt, updateData);
+            fSize.addEventListener(evt, updateData);
+            fColor.addEventListener(evt, updateData);
+            fBold.addEventListener(evt, updateData);
+        });
+
+        function deleteSelectedTarget() {
+            if(!selectedBinId) return;
+            
+            if (selectedSubKey) {
+                // Clear Sub-bin contents only
+                fName.value = ''; fContents.value = ''; fKeywords.value = '';
+                updateData();
+            } else {
+                // Delete entire item (bin or rack)
+                const bin = binsData[selectedBinId];
+                markGridState(bin.r, bin.c, bin.w, bin.h, null);
+                document.getElementById(selectedBinId).remove();
+                delete binsData[selectedBinId];
+                deselectTarget();
+            }
+        }
+
+        function moveSelected(dr, dc) {
+            if (!selectedBinId) return;
+            // Moving a sub-bin moves the parent rack
+            const bin = binsData[selectedBinId];
+            const newR = bin.r + dr;
+            const newC = bin.c + dc;
+            if (isValidPlacement(newR, newC, bin.w, bin.h, selectedBinId)) {
+                moveBinLogic(selectedBinId, newR, newC);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+            if (!selectedBinId) return;
+            switch(e.key) {
+                case 'ArrowUp': e.preventDefault(); moveSelected(-1, 0); break;
+                case 'ArrowDown': e.preventDefault(); moveSelected(1, 0); break;
+                case 'ArrowLeft': e.preventDefault(); moveSelected(0, -1); break;
+                case 'ArrowRight': e.preventDefault(); moveSelected(0, 1); break;
+                case 'Delete': 
+                case 'Backspace': deleteSelectedTarget(); break;
+            }
+        });
+
+        // --- SEARCH LOGIC ---
+        document.getElementById('searchInput').addEventListener('input', applySearch);
+
+        function applySearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            Object.values(binsData).forEach(bin => {
+                const el = document.getElementById(bin.id);
+                if (!el) return;
+                
+                // Section Dimming Overrides Search
+                if(!isSectionEnabledForCol(bin.c)) {
+                    el.classList.add('section-disabled');
+                    return; 
+                } else {
+                    el.classList.remove('section-disabled');
+                }
+
+                if (query === '') {
+                    el.classList.remove('search-dimmed');
+                    if (bin.type === 'macro') {
+                        Object.keys(bin.subBins).forEach(sk => document.getElementById(`${bin.id}_${sk}`).classList.remove('search-dimmed'));
+                    }
+                    return;
+                }
+
+                if (bin.type === 'macro') {
+                    let rackHasMatch = false;
+                    Object.keys(bin.subBins).forEach(subKey => {
+                        const sub = bin.subBins[subKey];
+                        const subEl = document.getElementById(`${bin.id}_${subKey}`);
+                        const text = `${sub.name} ${sub.contents} ${sub.keywords}`.toLowerCase();
+                        if (text.includes(query)) {
+                            subEl.classList.remove('search-dimmed');
+                            rackHasMatch = true;
+                        } else {
+                            subEl.classList.add('search-dimmed');
+                        }
+                    });
+                    if(!rackHasMatch) el.classList.add('search-dimmed');
+                    else el.classList.remove('search-dimmed');
+                } else {
+                    const text = `${bin.name} ${bin.contents} ${bin.keywords}`.toLowerCase();
+                    if (text.includes(query)) el.classList.remove('search-dimmed');
+                    else el.classList.add('search-dimmed');
+                }
+            });
+        }
+
+        // --- JSON SAVE/LOAD ---
+        function downloadJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(binsData));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "shelf_layout.json");
+            dlAnchorElem.click();
+        }
+
+        document.getElementById('jsonUploadInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    binsData = JSON.parse(e.target.result);
+                    rebuildGridFromData();
+                } catch (err) {
+                    alert("Invalid JSON file.");
+                }
+            };
+            reader.readAsText(file);
+            // Reset input so the same file can be uploaded again if needed
+            event.target.value = ''; 
+        });
+
+        function rebuildGridFromData() {
+            deselectTarget();
+            gridState = Array(ROWS + 1).fill(null).map(() => Array(COLS + 1).fill(null));
+            document.querySelectorAll('#shelf-grid .draggable-item').forEach(el => el.remove());
+            
+            Object.values(binsData).forEach(bin => {
+                markGridState(bin.r, bin.c, bin.w, bin.h, bin.id);
+                renderItemToDOM(bin.id);
+            });
+            applySearch();
+        }
+
+        // Window bindings for inline HTML calls
+        window.startDragTemplate = startDragTemplate;
+        window.moveSelected = moveSelected;
+        window.deleteSelectedTarget = deleteSelectedTarget;
+        window.downloadJSON = downloadJSON;
+
+        // Boot
+        initGrid();
+
+    </script>
+</body>
+</html>
