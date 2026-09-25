@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """ITR lab editor: static UI, authenticated JSON persistence, no dependencies."""
 import argparse
+import copy
 from datetime import datetime, timezone
 import hashlib
 import hmac
+import math
 from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -19,7 +21,7 @@ from urllib.parse import urlsplit, unquote
 ROOT = Path(__file__).resolve().parent
 ID = re.compile(r'^[A-Za-z0-9_-]{1,64}$')
 HEX = re.compile(r'^#[0-9a-fA-F]{6}$')
-KINDS = {'section', 'shelf', 'table', 'cart', 'machine', 'wall', 'text'}
+KINDS = {'section', 'shelf', 'table', 'cart', 'machine', 'wall', 'text', 'misc'}
 FONTS = {'system-ui', 'Arial', 'Georgia', 'monospace'}
 MAX_BODY = 4_000_000
 
@@ -58,6 +60,11 @@ def validate_lab(doc):
                 raise ValueError('Invalid grid coordinates.')
         if item['x'] + item['w'] - 1 > doc['cols'] or item['y'] + item['h'] - 1 > doc['rows']:
             raise ValueError('An item extends outside the grid.')
+        if item['kind'] == 'misc':
+            if item.get('shape', 'square') not in ('square','line','triangle','circle') or type(item.get('showLabel', True)) is not bool:
+                raise ValueError('Invalid Misc shape or label visibility.')
+            if item.get('lineDirection','horizontal') not in ('horizontal','vertical','diagonal-down','diagonal-up') or not integer(item.get('lineWidth',4),1,20):
+                raise ValueError('Invalid Misc line direction or thickness.')
         if item['kind'] == 'section' and (type(item.get('showLabel')) is not bool or type(item.get('restricted')) is not bool):
             raise ValueError('Invalid section settings.')
     def points(values, minimum):
@@ -67,6 +74,36 @@ def validate_lab(doc):
                    and 0 <= p[0] <= doc['cols'] and 0 <= p[1] <= doc['rows'] for p in values)
     if not points(doc.get('outline'), 3):
         raise ValueError('Outline needs at least three valid grid points.')
+    walls = doc.get('walls', [])
+    if not isinstance(walls, list) or len(walls) > 500:
+        raise ValueError('Invalid walls (maximum 500).')
+    wall_ids = set()
+    for wall in walls:
+        if not isinstance(wall, dict) or not ID.fullmatch(str(wall.get('id',''))) or wall['id'] in wall_ids:
+            raise ValueError('Walls require unique IDs.')
+        wall_ids.add(wall['id'])
+        ends = [wall.get('a'), wall.get('b')]
+        if not points(ends, 2) or ends[0] == ends[1] or any(not all(type(n) is int for n in p) for p in ends):
+            raise ValueError('Wall endpoints must be distinct integer grid points.')
+        thickness = wall.get('thickness')
+        if type(thickness) not in (int,float) or not .1 <= thickness <= 2:
+            raise ValueError('Wall thickness must be between 0.1 and 2.')
+    doors = doc.get('doors', [])
+    if not isinstance(doors, list) or len(doors) > 500:
+        raise ValueError('Invalid doors (maximum 500).')
+    door_ids = set()
+    for door in doors:
+        if not isinstance(door, dict) or not ID.fullmatch(str(door.get('id',''))) or door['id'] in door_ids:
+            raise ValueError('Doors require unique IDs.')
+        door_ids.add(door['id'])
+        orientation = door.get('orientation')
+        if orientation not in ('NW','NE','SW','SE') or not integer(door.get('radius'),1,20):
+            raise ValueError('Invalid door orientation or radius.')
+        x,y,r = door.get('x'),door.get('y'),door['radius']
+        if not integer(x,0,doc['cols']) or not integer(y,0,doc['rows']):
+            raise ValueError('Door hinge must be on the grid.')
+        if not 0 <= x+(r if 'E' in orientation else -r) <= doc['cols'] or not 0 <= y+(r if 'S' in orientation else -r) <= doc['rows']:
+            raise ValueError('Door extends outside the grid.')
     routes = doc.get('routes')
     if not isinstance(routes, list) or len(routes) > 100 or not all(points(p, 2) for p in routes):
         raise ValueError('Invalid traffic paths.')
@@ -86,7 +123,8 @@ def validate_shelf(doc, shelf_id):
     matrix = doc.get('matrix')
     if not isinstance(matrix, list) or len(matrix) != rows:
         raise ValueError('Matrix row count does not match rows.')
-    occupied = set()
+    occupied = []
+    bin_ids = set()
     for r, row in enumerate(matrix):
         if not isinstance(row, list) or len(row) != cols:
             raise ValueError('Every matrix row must match cols.')
@@ -96,14 +134,20 @@ def validate_shelf(doc, shelf_id):
             if (not isinstance(cell, dict) or not style(cell) or not text(cell.get('name')) or
                     not text(cell.get('contents'), 10000) or not text(cell.get('keywords'), 2000)):
                 raise ValueError('Invalid bin text or style.')
+            if 'id' in cell:
+                if not isinstance(cell['id'],str) or not ID.fullmatch(cell['id']) or cell['id'] in bin_ids:
+                    raise ValueError('Bin IDs must be unique.')
+                bin_ids.add(cell['id'])
             w, h = cell.get('w'), cell.get('h')
-            if not integer(w, 1, cols-c) or not integer(h, 1, rows-r):
-                raise ValueError('Bin extends outside the shelf.')
-            for rr in range(r, r+h):
-                for cc in range(c, c+w):
-                    if (rr, cc) in occupied:
-                        raise ValueError('Shelf bins overlap.')
-                    occupied.add((rr, cc))
+            ox, oy = cell.get('offsetX', 0), cell.get('offsetY', 0)
+            if any(type(v) not in (int, float) or not math.isfinite(v) or v*2 != int(v*2) for v in (w,h,ox,oy)) or ox not in (0,.5) or oy not in (0,.5):
+                raise ValueError('Bin geometry must use half-grid increments; offsets are 0 or 0.5.')
+            x, y = c+ox, r+oy
+            if w < 1 or h < 1 or x+w > cols or y+h > rows:
+                raise ValueError('Bin extends outside the shelf or is smaller than one cell.')
+            if any(x < xx+ww and x+w > xx and y < yy+hh and y+h > yy for xx,yy,ww,hh in occupied):
+                raise ValueError('Shelf bins overlap.')
+            occupied.append((x,y,w,h))
 
 
 def normalize_shelf(doc, name=''):
@@ -138,6 +182,10 @@ def write_json(path, doc):
     os.replace(temporary, path)
 
 
+class RevisionConflict(ValueError):
+    pass
+
+
 class LabServer(ThreadingHTTPServer):
     def __init__(self, address, data_dir, password):
         super().__init__(address, Handler)
@@ -147,29 +195,91 @@ class LabServer(ThreadingHTTPServer):
         self.attempts = {}
         self.lock = threading.RLock()
         self.drafts = {}
+        self.inventory_states = {}
+        # Roll forward a fully validated, explicitly saved transaction after interruption.
+        self.finish_transaction()
+
+    def finish_transaction(self):
+        journal = self.data_dir / 'pending-save.json'
+        if journal.exists():
+            for name, doc in json.loads(journal.read_text()).items():
+                write_json(self.data_dir / name, doc)
+            journal.unlink()
+
+    def shelf_snapshot(self, lab):
+        result = {}
+        for item in lab['items']:
+            if item['kind'] == 'shelf':
+                path = self.data_dir / 'shelves' / (item['id'] + '.json')
+                result[item['id']] = normalize_shelf(json.loads(path.read_text()), item['name']) if path.exists() else blank_shelf(item['id'], item['name'])
+        return result
 
     def prune_drafts(self):
         now = time.time()
+        self.inventory_states = {k:v for k,v in self.inventory_states.items() if self.sessions.get(k[0], 0) > now}
         self.drafts = {k:v for k,v in self.drafts.items()
                        if v['expires'] > now and self.sessions.get(k[0], 0) > now}
 
-    def archive_lab(self, doc, reason='Saved layout', replace=False):
+    def remember_inventory(self, prefix, shelves):
+        reference = secrets.token_hex(16)
+        self.inventory_states[(*prefix, reference)] = copy.deepcopy(shelves)
+        return reference
+
+    def apply_inventory(self, prefix, shelves):
+        for sid, shelf in shelves.items():
+            validate_shelf(shelf, sid)
+        for sid, shelf in shelves.items():
+            target = self.data_dir / 'shelves' / (sid+'.json')
+            restored = copy.deepcopy(shelf)
+            restored['revision'] = json.loads(target.read_text())['revision'] if target.exists() else 0
+            key = (*prefix, 'shelves/'+sid)
+            previous = self.drafts.get(key)
+            history = [previous['state']['data']] if previous else []
+            self.drafts[key] = {'expires': time.time()+8*3600, 'state': dict(data=restored, history=history, future=[], dirty=True)}
+
+    def archive_lab(self, doc, reason='Saved layout', replace=False, shelves=None):
         path = self.data_dir / 'history' / 'lab' / f"{doc['revision']}.json"
         if replace or not path.exists():
             write_json(path, {'savedAt': datetime.now(timezone.utc).isoformat(),
-                              'reason': reason, 'layout': doc})
+                              'reason': reason, 'layout': doc, 'shelves': shelves if shelves is not None else self.shelf_snapshot(doc)})
 
-    def persist_lab(self, doc, reason):
+    def persist_lab(self, doc, reason, shelves):
+        doc = {key:value for key,value in doc.items() if key not in ('_inventoryState','_previousInventoryState')}
         current = json.loads((self.data_dir / 'lab.json').read_text())
         self.archive_lab(current)
-        for item in doc['items']:
-            if item['kind'] == 'shelf':
-                target = self.data_dir / 'shelves' / (item['id'] + '.json')
-                if not target.exists():
-                    write_json(target, blank_shelf(item['id'], item['name']))
-        # An uncommitted snapshot is excluded from history by the live revision.
-        self.archive_lab(doc, reason, replace=True)
-        write_json(self.data_dir / 'lab.json', doc)
+        writes = {f'shelves/{sid}.json': shelf for sid, shelf in shelves.items()}
+        writes[f"history/lab/{doc['revision']}.json"] = {
+            'savedAt': datetime.now(timezone.utc).isoformat(), 'reason': reason,
+            'layout': doc, 'shelves': shelves}
+        writes['lab.json'] = doc
+        write_json(self.data_dir / 'pending-save.json', writes)
+        self.finish_transaction()
+
+    def commit_version(self, doc, prefix, overrides=None):
+        self.prune_drafts()
+        shelves = self.shelf_snapshot(doc)
+        overrides = overrides or {}
+        updated = []
+        for sid, persisted in shelves.items():
+            cached = self.drafts.get((*prefix, 'shelves/'+sid))
+            if sid in overrides:
+                shelves[sid] = overrides[sid]
+                if cached:
+                    updated.append((cached, overrides[sid]))
+            elif cached and cached['state']['dirty']:
+                draft = copy.deepcopy(cached['state']['data'])
+                validate_shelf(draft, sid)
+                if draft.get('revision') != persisted['revision']:
+                    raise RevisionConflict(f'Shelf {sid} changed on the server. Reload that shelf before saving the lab.')
+                draft['revision'] += 1
+                draft['versionName'] = doc['versionName']
+                shelves[sid] = draft
+                updated.append((cached, draft))
+        shelves.update(overrides)
+        self.persist_lab(doc, doc['versionName'], shelves)
+        for cached, draft in updated:
+            cached['state']['data'] = draft
+            cached['state']['dirty'] = False
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -255,12 +365,21 @@ class Handler(BaseHTTPRequestHandler):
                     for doc in [body.get('data')] + body['history'] + body['future']:
                         if key[2] == 'lab':
                             validate_lab(doc)
+                            if doc.get('_inventoryState') is not None and (not isinstance(doc['_inventoryState'],str) or (*key[:2], doc['_inventoryState']) not in self.server.inventory_states):
+                                raise ValueError('Inventory undo memory has expired. Reload the saved version.')
                         else:
                             validate_shelf(doc, key[2].split('/')[1])
                     if key not in self.server.drafts and len(self.server.drafts) >= 100:
                         raise ValueError('Draft cache is full. Close unused sessions and try again.')
+                    inventory_changed = False
+                    if key[2] == 'lab':
+                        reference = body['data'].get('_inventoryState')
+                        previous = self.server.drafts.get(key)
+                        if reference and (not previous or reference != previous['state']['data'].get('_inventoryState')):
+                            self.server.apply_inventory(key[:2], self.server.inventory_states[(*key[:2], reference)])
+                            inventory_changed = True
                     self.server.drafts[key] = {'expires': time.time()+8*3600, 'state': body}
-                    return self.json_response(200, {'cached': True})
+                    return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed})
                 cached = self.server.drafts.get(key)
                 return self.json_response(200, cached['state'] if cached else None)
             except (ValueError, UnicodeDecodeError) as error:
@@ -295,6 +414,7 @@ class Handler(BaseHTTPRequestHandler):
                                         terms.extend([bin['name'], bin['contents'], bin['keywords']])
                         index[item['id']] = {key: doc[key] for key in ('name', 'mode', 'contents', 'keywords')}
                         index[item['id']]['searchText'] = ' '.join(terms).lower()
+                        index[item['id']]['draftDirty'] = bool(cached and cached['state']['dirty'])
                     return self.json_response(200, index)
                 except (OSError, ValueError, KeyError, TypeError):
                     return self.json_response(500, {'error': 'Could not index shelf files. Check their JSON.'})
@@ -330,7 +450,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json_response(200, normalize_shelf(doc, self.shelf_name(shelf_id)) if shelf_id else doc)
                 except (OSError, ValueError):
                     return self.json_response(500, {'error': 'Cannot read data file. Check its JSON.'})
-        public = {'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'shelf.js', 'shelf_model.js', 'explorer.js'}
+        public = {'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_model.js', 'explorer.js'}
         name = unquote(path).lstrip('/') or 'lab_overview.html'
         if name not in public:
             return self.json_response(404, {'error': 'Not found.'})
@@ -362,11 +482,16 @@ class Handler(BaseHTTPRequestHandler):
                     if type(body.get('revision')) is not int or body['revision'] != current['revision']:
                         return self.json_response(409, {'error': 'The lab changed. Reload saved before restoring a version.'})
                     version = str(body.get('version', ''))
+                    restored_shelves = None
                     if version == 'original':
                         doc = json.loads((ROOT / 'defaults' / 'lab.json').read_text())
                     elif re.fullmatch(r'\d{1,12}', version) and int(version) <= current['revision']:
                         file = self.server.data_dir / 'history' / 'lab' / f'{int(version)}.json'
-                        if int(version) == current['revision']:
+                        if file.exists():
+                            record = json.loads(file.read_text())
+                            doc = record['layout']
+                            restored_shelves = record.get('shelves')
+                        elif int(version) == current['revision']:
                             doc = current.copy()
                         elif not file.exists():
                             return self.json_response(404, {'error': 'Saved version not found.'})
@@ -375,6 +500,17 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         raise ValueError('Invalid saved version.')
                     validate_lab(doc)
+                    instance = self.headers.get('X-Editor-Instance', '')
+                    if restored_shelves is not None and ID.fullmatch(instance):
+                        prefix = (self.token(), instance)
+                        cached_lab = self.server.drafts.get((*prefix, 'lab'))
+                        before = self.server.shelf_snapshot(cached_lab['state']['data'] if cached_lab else current)
+                        for key, cached in self.server.drafts.items():
+                            if key[:2] == prefix and key[2].startswith('shelves/'):
+                                before[key[2].split('/')[1]] = cached['state']['data']
+                        doc['_previousInventoryState'] = self.server.remember_inventory(prefix, before)
+                        doc['_inventoryState'] = self.server.remember_inventory(prefix, restored_shelves)
+                        self.server.apply_inventory(prefix, restored_shelves)
                     # Restoring loads a draft. Only an explicit named PUT commits it.
                     doc['revision'] = current['revision']
                     return self.json_response(200, doc)
@@ -434,11 +570,25 @@ class Handler(BaseHTTPRequestHandler):
                 if type(doc.get('revision')) is not int or doc['revision'] != current['revision']:
                     return self.json_response(409, {'error': 'Another admin saved changes. Export your draft, then reload before editing again.'})
                 doc['revision'] += 1
+                prefix = (self.token(), self.headers.get('X-Editor-Instance', ''))
                 if not shelf_id:
-                    self.server.persist_lab(doc, doc['versionName'])
+                    self.server.commit_version(doc, prefix)
                 else:
-                    write_json(file, doc)
+                    # Save from either editor commits one coherent named lab version.
+                    current_lab = json.loads((self.server.data_dir/'lab.json').read_text())
+                    cached_lab = self.server.drafts.get((*prefix, 'lab'))
+                    lab_doc = copy.deepcopy(cached_lab['state']['data'] if cached_lab else current_lab)
+                    if lab_doc['revision'] != current_lab['revision']:
+                        raise RevisionConflict('The lab changed on the server. Reload the lab before saving this instance.')
+                    lab_doc.update(revision=current_lab['revision']+1, versionName=doc['versionName'])
+                    validate_lab(lab_doc)
+                    self.server.commit_version(lab_doc, prefix, {shelf_id: doc})
+                    if cached_lab:
+                        cached_lab['state']['data'] = lab_doc
+                        cached_lab['state']['dirty'] = False
                 return self.json_response(200, {'revision': doc['revision']})
+            except RevisionConflict as error:
+                return self.json_response(409, {'error': str(error)})
             except (ValueError, UnicodeDecodeError) as error:
                 return self.json_response(400, {'error': str(error)})
             except OSError:

@@ -3,6 +3,11 @@
   "revision": 0,
   "rows": 34,
   "cols": 30,
+  "schemaVersion": 2,
+  "mode": "simple",
+  "name": "Computer shelf 2",
+  "contents": "",
+  "keywords": "",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

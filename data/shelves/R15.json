@@ -3,6 +3,11 @@
   "revision": 3,
   "rows": 23,
   "cols": 30,
+  "schemaVersion": 2,
+  "mode": "simple",
+  "name": "Bin shelf",
+  "contents": "",
+  "keywords": "",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

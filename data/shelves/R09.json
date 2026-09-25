@@ -1,8 +1,14 @@
 {
   "id": "R09",
-  "revision": 11,
+  "revision": 12,
   "rows": 34,
   "cols": 30,
+  "schemaVersion": 2,
+  "mode": "simple",
+  "name": "Gray metal cabinet",
+  "contents": "",
+  "keywords": "Exec Cabinet",
+  "versionName": "Draft 5",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

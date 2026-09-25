@@ -1,58 +1,58 @@
 {
-  "revision": 132,
-  "cols": 100,
-  "rows": 48,
+  "revision": 142,
+  "cols": 120,
+  "rows": 65,
   "items": [
     {
       "id": "Z00",
-      "name": "Main floor",
+      "name": "Lab Floor",
       "kind": "section",
-      "x": 1,
-      "y": 19,
-      "w": 69,
+      "x": 7,
+      "y": 24,
+      "w": 77,
       "h": 29,
       "background": "#e3f1fa",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "",
       "showLabel": false,
-      "restricted": false
+      "restricted": true
     },
     {
       "id": "Z01",
       "name": "Robotics",
       "kind": "section",
-      "x": 12,
-      "y": 19,
-      "w": 23,
-      "h": 19,
+      "x": 19,
+      "y": 24,
+      "w": 28,
+      "h": 22,
       "background": "#e1f1e2",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Robotics",
       "showLabel": true,
       "restricted": false
     },
     {
       "id": "Z02",
-      "name": "Floor area",
+      "name": "Robotics Floor Space",
       "kind": "section",
-      "x": 1,
-      "y": 19,
-      "w": 11,
+      "x": 7,
+      "y": 24,
+      "w": 12,
       "h": 8,
       "background": "#e1f1e2",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "",
       "showLabel": false,
       "restricted": false
@@ -61,34 +61,34 @@
       "id": "Z03",
       "name": "Material storage",
       "kind": "section",
-      "x": 1,
-      "y": 27,
-      "w": 11,
-      "h": 21,
+      "x": 7,
+      "y": 32,
+      "w": 12,
+      "h": 27,
       "background": "#e3f1fa",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Material storage",
       "showLabel": true,
-      "restricted": false
+      "restricted": true
     },
     {
       "id": "Z04",
       "name": "Cosplay",
       "kind": "section",
-      "x": 12,
-      "y": 38,
-      "w": 23,
-      "h": 10,
+      "x": 32,
+      "y": 46,
+      "w": 15,
+      "h": 13,
       "background": "#fae6e6",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Cosplay",
       "showLabel": true,
       "restricted": false
@@ -97,44 +97,44 @@
       "id": "Z05",
       "name": "Workspace",
       "kind": "section",
-      "x": 35,
-      "y": 24,
-      "w": 19,
-      "h": 24,
+      "x": 47,
+      "y": 29,
+      "w": 23,
+      "h": 30,
       "background": "#e3f1fa",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Workspace",
       "showLabel": true,
-      "restricted": false
+      "restricted": true
     },
     {
       "id": "Z06",
       "name": "Machinery",
       "kind": "section",
-      "x": 54,
-      "y": 24,
+      "x": 70,
+      "y": 29,
       "w": 16,
-      "h": 24,
+      "h": 30,
       "background": "#e3f1fa",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Machinery",
       "showLabel": true,
-      "restricted": false
+      "restricted": true
     },
     {
       "id": "Z07",
       "name": "Lounge",
       "kind": "section",
-      "x": 42,
-      "y": 2,
+      "x": 52,
+      "y": 7,
       "w": 14,
       "h": 17,
       "background": "#e3f1fa",
@@ -145,22 +145,22 @@
       "locked": true,
       "area": "Lounge",
       "showLabel": true,
-      "restricted": false
+      "restricted": true
     },
     {
       "id": "Z08",
       "name": "Floor area",
       "kind": "section",
-      "x": 56,
-      "y": 2,
-      "w": 6,
+      "x": 66,
+      "y": 7,
+      "w": 9,
       "h": 8,
       "background": "#f6eaea",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "",
       "showLabel": false,
       "restricted": true
@@ -169,16 +169,16 @@
       "id": "Z09",
       "name": "Office",
       "kind": "section",
-      "x": 56,
-      "y": 10,
-      "w": 14,
+      "x": 66,
+      "y": 15,
+      "w": 20,
       "h": 9,
       "background": "#f6eaea",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Office",
       "showLabel": true,
       "restricted": true
@@ -187,8 +187,8 @@
       "id": "Z10",
       "name": "Room 1",
       "kind": "section",
-      "x": 70,
-      "y": 25,
+      "x": 86,
+      "y": 33,
       "w": 15,
       "h": 17,
       "background": "#f6eaea",
@@ -196,7 +196,7 @@
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Room 1",
       "showLabel": true,
       "restricted": true
@@ -205,8 +205,8 @@
       "id": "Z11",
       "name": "Room 2",
       "kind": "section",
-      "x": 85,
-      "y": 25,
+      "x": 101,
+      "y": 33,
       "w": 15,
       "h": 17,
       "background": "#f6eaea",
@@ -214,7 +214,7 @@
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "Room 2",
       "showLabel": true,
       "restricted": true
@@ -223,16 +223,16 @@
       "id": "Z12",
       "name": "Floor area",
       "kind": "section",
-      "x": 70,
-      "y": 42,
+      "x": 86,
+      "y": 50,
       "w": 30,
-      "h": 6,
+      "h": 9,
       "background": "#f6eaea",
       "color": "#233748",
       "fontSize": 18,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": true,
+      "locked": false,
       "area": "",
       "showLabel": false,
       "restricted": true
@@ -241,8 +241,8 @@
       "id": "F00",
       "name": "Sofa",
       "kind": "cart",
-      "x": 46,
-      "y": 2,
+      "x": 56,
+      "y": 7,
       "w": 8,
       "h": 2,
       "background": "#eff8e9",
@@ -257,10 +257,10 @@
       "id": "F01",
       "name": "Sofa",
       "kind": "cart",
-      "x": 46,
-      "y": 4,
+      "x": 56,
+      "y": 9,
       "w": 2,
-      "h": 3,
+      "h": 2,
       "background": "#eff8e9",
       "color": "#233748",
       "fontSize": 12,
@@ -273,8 +273,8 @@
       "id": "F02",
       "name": "Sofa",
       "kind": "cart",
-      "x": 50,
-      "y": 8,
+      "x": 60,
+      "y": 13,
       "w": 5,
       "h": 2,
       "background": "#eff8e9",
@@ -289,8 +289,8 @@
       "id": "F03",
       "name": "Table",
       "kind": "table",
-      "x": 50,
-      "y": 10,
+      "x": 60,
+      "y": 15,
       "w": 2,
       "h": 4,
       "background": "#f0f8fd",
@@ -305,9 +305,9 @@
       "id": "F04",
       "name": "Table",
       "kind": "table",
-      "x": 50,
-      "y": 14,
-      "w": 3,
+      "x": 52,
+      "y": 7,
+      "w": 4,
       "h": 2,
       "background": "#f0f8fd",
       "color": "#233748",
@@ -321,8 +321,8 @@
       "id": "F05",
       "name": "Table",
       "kind": "table",
-      "x": 46,
-      "y": 15,
+      "x": 56,
+      "y": 21,
       "w": 2,
       "h": 3,
       "background": "#f0f8fd",
@@ -337,8 +337,8 @@
       "id": "F06",
       "name": "Fastener table",
       "kind": "table",
-      "x": 16,
-      "y": 27,
+      "x": 24,
+      "y": 35,
       "w": 4,
       "h": 2,
       "background": "#f0f8fd",
@@ -353,8 +353,8 @@
       "id": "F07",
       "name": "Soldering station",
       "kind": "table",
-      "x": 25,
-      "y": 27,
+      "x": 34,
+      "y": 33,
       "w": 4,
       "h": 3,
       "background": "#f0f8fd",
@@ -369,8 +369,8 @@
       "id": "F08",
       "name": "3D printing",
       "kind": "table",
-      "x": 30,
-      "y": 27,
+      "x": 40,
+      "y": 33,
       "w": 4,
       "h": 3,
       "background": "#f0f8fd",
@@ -385,8 +385,8 @@
       "id": "F09",
       "name": "Table",
       "kind": "table",
-      "x": 23,
-      "y": 33,
+      "x": 35,
+      "y": 38,
       "w": 3,
       "h": 3,
       "background": "#f0f8fd",
@@ -401,8 +401,8 @@
       "id": "F10",
       "name": "Rolling table",
       "kind": "table",
-      "x": 30,
-      "y": 34,
+      "x": 40,
+      "y": 39,
       "w": 4,
       "h": 2,
       "background": "#f0f8fd",
@@ -417,8 +417,8 @@
       "id": "F11",
       "name": "Cart",
       "kind": "cart",
-      "x": 3,
-      "y": 29,
+      "x": 10,
+      "y": 35,
       "w": 2,
       "h": 3,
       "background": "#eff8e9",
@@ -433,8 +433,8 @@
       "id": "F12",
       "name": "Cart",
       "kind": "cart",
-      "x": 3,
-      "y": 33,
+      "x": 10,
+      "y": 40,
       "w": 2,
       "h": 3,
       "background": "#eff8e9",
@@ -449,8 +449,8 @@
       "id": "F13",
       "name": "Table",
       "kind": "table",
-      "x": 7,
-      "y": 42,
+      "x": 14,
+      "y": 51,
       "w": 2,
       "h": 3,
       "background": "#f0f8fd",
@@ -465,8 +465,8 @@
       "id": "F14",
       "name": "File tables",
       "kind": "table",
-      "x": 24,
-      "y": 39,
+      "x": 35,
+      "y": 49,
       "w": 3,
       "h": 3,
       "background": "#f0f8fd",
@@ -481,8 +481,8 @@
       "id": "F15",
       "name": "Cosplay paper table",
       "kind": "table",
-      "x": 28,
-      "y": 40,
+      "x": 40,
+      "y": 49,
       "w": 5,
       "h": 2,
       "background": "#f0f8fd",
@@ -497,9 +497,9 @@
       "id": "F16",
       "name": "Metal table",
       "kind": "table",
-      "x": 41,
-      "y": 26,
-      "w": 5,
+      "x": 56,
+      "y": 33,
+      "w": 4,
       "h": 2,
       "background": "#f0f8fd",
       "color": "#233748",
@@ -513,9 +513,9 @@
       "id": "F17",
       "name": "Metal table",
       "kind": "table",
-      "x": 46,
-      "y": 26,
-      "w": 5,
+      "x": 60,
+      "y": 33,
+      "w": 4,
       "h": 2,
       "background": "#f0f8fd",
       "color": "#233748",
@@ -529,8 +529,8 @@
       "id": "F18",
       "name": "Worktable",
       "kind": "table",
-      "x": 42,
-      "y": 32,
+      "x": 55,
+      "y": 40,
       "w": 3,
       "h": 3,
       "background": "#f0f8fd",
@@ -545,8 +545,8 @@
       "id": "F19",
       "name": "Worktable",
       "kind": "table",
-      "x": 47,
-      "y": 32,
+      "x": 61,
+      "y": 40,
       "w": 3,
       "h": 3,
       "background": "#f0f8fd",
@@ -561,8 +561,8 @@
       "id": "F20",
       "name": "Table",
       "kind": "table",
-      "x": 37,
-      "y": 38,
+      "x": 49,
+      "y": 47,
       "w": 3,
       "h": 4,
       "background": "#f0f8fd",
@@ -577,8 +577,8 @@
       "id": "F21",
       "name": "Metal table",
       "kind": "table",
-      "x": 43,
-      "y": 40,
+      "x": 56,
+      "y": 49,
       "w": 4,
       "h": 2,
       "background": "#f0f8fd",
@@ -593,8 +593,8 @@
       "id": "F22",
       "name": "Worktable",
       "kind": "table",
-      "x": 48,
-      "y": 40,
+      "x": 61,
+      "y": 49,
       "w": 3,
       "h": 3,
       "background": "#f0f8fd",
@@ -609,8 +609,8 @@
       "id": "F23",
       "name": "Table",
       "kind": "table",
-      "x": 37,
-      "y": 46,
+      "x": 45,
+      "y": 57,
       "w": 5,
       "h": 2,
       "background": "#f0f8fd",
@@ -625,8 +625,8 @@
       "id": "F24",
       "name": "Hyperloop",
       "kind": "cart",
-      "x": 43,
-      "y": 45,
+      "x": 54,
+      "y": 56,
       "w": 3,
       "h": 3,
       "background": "#eff8e9",
@@ -641,8 +641,8 @@
       "id": "F25",
       "name": "Cold saw",
       "kind": "machine",
-      "x": 56,
-      "y": 28,
+      "x": 70,
+      "y": 35,
       "w": 2,
       "h": 3,
       "background": "#fceeee",
@@ -657,8 +657,8 @@
       "id": "F26",
       "name": "Panel saw",
       "kind": "machine",
-      "x": 59,
-      "y": 27,
+      "x": 74,
+      "y": 34,
       "w": 4,
       "h": 2,
       "background": "#fceeee",
@@ -673,8 +673,8 @@
       "id": "F27",
       "name": "Mill",
       "kind": "machine",
-      "x": 56,
-      "y": 32,
+      "x": 70,
+      "y": 39,
       "w": 3,
       "h": 3,
       "background": "#fceeee",
@@ -689,8 +689,8 @@
       "id": "F28",
       "name": "Drill press",
       "kind": "machine",
-      "x": 61,
-      "y": 32,
+      "x": 75,
+      "y": 37,
       "w": 2,
       "h": 3,
       "background": "#fceeee",
@@ -705,8 +705,8 @@
       "id": "F29",
       "name": "Lathe",
       "kind": "machine",
-      "x": 67,
-      "y": 29,
+      "x": 84,
+      "y": 34,
       "w": 2,
       "h": 4,
       "background": "#fceeee",
@@ -721,8 +721,8 @@
       "id": "F30",
       "name": "Broken miter saw",
       "kind": "machine",
-      "x": 68,
-      "y": 24,
+      "x": 84,
+      "y": 29,
       "w": 2,
       "h": 4,
       "background": "#fceeee",
@@ -737,8 +737,8 @@
       "id": "F31",
       "name": "Bench grinder",
       "kind": "machine",
-      "x": 68,
-      "y": 34,
+      "x": 84,
+      "y": 39,
       "w": 2,
       "h": 4,
       "background": "#fceeee",
@@ -753,8 +753,8 @@
       "id": "F32",
       "name": "Table",
       "kind": "table",
-      "x": 57,
-      "y": 39,
+      "x": 70,
+      "y": 47,
       "w": 4,
       "h": 2,
       "background": "#f0f8fd",
@@ -769,8 +769,8 @@
       "id": "F33",
       "name": "Table",
       "kind": "table",
-      "x": 62,
-      "y": 37,
+      "x": 77,
+      "y": 42,
       "w": 2,
       "h": 4,
       "background": "#f0f8fd",
@@ -785,8 +785,8 @@
       "id": "F34",
       "name": "Table",
       "kind": "table",
-      "x": 56,
-      "y": 36,
+      "x": 70,
+      "y": 44,
       "w": 2,
       "h": 3,
       "background": "#f0f8fd",
@@ -801,8 +801,8 @@
       "id": "F35",
       "name": "Drill press",
       "kind": "machine",
-      "x": 63,
-      "y": 46,
+      "x": 73,
+      "y": 57,
       "w": 2,
       "h": 2,
       "background": "#fceeee",
@@ -817,8 +817,8 @@
       "id": "R01",
       "name": "Computer shelf 1",
       "kind": "shelf",
-      "x": 5,
-      "y": 19,
+      "x": 11,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -833,8 +833,8 @@
       "id": "R02",
       "name": "Computer shelf 2",
       "kind": "shelf",
-      "x": 8,
-      "y": 19,
+      "x": 14,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -849,8 +849,8 @@
       "id": "R03",
       "name": "Computer shelf 3",
       "kind": "shelf",
-      "x": 11,
-      "y": 19,
+      "x": 17,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -865,8 +865,8 @@
       "id": "R04",
       "name": "Mechanical storage 1",
       "kind": "shelf",
-      "x": 14,
-      "y": 19,
+      "x": 21,
+      "y": 24,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -881,8 +881,8 @@
       "id": "R05",
       "name": "Mechanical storage 2",
       "kind": "shelf",
-      "x": 16,
-      "y": 19,
+      "x": 24,
+      "y": 24,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -897,8 +897,8 @@
       "id": "R06",
       "name": "Electrical storage 1",
       "kind": "shelf",
-      "x": 18,
-      "y": 19,
+      "x": 27,
+      "y": 24,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -913,8 +913,8 @@
       "id": "R07",
       "name": "Electrical storage 2",
       "kind": "shelf",
-      "x": 20,
-      "y": 19,
+      "x": 30,
+      "y": 24,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -929,8 +929,8 @@
       "id": "R08",
       "name": "Black metal cabinet",
       "kind": "shelf",
-      "x": 22,
-      "y": 19,
+      "x": 33,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -945,8 +945,8 @@
       "id": "R09",
       "name": "Gray metal cabinet",
       "kind": "shelf",
-      "x": 25,
-      "y": 19,
+      "x": 37,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -961,8 +961,8 @@
       "id": "R10",
       "name": "Big project bin shelf",
       "kind": "shelf",
-      "x": 28,
-      "y": 19,
+      "x": 40,
+      "y": 24,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -977,8 +977,8 @@
       "id": "R11",
       "name": "Battery cabinet",
       "kind": "shelf",
-      "x": 31,
-      "y": 19,
+      "x": 43,
+      "y": 24,
       "w": 2,
       "h": 2,
       "background": "#fff4d8",
@@ -993,8 +993,8 @@
       "id": "R12",
       "name": "Chemical cabinet",
       "kind": "shelf",
-      "x": 33,
-      "y": 19,
+      "x": 45,
+      "y": 24,
       "w": 2,
       "h": 2,
       "background": "#fff4d8",
@@ -1009,8 +1009,8 @@
       "id": "R13",
       "name": "Metal shelf",
       "kind": "shelf",
-      "x": 16,
-      "y": 25,
+      "x": 24,
+      "y": 33,
       "w": 5,
       "h": 2,
       "background": "#fff4d8",
@@ -1025,8 +1025,8 @@
       "id": "R14",
       "name": "Metal storage shelf",
       "kind": "shelf",
-      "x": 13,
-      "y": 28,
+      "x": 20,
+      "y": 35,
       "w": 2,
       "h": 5,
       "background": "#fff4d8",
@@ -1041,8 +1041,8 @@
       "id": "R15",
       "name": "Bin shelf",
       "kind": "shelf",
-      "x": 16,
-      "y": 35,
+      "x": 26,
+      "y": 41,
       "w": 4,
       "h": 2,
       "background": "#fff4d8",
@@ -1057,8 +1057,8 @@
       "id": "M01",
       "name": "Storage rack · north",
       "kind": "shelf",
-      "x": 1,
-      "y": 27,
+      "x": 7,
+      "y": 33,
       "w": 2,
       "h": 8,
       "background": "#fff4d8",
@@ -1073,8 +1073,8 @@
       "id": "M02",
       "name": "Storage rack · south",
       "kind": "shelf",
-      "x": 1,
-      "y": 36,
+      "x": 7,
+      "y": 43,
       "w": 2,
       "h": 7,
       "background": "#fff4d8",
@@ -1089,8 +1089,8 @@
       "id": "M03",
       "name": "Material storage rack",
       "kind": "shelf",
-      "x": 1,
-      "y": 44,
+      "x": 7,
+      "y": 52,
       "w": 5,
       "h": 2,
       "background": "#fff4d8",
@@ -1105,8 +1105,8 @@
       "id": "C01",
       "name": "Metal shelf",
       "kind": "shelf",
-      "x": 13,
-      "y": 47,
+      "x": 23,
+      "y": 58,
       "w": 3,
       "h": 1,
       "background": "#fff4d8",
@@ -1121,8 +1121,8 @@
       "id": "C02",
       "name": "Cabinet · west",
       "kind": "shelf",
-      "x": 16,
-      "y": 47,
+      "x": 26,
+      "y": 58,
       "w": 3,
       "h": 1,
       "background": "#fff4d8",
@@ -1137,8 +1137,8 @@
       "id": "C03",
       "name": "Cabinet · east",
       "kind": "shelf",
-      "x": 25,
-      "y": 47,
+      "x": 35,
+      "y": 58,
       "w": 3,
       "h": 1,
       "background": "#fff4d8",
@@ -1153,8 +1153,8 @@
       "id": "C04",
       "name": "Cabinet · south",
       "kind": "shelf",
-      "x": 28,
-      "y": 47,
+      "x": 38,
+      "y": 58,
       "w": 3,
       "h": 1,
       "background": "#fff4d8",
@@ -1169,9 +1169,9 @@
       "id": "W01",
       "name": "Bin shelf · west",
       "kind": "shelf",
-      "x": 42,
-      "y": 24,
-      "w": 4,
+      "x": 58,
+      "y": 31,
+      "w": 3,
       "h": 2,
       "background": "#fff4d8",
       "color": "#233748",
@@ -1185,9 +1185,9 @@
       "id": "W02",
       "name": "Bin shelf · east",
       "kind": "shelf",
-      "x": 46,
-      "y": 24,
-      "w": 4,
+      "x": 61,
+      "y": 31,
+      "w": 3,
       "h": 2,
       "background": "#fff4d8",
       "color": "#233748",
@@ -1201,8 +1201,8 @@
       "id": "W03",
       "name": "Tool storage",
       "kind": "shelf",
-      "x": 50,
-      "y": 45,
+      "x": 68,
+      "y": 39,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -1217,8 +1217,8 @@
       "id": "W04",
       "name": "Drawer cabinet",
       "kind": "shelf",
-      "x": 46,
-      "y": 46,
+      "x": 64,
+      "y": 57,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -1233,8 +1233,8 @@
       "id": "T01",
       "name": "Tool cabinet",
       "kind": "shelf",
-      "x": 54,
-      "y": 26,
+      "x": 68,
+      "y": 35,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -1249,8 +1249,8 @@
       "id": "T02",
       "name": "Machine supplies",
       "kind": "shelf",
-      "x": 54,
-      "y": 30,
+      "x": 77,
+      "y": 46,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -1265,8 +1265,8 @@
       "id": "T03",
       "name": "Storage bin shelf 1",
       "kind": "shelf",
-      "x": 58,
-      "y": 41,
+      "x": 73,
+      "y": 49,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -1281,8 +1281,8 @@
       "id": "T04",
       "name": "Storage bin shelf 2",
       "kind": "shelf",
-      "x": 61,
-      "y": 41,
+      "x": 76,
+      "y": 49,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -1297,8 +1297,8 @@
       "id": "T05",
       "name": "Clamp bins",
       "kind": "shelf",
-      "x": 68,
-      "y": 39,
+      "x": 84,
+      "y": 44,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -1313,8 +1313,8 @@
       "id": "T06",
       "name": "Clamp bin storage",
       "kind": "shelf",
-      "x": 65,
-      "y": 46,
+      "x": 75,
+      "y": 57,
       "w": 3,
       "h": 2,
       "background": "#fff4d8",
@@ -1329,8 +1329,8 @@
       "id": "T07",
       "name": "General storage",
       "kind": "shelf",
-      "x": 66,
-      "y": 19,
+      "x": 76,
+      "y": 24,
       "w": 2,
       "h": 3,
       "background": "#fff4d8",
@@ -1345,8 +1345,8 @@
       "id": "L01",
       "name": "Lounge shelf",
       "kind": "shelf",
-      "x": 43,
-      "y": 18,
+      "x": 53,
+      "y": 23,
       "w": 2,
       "h": 1,
       "background": "#fff4d8",
@@ -1361,8 +1361,8 @@
       "id": "L02",
       "name": "Study storage",
       "kind": "shelf",
-      "x": 42,
-      "y": 13,
+      "x": 52,
+      "y": 18,
       "w": 1,
       "h": 4,
       "background": "#fff4d8",
@@ -1372,203 +1372,1046 @@
       "bold": true,
       "locked": false,
       "area": "Lounge"
+    },
+    {
+      "name": "Cosplay Floor Space",
+      "background": "#fae6e6",
+      "color": "#233748",
+      "fontSize": 18,
+      "fontFamily": "system-ui",
+      "bold": true,
+      "id": "S-1f9a6677",
+      "kind": "section",
+      "x": 19,
+      "y": 55,
+      "w": 13,
+      "h": 4,
+      "locked": false,
+      "showLabel": false,
+      "restricted": false
+    },
+    {
+      "name": "Robotics Floor Space 2",
+      "background": "#e1f1e2",
+      "color": "#233748",
+      "fontSize": 18,
+      "fontFamily": "system-ui",
+      "bold": true,
+      "id": "S-398bfa58",
+      "kind": "section",
+      "x": 19,
+      "y": 46,
+      "w": 13,
+      "h": 9,
+      "locked": false,
+      "showLabel": false,
+      "restricted": false
     }
   ],
   "outline": [
     [
-      0,
-      18
-    ],
-    [
-      37,
-      18
-    ],
-    [
-      37,
-      0
-    ],
-    [
-      41,
-      0
-    ],
-    [
-      41,
-      1
-    ],
-    [
-      61,
-      1
-    ],
-    [
-      61,
-      9
-    ],
-    [
-      69,
-      9
-    ],
-    [
-      69,
+      6,
       23
     ],
     [
-      70,
+      47,
       23
     ],
     [
-      70,
-      24
+      47,
+      6
     ],
     [
-      99,
-      24
+      51,
+      6
     ],
     [
-      99,
-      46
+      74,
+      6
     ],
     [
-      100,
-      46
+      74,
+      14
     ],
     [
-      100,
-      48
+      85,
+      14
     ],
     [
-      98,
-      48
+      85,
+      23
     ],
     [
-      98,
-      47
+      83,
+      23
     ],
     [
-      0,
-      47
+      83,
+      28
+    ],
+    [
+      85,
+      28
+    ],
+    [
+      85,
+      32
+    ],
+    [
+      115,
+      32
+    ],
+    [
+      115,
+      49
+    ],
+    [
+      114,
+      49
+    ],
+    [
+      114,
+      52
+    ],
+    [
+      115,
+      52
+    ],
+    [
+      115,
+      59
+    ],
+    [
+      112,
+      59
+    ],
+    [
+      111,
+      58
+    ],
+    [
+      6,
+      58
     ]
   ],
   "routes": [
     [
       [
-        39.5,
-        1.8
+        49,
+        5.8
       ],
       [
-        39.5,
-        21.8
+        49,
+        25.8
       ]
     ],
     [
       [
-        39.5,
-        8.2
+        49.5,
+        13.2
       ],
       [
-        45.4,
-        8.2
+        55.4,
+        13.2
       ]
     ],
     [
       [
-        1.4,
-        22.4
+        11.4,
+        26.4
       ],
       [
-        64.6,
-        22.4
+        80.5,
+        26.3
       ]
     ],
     [
       [
-        11.7,
-        22.4
+        17.7,
+        27.4
       ],
       [
-        11.7,
-        42.7
+        17.5,
+        52.4
       ]
     ],
     [
       [
-        21.9,
-        22.4
+        30.9,
+        27.4
       ],
       [
-        21.9,
-        42.6
+        30.7,
+        52.1
       ]
     ],
     [
       [
-        34,
-        22.5
+        46,
+        27.5
       ],
       [
-        34,
-        42.7
+        45.8,
+        51.4
       ]
     ],
     [
       [
-        53,
-        22.4
+        65,
+        27.4
       ],
       [
-        53,
-        42.7
+        65,
+        51.9
       ]
     ],
     [
       [
-        65.1,
-        22.4
+        80.1,
+        27.4
       ],
       [
-        65.1,
-        42.9
+        80,
+        52.3
       ]
     ],
     [
       [
-        1,
-        44.3
+        11,
+        56.3
       ],
       [
-        97.6,
-        44.3
+        107.6,
+        56.3
       ]
     ],
     [
       [
-        12.5,
-        42.7
+        17.5,
+        53.7
       ],
       [
-        64.2,
-        42.7
+        80.1,
+        53.8
       ]
     ],
     [
       [
-        78.6,
-        44.3
+        97.8,
+        56.6
       ],
       [
-        78.6,
-        41.2
+        97.9,
+        49.3
       ]
     ],
     [
       [
-        84.7,
-        44.3
+        102,
+        56.4
       ],
       [
-        84.7,
-        41.2
+        102,
+        49
       ]
     ]
   ],
-  "versionName": "Original layout"
+  "versionName": "Draft 8 (Lab Resizing)",
+  "walls": [
+    {
+      "id": "W-21525660ec8114c1058502af8c2ef505",
+      "a": [
+        51,
+        23
+      ],
+      "b": [
+        83,
+        23
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e8a748b3ffbd51ffdb01ef78d104acf7",
+      "a": [
+        51,
+        23
+      ],
+      "b": [
+        51,
+        15
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-6ca63d4ad633912fe923b319ff7cc1fc",
+      "a": [
+        51,
+        11
+      ],
+      "b": [
+        51,
+        6
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-fc92e9e60abac178b4b439b3e9752a48",
+      "a": [
+        53,
+        15
+      ],
+      "b": [
+        51,
+        15
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-59a10e68bc7782f664682cab77018762",
+      "a": [
+        53,
+        15
+      ],
+      "b": [
+        53,
+        17
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-d6489e213ca0c6cbc57f51dc25c43d5f",
+      "a": [
+        51,
+        17
+      ],
+      "b": [
+        53,
+        17
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-3ac4c5338d5f56775c124d7d6cac0aae",
+      "a": [
+        51,
+        22
+      ],
+      "b": [
+        52,
+        22
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-5cedab8d7c70beca272dbb999b590cc6",
+      "a": [
+        52,
+        23
+      ],
+      "b": [
+        52,
+        22
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-de5973426bb5a1229caf521ddf137679",
+      "a": [
+        65,
+        23
+      ],
+      "b": [
+        65,
+        6
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-d1ed5af167ca0bedf14cde2dbc6cbefe",
+      "a": [
+        68,
+        16
+      ],
+      "b": [
+        68,
+        6
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e2e97b6800f59ff102783ed2b1c0a7df",
+      "a": [
+        70,
+        14
+      ],
+      "b": [
+        74,
+        14
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-76338dbfa81d4c960e2631d1224ab225",
+      "a": [
+        68,
+        16
+      ],
+      "b": [
+        65,
+        16
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-fd267759871e6b7314a0d33b3b7c6db8",
+      "a": [
+        69,
+        32
+      ],
+      "b": [
+        71,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-0fa50f07fb43cadcc9d9c7bdae98066d",
+      "a": [
+        71,
+        34
+      ],
+      "b": [
+        71,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-47a51bbbc3388a860a7e2c6983ed4e7d",
+      "a": [
+        71,
+        33
+      ],
+      "b": [
+        78,
+        33
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-5dab480831f0cba60b7ef06d9b48dc9e",
+      "a": [
+        69,
+        48
+      ],
+      "b": [
+        78,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e03c05afe6687395638bc6d091a18f36",
+      "a": [
+        71,
+        48
+      ],
+      "b": [
+        71,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-16a8dfacbf8cb6c851e78a830cd83c0e",
+      "a": [
+        69,
+        49
+      ],
+      "b": [
+        71,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-4b86b06f8d300dfa63edf847acdf8441",
+      "a": [
+        69,
+        49
+      ],
+      "b": [
+        69,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-4df31d7069e7e0270a3e21381e282ff7",
+      "a": [
+        71,
+        34
+      ],
+      "b": [
+        69,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-fedea03f36aad21de9eea19dd73865b5",
+      "a": [
+        85,
+        54
+      ],
+      "b": [
+        85,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-701473b23f4e377ec3081860f4622a86",
+      "a": [
+        97,
+        49
+      ],
+      "b": [
+        85,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-85af201ad75f46b1f610c5cb57a2f3c5",
+      "a": [
+        101,
+        49
+      ],
+      "b": [
+        99,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e168a917ae3c159c44434e2da742bf13",
+      "a": [
+        100,
+        32
+      ],
+      "b": [
+        100,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-19d26e3008321c8ee162c151f924e9bb",
+      "a": [
+        87,
+        32
+      ],
+      "b": [
+        87,
+        35
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-64528269f50eaffff6873e6fcec2e879",
+      "a": [
+        85,
+        35
+      ],
+      "b": [
+        87,
+        35
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-603bace51318f9eca47094943b3f4b4d",
+      "a": [
+        85,
+        47
+      ],
+      "b": [
+        87,
+        47
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-b02e58a503106be205b8f7e18f1bb11b",
+      "a": [
+        87,
+        49
+      ],
+      "b": [
+        87,
+        47
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-12e1ff2f93625bd1124dcb9fb9e3387c",
+      "a": [
+        115,
+        49
+      ],
+      "b": [
+        103,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-caf585532f7d75fd5b5acda73e3a9fe2",
+      "a": [
+        84,
+        21
+      ],
+      "b": [
+        84,
+        23
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-1a3c621130866598943e57ca4e3ac0d8",
+      "a": [
+        84,
+        21
+      ],
+      "b": [
+        85,
+        21
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-49b6bbc6b18251e022a473df4b6b6b51",
+      "a": [
+        55,
+        34
+      ],
+      "b": [
+        55,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-012171c23961b96748a05fa491e8f06c",
+      "a": [
+        53,
+        32
+      ],
+      "b": [
+        55,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-9949dfe8f637924837bc5ce43290f25f",
+      "a": [
+        53,
+        32
+      ],
+      "b": [
+        53,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-31b03a2e735006bae236208734bf942b",
+      "a": [
+        53,
+        34
+      ],
+      "b": [
+        55,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-d16f05fdfc14c2a61967ee40949c1bfb",
+      "a": [
+        53,
+        49
+      ],
+      "b": [
+        55,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-87b67ab6cfb1d4cfe8dfec898c203494",
+      "a": [
+        53,
+        49
+      ],
+      "b": [
+        53,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-5a2847949bc4525e5c2c800ea22d8b77",
+      "a": [
+        55,
+        48
+      ],
+      "b": [
+        53,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e8dee12465adbabaf93396a54c33d357",
+      "a": [
+        55,
+        48
+      ],
+      "b": [
+        55,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e1bf22c3f6c70df8c728197eb6c4e26f",
+      "a": [
+        37,
+        34
+      ],
+      "b": [
+        39,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-f3cb140ee1bd29794ab74f3abe6a030f",
+      "a": [
+        37,
+        34
+      ],
+      "b": [
+        37,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-e3582746964f242ed5e8909cce96cac1",
+      "a": [
+        39,
+        32
+      ],
+      "b": [
+        37,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-ba6bb08c95868093dd63a5cc41bbe5c9",
+      "a": [
+        39,
+        32
+      ],
+      "b": [
+        39,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-fb064e9f9ba16b04f54e730862092738",
+      "a": [
+        37,
+        48
+      ],
+      "b": [
+        39,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-2b1ca8e70a3fe81f0c4ee3503d2a7393",
+      "a": [
+        37,
+        48
+      ],
+      "b": [
+        37,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-02065eaa2d239593aaaff528ffb05973",
+      "a": [
+        39,
+        49
+      ],
+      "b": [
+        37,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-07adca9ce7bc803747a68c62c67322b4",
+      "a": [
+        39,
+        49
+      ],
+      "b": [
+        39,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-9d1496a0fa9b58136dc52f1be0499265",
+      "a": [
+        23,
+        32
+      ],
+      "b": [
+        23,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-ae4be73cc8176283640eba04bcad2a43",
+      "a": [
+        23,
+        32
+      ],
+      "b": [
+        21,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-70c94d9168bab58635ea4e3252107997",
+      "a": [
+        21,
+        34
+      ],
+      "b": [
+        21,
+        32
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-b844ca21930b8c782eb3b88b37c30afb",
+      "a": [
+        21,
+        34
+      ],
+      "b": [
+        23,
+        34
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-ba4d590cafe154f0a85505fc09ad032d",
+      "a": [
+        23,
+        48
+      ],
+      "b": [
+        21,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-a0a8f3c8dfb621e28f685eb0d4ee6199",
+      "a": [
+        21,
+        49
+      ],
+      "b": [
+        21,
+        48
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-97629f38d25e65df7bf2f6aa73f2b1e2",
+      "a": [
+        21,
+        49
+      ],
+      "b": [
+        23,
+        49
+      ],
+      "thickness": 0.3
+    },
+    {
+      "id": "W-3e78ea659f1c8d7ac639b0cec5322330",
+      "a": [
+        23,
+        48
+      ],
+      "b": [
+        23,
+        49
+      ],
+      "thickness": 0.3
+    }
+  ],
+  "doors": [
+    {
+      "id": "D-31d4725c22520d5cefb282913b9d7643",
+      "x": 47,
+      "y": 23,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-56675f3cc3ef81f470b20640dddcbcad",
+      "x": 51,
+      "y": 23,
+      "radius": 2,
+      "orientation": "SW"
+    },
+    {
+      "id": "D-61c31a132baf0c01badd183c5552b4d4",
+      "x": 47,
+      "y": 6,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-096d2366aa16381dd01075dbe4002b26",
+      "x": 51,
+      "y": 11,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-df599a0b8af3dca43f4ec49717185d58",
+      "x": 51,
+      "y": 15,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-8d579859c149be22265b5b2e24262358",
+      "x": 68,
+      "y": 14,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-c057cc2628101401ddd800e5248cc4d8",
+      "x": 70,
+      "y": 6,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-654d729cc275f0c95a1b15022bff2b90",
+      "x": 65,
+      "y": 23,
+      "radius": 2,
+      "orientation": "NW"
+    },
+    {
+      "id": "D-d20fe32e7f743c4d184703cdea2c3fd1",
+      "x": 61,
+      "y": 23,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-6b8e5f0cc401c9f7179d6531760a4998",
+      "x": 69,
+      "y": 23,
+      "radius": 2,
+      "orientation": "NW"
+    },
+    {
+      "id": "D-f6f02feaaa1916ba69cd133c8c973a89",
+      "x": 6,
+      "y": 25,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-676b0174fdc0bad61f288da9e1a9950f",
+      "x": 6,
+      "y": 29,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-5ef71c553d1a81911b42ace915b38726",
+      "x": 6,
+      "y": 58,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-6a5c667556f21a5da5e1a0c7e3d2240d",
+      "x": 6,
+      "y": 54,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-f6665945a37b5a257974a1955fe84bd3",
+      "x": 85,
+      "y": 58,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-532b7a4627144fe3811833770eb55255",
+      "x": 85,
+      "y": 54,
+      "radius": 2,
+      "orientation": "SE"
+    },
+    {
+      "id": "D-9aa41bb8657240f36030426f6d2ad7d0",
+      "x": 99,
+      "y": 49,
+      "radius": 2,
+      "orientation": "NW"
+    },
+    {
+      "id": "D-277121738590117b14483c80af590249",
+      "x": 101,
+      "y": 49,
+      "radius": 2,
+      "orientation": "NE"
+    },
+    {
+      "id": "D-59ef4eabf32f5e89ab935255162dab1d",
+      "x": 112,
+      "y": 59,
+      "radius": 2,
+      "orientation": "NE"
+    }
+  ]
 }

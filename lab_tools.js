@@ -1,7 +1,7 @@
 'use strict';
 let selectedRoute=null;
 function validRoute(points){return Array.isArray(points)&&points.length>=2&&points.length<=500&&points.every(p=>p.length===2&&p.every(Number.isFinite)&&p[0]>=0&&p[0]<=lab.data.cols&&p[1]>=0&&p[1]<=lab.data.rows);}
-function chooseRoute(index){if(!canEditMap())return;selectedVertex=null;selectedRoute=index;selectedId=null;$('#routes').checked=true;render();}
+function chooseRoute(index){if(!canEditMap())return;selectedGeometry=null;selectedVertex=null;selectedRoute=index;selectedId=null;$('#routes').checked=true;render();}
 function replaceRoute(points){
   if(!canEditMap()||selectedRoute===null)return;
   if(!validRoute(points)){message('Use 2–500 x,y points within the lab grid.',true);return;}
@@ -38,7 +38,7 @@ function drawRoutes(){
           if(validRoute(candidate))preview(candidate);
         };
         const cleanup=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',end);el.removeEventListener('pointercancel',cancel);};
-        const end=()=>{cleanup();selectedVertex=null;selectedRoute=index;selectedId=null;if(moved&&validRoute(candidate)){checkpoint();d.routes[index]=candidate;changed();}else if(moved)message('Keep traffic arrows inside the grid.',true);render();};
+        const end=()=>{cleanup();selectedGeometry=null;selectedVertex=null;selectedRoute=index;selectedId=null;if(moved&&validRoute(candidate)){checkpoint();d.routes[index]=candidate;changed();}else if(moved)message('Keep traffic arrows inside the grid.',true);render();};
         const cancel=()=>{cleanup();render();};
         el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',cancel);
       });
@@ -88,7 +88,8 @@ $('#restoreVersion').addEventListener('click',async()=>{
   $('#restoreVersion').disabled=true;$('#closeHistory').disabled=true;
   try {
     const result=await api('/api/lab/restore','POST',{version:$('#historyVersions').value,revision:lab.data.revision});
-    checkpoint();lab.data=result;selectedId=null;selectedRoute=null;render();changed();await cacheDraft();$('#historyDialog').close();message('Layout loaded into your draft · use Save changes to name and persist it');
+    if(result._previousInventoryState){lab.data._inventoryState=result._previousInventoryState;delete result._previousInventoryState;}else if(lab.data._inventoryState)result._inventoryState=lab.data._inventoryState;
+    checkpoint();lab.data=result;selectedId=null;selectedRoute=null;render();changed();await cacheDraft();await refreshShelfIndex();$('#historyDialog').close();message('Layout loaded into your draft · use Save changes to name and persist it');
   }catch(error){$('#historyError').textContent=error.message;if(error.status===403)setAuth(false);}
   finally{$('#restoreVersion').disabled=!isAdmin;$('#closeHistory').disabled=false;}
 });

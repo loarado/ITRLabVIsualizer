@@ -3,7 +3,7 @@ let mapEditing=false, selectedVertex=null;
 function canEditMap(){return isAdmin&&mapEditing;}
 function canEditItem(item){return !!item&&isAdmin&&(item.kind==='section'?mapEditing:!mapEditing);}
 function setMapEditing(value){
-  mapEditing=isAdmin&&value;selectedVertex=null;selectedId=null;selectedRoute=null;
+  mapEditing=isAdmin&&value;selectedGeometry=null;selectedVertex=null;selectedId=null;selectedRoute=null;
   render();
 }
 function renderWorkspace(){
@@ -11,7 +11,7 @@ function renderWorkspace(){
   document.body.classList.toggle('map-editing',mapEditing);
   $('h1').textContent=isAdmin?(mapEditing?'Lab Map Editor':'Lab Editor'):'Lab Explorer';
   document.title=$('h1').textContent+' · ITR Lab';
-  $('#labHint').textContent=!isAdmin?'Explore the lab. Select a shelf or section to learn more.':mapEditing?'Edit the outline, sections, and traffic arrows. Your changes stay in the draft until saved.':'Select an item to edit. Drag unlocked items or use arrow keys to move them one cell.';
+  $('#labHint').textContent=!isAdmin?'Explore the lab. Select a shelf or section to learn more.':mapEditing?'Edit the outline, sections, walls, doors, and traffic arrows. Your changes stay in the draft until saved.':'Select an item to edit. Drag unlocked items or use arrow keys to move them one cell.';
   $('aside > h2').textContent=mapEditing?'Map structure':'Lab items';
   $('#mapMode').hidden=!isAdmin;$('#mapMode').textContent=mapEditing?'Leave Lab Map Editor':'Lab Map Editor';$('#mapMode').setAttribute('aria-pressed',mapEditing);
   $('#addPanel').hidden=mapEditing;$('#directoryPanel').hidden=mapEditing;
@@ -22,7 +22,7 @@ function renderWorkspace(){
 }
 $('#mapMode').addEventListener('click',()=>setMapEditing(!mapEditing));
 
-function selectVertex(index){if(!canEditMap())return;selectedVertex=index;selectedId=null;selectedRoute=null;render();}
+function selectVertex(index){if(!canEditMap())return;selectedGeometry=null;selectedVertex=index;selectedId=null;selectedRoute=null;render();}
 function renderVertices(){
   if(!canEditMap())return;
   if(selectedVertex!==null&&!lab.data.outline[selectedVertex])selectedVertex=null;
@@ -51,7 +51,7 @@ function bindOutlineDrag(point,index){
     if(!canEditMap()||event.button!==0)return;
     event.preventDefault();event.stopPropagation();
     const rect=plan.getBoundingClientRect(),start=[event.clientX,event.clientY],original=clone(lab.data.outline);let candidate=clone(original),moved=false;
-    selectedVertex=index;selectedId=null;selectedRoute=null;point.setPointerCapture(event.pointerId);
+    selectedGeometry=null;selectedVertex=index;selectedId=null;selectedRoute=null;point.setPointerCapture(event.pointerId);
     const move=e=>{
       candidate=clone(original);candidate[index]=[Math.round(original[index][0]+(e.clientX-start[0])/rect.width*lab.data.cols),Math.round(original[index][1]+(e.clientY-start[1])/rect.height*lab.data.rows)];
       moved=JSON.stringify(candidate)!==JSON.stringify(original);
@@ -85,3 +85,13 @@ $('#insertVertex').addEventListener('click',()=>{
   const points=clone(lab.data.outline),a=points[selectedVertex],b=points[(selectedVertex+1)%points.length];
   points.splice(selectedVertex+1,0,[(a[0]+b[0])/2,(a[1]+b[1])/2]);commitOutline(points);
 });
+
+function centerLab(){
+  if(!canEditMap())return;
+  try{
+    const centered=centeredLab(lab.data);
+    if(!centered.dx&&!centered.dy){message('The lab is already centered as closely as the grid allows.');return;}
+    checkpoint();lab.data=centered.data;render();changed();message('Lab centered · all items and map elements moved together · save to keep this arrangement');
+  }catch(error){message(error.message,true);}
+}
+$('#centerLab').addEventListener('click',centerLab);

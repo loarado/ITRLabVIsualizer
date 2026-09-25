@@ -30,7 +30,7 @@ async function cacheDraft() {
   if(!isAdmin||!app?.data)return true;
   const state={data:clone(app.data),history:clone(history),future:clone(future),dirty};
   cacheQueue=cacheQueue.then(async()=>{
-    try {await api(app.endpoint.replace('/api/','/api/drafts/'),'PUT',state);return true;}
+    try {const result=await api(app.endpoint.replace('/api/','/api/drafts/'),'PUT',state);if(result.inventoryChanged)await app.onInventoryChanged?.();return true;}
     catch(error){message('Draft is still in this page, but caching failed: '+error.message,true);return false;}
   });
   return cacheQueue;
@@ -55,10 +55,11 @@ async function save(name) {
   const snapshot=clone(app.data), version=generation;snapshot.versionName=name;
   saving=true;message('Saving named version…');
   savePromise=(async()=>{try {
+    if(!await cacheDraft())throw new Error('Save postponed because draft caching failed.');
     const result=await api(app.endpoint,'PUT',snapshot);
     app.data.revision=result.revision;app.data.versionName=name;
     if(version===generation)dirty=false;
-    await cacheDraft();
+    await cacheDraft();await app.onSaved?.();
     message(dirty?`Saved “${name}”; newer edits remain in your draft`:`Saved “${name}” · revision ${result.revision}`);
     return true;
   } catch(error) {if(error.status===403)setAuth(false);message(error.message,true);return false;} finally {saving=false;}})();
@@ -76,13 +77,14 @@ async function recoverDraft(){
   return false;
 }
 function setAuth(value) {
-  isAdmin=value;document.body.classList.toggle('is-admin',value);document.body.classList.toggle('is-explorer',!value);
+  isAdmin=value;if(!value)app?.clearClipboard?.();document.body.classList.toggle('is-admin',value);document.body.classList.toggle('is-explorer',!value);
   $('#auth').textContent=value?'Log out':'Admin Login';
   $('#access').textContent=value?'Admin · editing enabled':'View Only';
   document.querySelectorAll('[data-admin]').forEach(el=>el.disabled=!value);
   app?.render(); updateUndo();app?.onAuthChanged?.(value);
 }
 function download(data,name) {
+  data=clone(data);delete data._inventoryState;delete data._previousInventoryState;
   const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
@@ -90,7 +92,7 @@ function download(data,name) {
 function fitLabels(root=document) {
   root.querySelectorAll('.fit-label').forEach(label=>{
     const parent=label.parentElement;
-    const vertical=parent.closest('#plan')&&parent.classList.contains('grid-item')&&parent.clientHeight>parent.clientWidth*2.2;
+    const vertical=parent.closest('#plan')&&parent.classList.contains('grid-item')&&!parent.classList.contains('misc-item')&&parent.clientHeight>parent.clientWidth*2.2;
     // Rotate narrow floor-plan labels to use the item's long axis.
     Object.assign(label.style,vertical?{position:'absolute',width:Math.max(1,parent.clientHeight-4)+'px',height:Math.max(1,parent.clientWidth-4)+'px',left:'50%',top:'50%',transform:'translate(-50%, -50%) rotate(90deg)'}:{position:'',width:'',height:'',left:'',top:'',transform:''});
     let size=Number(label.dataset.fontSize)||12;
@@ -111,7 +113,7 @@ async function startApp(controller) {
   app=controller;
   const dialog=document.createElement('dialog');dialog.id='saveVersionDialog';dialog.innerHTML='<form method="dialog"><h2>Save a named version</h2><label class="field">Version name<input id="versionName" maxlength="120" required autocomplete="off" placeholder="e.g. Fall lab arrangement"></label><p class="hint">This saves your current draft to disk.</p><div class="actions"><button class="primary" value="save">Save version</button><button value="cancel" formnovalidate>Cancel</button></div></form>';document.body.append(dialog);
   $('#auth').addEventListener('click',async()=>{
-    if(isAdmin) {if(!await cacheDraft())return;if(dirty&&!confirm('Log out and discard this session’s unsaved drafts? Export first to keep a copy.'))return;try{await api('/api/logout','POST',{});setAuth(false);history=[];future=[];dirty=false;app.data=await api(app.endpoint);app.render();updateUndo();}catch(e){message(e.message,true);}}
+    if(isAdmin) {if(!await cacheDraft())return;if((dirty||app.hasUnsavedChildren?.())&&!confirm('Log out and discard this session’s unsaved drafts? Export first to keep a copy.'))return;try{await api('/api/logout','POST',{});setAuth(false);history=[];future=[];dirty=false;app.data=await api(app.endpoint);app.render();updateUndo();}catch(e){message(e.message,true);}}
     else {$('#loginError').textContent='';$('#login').showModal();$('#password').focus();}
   });
   $('#cancelLogin').addEventListener('click',()=>$('#login').close());
@@ -141,3 +143,20 @@ async function startApp(controller) {
   try {const [data,session]=await Promise.all([api(app.endpoint),api('/api/session')]);app.data=data;setAuth(session.admin);if(!session.admin||!await recoverDraft())message('Loaded from server');}
   catch(error){message(error.message,true);$('#fatal').hidden=false;$('#fatal').textContent=error.message+' Stop the old static server and run: python3 server.py';}
 }
+
+function typingShortcut(){const el=document.activeElement;return !!el&&(el.matches('input,textarea,select')||el.isContentEditable);}
+function nearbyPositions(x,y,w,h,cols,rows,step=1,min=0){
+  const candidates=[],seen=new Set();
+  const add=(xx,yy)=>{const key=xx+','+yy;if(!seen.has(key)){seen.add(key);candidates.push({x:xx,y:yy});}};
+  [[x+w,y],[x,y+h],[x-w,y],[x,y-h]].forEach(([xx,yy])=>add(xx,yy));
+  const rest=[];for(let yy=min;yy<=rows-h+min;yy+=step)for(let xx=min;xx<=cols-w+min;xx+=step)rest.push({x:xx,y:yy});
+  rest.sort((a,b)=>((a.x-x)**2+(a.y-y)**2)-((b.x-x)**2+(b.y-y)**2)||a.y-b.y||a.x-b.x);rest.forEach(p=>add(p.x,p.y));return candidates;
+}
+let clipboardJob=Promise.resolve();
+document.addEventListener('keydown',event=>{
+  if(event.defaultPrevented||!isAdmin||!(event.ctrlKey||event.metaKey)||typingShortcut()||document.querySelector('dialog[open]')||!app?.clipboardContext?.())return;
+  const key=event.key.toLowerCase();if(key!=='c'&&key!=='v')return;event.preventDefault();
+  clipboardJob=clipboardJob.then(()=>key==='c'?app.copySelection():app.pasteSelection()).catch(error=>message(error.message,true));
+});
+
+function uniqueId(){return Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');}

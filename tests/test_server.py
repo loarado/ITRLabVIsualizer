@@ -48,6 +48,115 @@ class ServerTests(unittest.TestCase):
     def login(self):
         self.assertEqual(self.request('POST', '/api/login', {'password': 'itr'})[0], 200)
 
+    def test_misc_shapes_validation_and_persistence(self):
+        self.login();lab=self.request('GET','/api/lab')[1]
+        misc=dict(lab['items'][0]);misc.update(id='misc-marker',kind='misc',name='Extinguisher',x=1,y=1,w=2,h=2,shape='circle',showLabel=False,lineDirection='horizontal',lineWidth=4)
+        lab['items'].append(misc)
+        self.assertEqual(self.request('PUT','/api/lab',lab)[0],200)
+        self.request('POST','/api/logout',{})
+        self.assertEqual(self.request('GET','/api/lab')[1]['items'][-1],misc)
+        for key,value in [('shape','bad'),('showLabel','yes'),('lineWidth',0),('lineDirection','bad')]:
+            invalid=copy.deepcopy(lab);invalid['items'][-1][key]=value
+            with self.assertRaises(ValueError):validate_lab(invalid)
+
+    def test_prepared_save_recovers_after_restart(self):
+        lab=self.request('GET','/api/lab')[1];lab.update(revision=1,versionName='Recovered save')
+        shelf=self.request('GET','/api/shelves/R01')[1];shelf.update(revision=1,name='Recovered inventory')
+        write_json(self.data/'pending-save.json',{'shelves/R01.json':shelf,'history/lab/1.json':{'layout':lab,'shelves':{'R01':shelf},'savedAt':'2026-09-24T00:00:00Z','reason':'Recovered save'},'lab.json':lab})
+        self.server.shutdown();self.server.server_close();self.thread.join()
+        self.server=LabServer(('127.0.0.1',0),self.data,'itr');self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
+        self.assertFalse((self.data/'pending-save.json').exists());self.assertEqual(self.request('GET','/api/lab')[1]['versionName'],'Recovered save');self.assertEqual(self.request('GET','/api/shelves/R01')[1]['name'],'Recovered inventory')
+
+    def test_inventory_restore_undo_memory_and_clean_save(self):
+        self.login();header={'X-Editor-Instance':'undo-inventory'}
+        for name in ('A','B'):
+            shelf=self.request('GET','/api/shelves/R01')[1];shelf['name']=name
+            self.assertEqual(self.request('PUT','/api/shelves/R01',shelf,header)[0],200)
+        result=self.request('POST','/api/lab/restore',dict(version='1',revision=2),header)[1]
+        previous=result.pop('_previousInventoryState');state=dict(data=result,history=[],future=[],dirty=True)
+        self.request('PUT','/api/drafts/lab',state,header)
+        self.assertEqual(self.request('GET','/api/drafts/shelves/R01',headers=header)[1]['data']['name'],'A')
+        result['_inventoryState']=previous
+        self.request('PUT','/api/drafts/lab',state,header)
+        self.assertEqual(self.request('GET','/api/drafts/shelves/R01',headers=header)[1]['data']['name'],'B')
+        self.assertEqual(self.request('PUT','/api/lab',result,header)[0],200)
+        self.assertNotIn('_inventoryState',self.request('GET','/api/lab')[1])
+
+    def test_geometry_versions_and_validation(self):
+        self.login();header={'X-Editor-Instance':'geometry-test'}
+        lab=self.request('GET','/api/lab')[1]
+        lab.update(walls=[dict(id='w1',a=[40,20],b=[50,20],thickness=.3)],doors=[dict(id='d1',x=50,y=20,radius=3,orientation='SE')])
+        self.assertEqual(self.request('PUT','/api/lab',lab,header)[0],200)
+        for field,value in [('walls',[dict(id='w1',a=[1,1],b=[1,1],thickness=.3)]),('doors',[dict(id='d1',x=0,y=0,radius=3,orientation='NW')])]:
+            invalid=copy.deepcopy(lab);invalid[field]=value
+            with self.assertRaises(ValueError):validate_lab(invalid)
+        lab['revision']=1;lab['walls'][0]['b']=[52,21];lab['doors'][0]['x']=53
+        self.assertEqual(self.request('PUT','/api/lab',lab,header)[0],200)
+        self.request('POST','/api/logout',{});saved=self.request('GET','/api/lab')[1]
+        self.assertEqual(saved['walls'][0]['b'],[52,21]);self.assertEqual(saved['doors'][0]['x'],53)
+        self.login();restored=self.request('POST','/api/lab/restore',dict(version='1',revision=2),header)[1]
+        self.assertEqual(restored['walls'][0]['b'],[50,20]);self.assertEqual(restored['doors'][0]['x'],50)
+        restored.update(walls=[],doors=[]);self.assertEqual(self.request('PUT','/api/lab',restored,header)[0],200)
+        self.assertEqual(self.request('GET','/api/lab')[1]['walls'],[])
+
+    def test_stale_shelf_draft_prevents_partial_lab_save(self):
+        self.login();header={'X-Editor-Instance':'stale-test'}
+        shelf=self.request('GET','/api/shelves/R01')[1];shelf['name']='Stale'
+        self.request('PUT','/api/drafts/shelves/R01',dict(data=shelf,history=[],future=[],dirty=True),header)
+        newer=copy.deepcopy(shelf);newer['name']='Latest';self.request('PUT','/api/shelves/R01',newer)
+        before=(self.data/'lab.json').read_bytes();lab=self.request('GET','/api/lab')[1]
+        self.assertEqual(self.request('PUT','/api/lab',lab,header)[0],409)
+        self.assertEqual((self.data/'lab.json').read_bytes(),before);self.assertEqual(self.request('GET','/api/shelves/R01')[1]['name'],'Latest')
+
+    def test_shelf_page_save_creates_complete_named_lab_version(self):
+        self.login();header={'X-Editor-Instance':'shelf-page'}
+        shelf=self.request('GET','/api/shelves/R01')[1];shelf.update(name='Named shelf state',versionName='From shelf editor')
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf,header)[0],200)
+        current=self.request('GET','/api/lab')[1]
+        self.assertEqual(current.get('versionName'),'From shelf editor')
+        record=json.loads((self.data/f"history/lab/{current['revision']}.json").read_text())
+        self.assertEqual(record['shelves']['R01']['name'],'Named shelf state')
+
+    def test_fractional_bin_validation(self):
+        shelf=blank_shelf('fractional');shelf.update(rows=2,cols=6,matrix=[[None]*6 for _ in range(2)],mode='complex')
+        cell=dict(name='Bin',contents='',keywords='',w=1.5,h=1.5,background='#ffffff',color='#000000',fontSize=12,fontFamily='Arial',bold=False)
+        for c in (0,1.5,3,4.5):shelf['matrix'][0][int(c)]={**cell,'offsetX':c%1}
+        validate_shelf(shelf,'fractional')
+        for field,value in [('w',.5),('h',.5),('offsetX',.25),('w',2),('h',2.5)]:
+            invalid=copy.deepcopy(shelf);invalid['matrix'][0][0][field]=value
+            with self.assertRaises(ValueError):validate_shelf(invalid,'fractional')
+
+    def test_lab_save_commits_shelf_drafts_and_versions(self):
+        self.login()
+        header = {'X-Editor-Instance': 'persistence-test'}
+        versions = []
+        for label in ('First inventory', 'Second inventory'):
+            for sid, mode in [('R01', 'simple'), ('R02', 'complex')]:
+                shelf = self.request('GET', '/api/shelves/'+sid)[1]
+                shelf.update(name=label, contents=label+' contents', keywords=label+' keywords', mode=mode)
+                if mode == 'complex':
+                    shelf['matrix'][1][2] = dict(name=label, contents='M4', keywords='steel', w=2, h=3,
+                        background='#ffffff', color='#000000', fontSize=12, fontFamily='Arial', bold=False)
+                state = dict(data=shelf, history=[], future=[], dirty=True)
+                self.assertEqual(self.request('PUT', '/api/drafts/shelves/'+sid, state, header)[0], 200)
+                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data'], shelf)
+            lab = self.request('GET', '/api/lab')[1]
+            lab['versionName'] = label
+            status, result = self.request('PUT', '/api/lab', lab, header)
+            self.assertEqual(status, 200)
+            versions.append(result['revision'])
+            self.request('POST', '/api/logout', {})
+            for sid in ('R01', 'R02'):
+                self.assertEqual(self.request('GET', '/api/shelves/'+sid)[1]['name'], label)
+            self.login()
+        for revision, label in zip(versions, ('First inventory', 'Second inventory')):
+            before = self.request('GET', '/api/lab/history')[1]
+            result = self.request('POST', '/api/lab/restore', dict(version=str(revision), revision=versions[-1]), header)
+            self.assertEqual(result[0], 200)
+            for sid in ('R01', 'R02'):
+                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data']['name'], label)
+            self.assertEqual(self.request('GET', '/api/lab/history')[1], before)
+
     def test_authentication_enforced_and_logout_revokes(self):
         _, lab = self.request('GET', '/api/lab')
         self.assertEqual(self.request('PUT', '/api/lab', lab)[0], 403)
