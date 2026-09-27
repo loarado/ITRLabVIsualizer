@@ -1,5 +1,5 @@
 {
-  "revision": 151,
+  "revision": 152,
   "cols": 120,
   "rows": 65,
   "items": [
@@ -238,26 +238,10 @@
       "restricted": true
     },
     {
-      "id": "F02",
-      "name": "Sofa",
-      "kind": "cart",
-      "x": 60,
-      "y": 13,
-      "w": 5,
-      "h": 2,
-      "background": "#eff8e9",
-      "color": "#233748",
-      "fontSize": 12,
-      "fontFamily": "system-ui",
-      "bold": true,
-      "locked": false,
-      "area": ""
-    },
-    {
       "id": "F03",
       "name": "Table",
       "kind": "table",
-      "x": 60,
+      "x": 61,
       "y": 15,
       "w": 2,
       "h": 5,
@@ -3050,6 +3034,44 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false
+    },
+    {
+      "name": "Sofa",
+      "background": "#fbbcbf",
+      "color": "#000000",
+      "fontSize": 14,
+      "fontFamily": "system-ui",
+      "bold": true,
+      "id": "M-64c2d498c28fe5180b06f9717d5bb486",
+      "kind": "misc",
+      "x": 60,
+      "y": 13,
+      "w": 5,
+      "h": 2,
+      "locked": false,
+      "shape": "square",
+      "showLabel": true,
+      "lineDirection": "horizontal",
+      "lineWidth": 4
+    },
+    {
+      "name": "president",
+      "background": "#eabcfb",
+      "color": "#000000",
+      "fontSize": 14,
+      "fontFamily": "system-ui",
+      "bold": true,
+      "id": "M-69fc9d7e9c2ca65de333adb3584adab8",
+      "kind": "misc",
+      "x": 63,
+      "y": 15,
+      "w": 1,
+      "h": 1,
+      "locked": false,
+      "shape": "square",
+      "showLabel": true,
+      "lineDirection": "horizontal",
+      "lineWidth": 4
     }
   ],
   "outline": [
@@ -3260,7 +3282,7 @@
       ]
     ]
   ],
-  "versionName": "Draft Z2",
+  "versionName": "Draft Z3",
   "walls": [
     {
       "id": "W-21525660ec8114c1058502af8c2ef505",

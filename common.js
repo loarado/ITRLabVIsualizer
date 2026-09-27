@@ -133,7 +133,7 @@ async function startApp(controller) {
   $('#save').addEventListener('click',()=>save());
   $('#undo').addEventListener('click',()=>undoEdit());
   $('#redo').addEventListener('click',()=>undoEdit(true));
-  $('#export').addEventListener('click',()=>download(app.data,app.filename));
+  $('#export').addEventListener('click',()=>app.exportData?app.exportData():download(app.data,app.filename));
   $('#reload').addEventListener('click',async()=>{
     if(dirty&&!confirm('Discard your unsaved draft and reload the server version? Export first if you need a copy.'))return;
     clearTimeout(saveTimer);

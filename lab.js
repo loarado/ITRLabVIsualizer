@@ -2,6 +2,51 @@
 let selectedId=null, zoom=1, shelfIndex={}, indexRequest=0;
 const lab={data:null,endpoint:'/api/lab',filename:'lab.json',render,onAuthChanged:refreshShelfIndex,onInventoryChanged:refreshShelfIndex};
 const plan=$('#plan');
+
+lab.exportData=async()=>{
+  const button=$('#export');if(!lab.data)return;button.disabled=true;
+  try{
+    if(isAdmin&&!await cacheDraft())return;
+    const data=clone(lab.data),shelves={};
+    // Include full inventories, including this editor's unsaved shelf drafts.
+    for(const item of data.items.filter(item=>item.kind==='shelf')){
+      const draft=isAdmin?await api('/api/drafts/shelves/'+encodeURIComponent(item.id)):null;
+      const inventory=clone(draft?.data??await api('/api/shelves/'+encodeURIComponent(item.id)));
+      delete inventory._inventoryState;delete inventory._previousInventoryState;
+      shelves[item.id]=inventory;
+    }
+    download({...data,shelves},'lab-details.json');message('Lab details and shelf inventories exported');
+  }catch(error){message('Could not export lab details: '+error.message,true);}
+  finally{button.disabled=false;}
+};
+
+$('#exportImage').addEventListener('click',async()=>{
+  const button=$('#exportImage');if(!lab.data)return;button.disabled=true;
+  try{
+    await document.fonts.ready;fitLabels(plan);
+    const width=plan.offsetWidth,height=plan.offsetHeight,copy=plan.cloneNode(true);
+    const originals=[plan,...plan.querySelectorAll('*')],copies=[copy,...copy.querySelectorAll('*')];
+    originals.forEach((node,index)=>{
+      const style=getComputedStyle(node),target=copies[index];
+      for(const property of style)target.style.setProperty(property,style.getPropertyValue(property));
+      if(node.classList.contains('selected'))target.style.outline='none';
+    });
+    copy.querySelectorAll('.outline-vertices,.geometry-hit,.geometry-handle,.route-handle').forEach(node=>node.remove());
+    Object.assign(copy.style,{width:width+'px',height:height+'px',minWidth:'0',margin:'0',backgroundColor:'#e9eff4'});
+    const markup=new XMLSerializer().serializeToString(copy);
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%">${markup}</foreignObject></svg>`;
+    const image=new Image();
+    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('The browser could not render the map image.'));image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});
+    const scale=Math.min(2,4096/Math.max(width,height)),canvas=document.createElement('canvas');
+    canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
+    const context=canvas.getContext('2d');context.drawImage(image,0,0,canvas.width,canvas.height);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    if(!blob)throw new Error('The browser could not create a PNG.');
+    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='lab-grid.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    message('Full lab grid exported as PNG');
+  }catch(error){message('Could not export grid image: '+error.message,true);}
+  finally{button.disabled=false;}
+});
 const colors={section:'#e3f1fa',shelf:'#fff4d8',table:'#f0f8fd',cart:'#eff8e9',machine:'#fceeee',wall:'#334155',text:'#ffffff',misc:'#dc4545'};
 function itemVisible(item){return item.kind==='section'?$('#sectionsVisible').checked:$('#'+item.kind+'Visible')?.checked!==false;}
 function selected(){return lab.data?.items.find(item=>item.id===selectedId);}
