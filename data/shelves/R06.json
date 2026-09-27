@@ -1,13 +1,14 @@
 {
   "id": "R06",
-  "revision": 0,
+  "revision": 1,
   "rows": 34,
   "cols": 30,
   "schemaVersion": 2,
   "mode": "simple",
-  "name": "Electrical storage 1",
+  "name": "Mechanical storage shelf",
   "contents": "",
   "keywords": "",
+  "versionName": "Recovered edits after Draft X1",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

@@ -88,7 +88,7 @@ function download(data,name) {
   const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-// Font size is a maximum; shrink wrapped text to fit its actual grid rectangle.
+// Font size is a maximum. Wrap between words, then shrink until every word and line fits.
 function fitLabels(root=document) {
   root.querySelectorAll('.fit-label').forEach(label=>{
     const parent=label.parentElement;
@@ -97,13 +97,21 @@ function fitLabels(root=document) {
     Object.assign(label.style,vertical?{position:'absolute',width:Math.max(1,parent.clientHeight-4)+'px',height:Math.max(1,parent.clientWidth-4)+'px',left:'50%',top:'50%',transform:'translate(-50%, -50%) rotate(90deg)'}:{position:'',width:'',height:'',left:'',top:'',transform:''});
     let size=Number(label.dataset.fontSize)||12;
     label.style.fontSize=size+'px';
-    while(size>4&&(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1)) {size-=.5;label.style.fontSize=size+'px';}
+    const text=label.querySelector('.label-text')||label,words=label.querySelectorAll('.label-word');
+    const overflowing=()=>text.scrollHeight>label.clientHeight||text.scrollWidth>label.clientWidth||Array.from(words).some(word=>word.offsetWidth>label.clientWidth);
+    while(size>1&&overflowing()){size=Math.max(1,size-.5);label.style.fontSize=size+'px';}
     // An exceptionally long label must never paint over adjacent items.
     label.title=label.textContent;
   });
 }
 function labelFor(item) {
-  const span=document.createElement('span');span.className='fit-label';span.textContent=item.name;
+  const span=document.createElement('span');span.className='fit-label';
+  const text=document.createElement('span');text.className='label-text';
+  for(const token of (item.name||'').match(/\s+|\S+/g)||[]){
+    if(/^\s+$/.test(token))text.append(document.createTextNode(token));
+    else {const word=document.createElement('span');word.className='label-word';word.textContent=token;text.append(word);}
+  }
+  span.append(text);
   span.dataset.fontSize=item.fontSize;span.style.fontFamily=item.fontFamily;span.style.fontWeight=item.bold?'700':'400';span.style.color=item.color;return span;
 }
 function gridPosition(el,item) {el.style.gridArea=`${item.y} / ${item.x} / span ${item.h} / span ${item.w}`;}

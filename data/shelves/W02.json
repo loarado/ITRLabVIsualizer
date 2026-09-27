@@ -1,13 +1,14 @@
 {
   "id": "W02",
-  "revision": 0,
+  "revision": 2,
   "rows": 34,
   "cols": 30,
   "schemaVersion": 2,
   "mode": "simple",
-  "name": "Bin shelf \u00b7 east",
+  "name": "Bin shelf \u00b7 Julien",
   "contents": "",
   "keywords": "",
+  "versionName": "Draft Z1 (More Lab Changes)",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

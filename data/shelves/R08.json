@@ -1,14 +1,14 @@
 {
   "id": "R08",
-  "revision": 1,
+  "revision": 2,
   "rows": 34,
   "cols": 28,
   "schemaVersion": 2,
   "mode": "complex",
-  "name": "Gray metal cabinet",
+  "name": "Hardware Shelf",
   "contents": "",
   "keywords": "General Robotics Hardware",
-  "versionName": "Draft 5",
+  "versionName": "Recovered edits after Draft X1",
   "matrix": [
     [{"name": "ELECTRICAL STORAGE", "background": "#ffffff", "color": "#4349fe", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "contents": "", "keywords": "", "w": 6, "h": 3}, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, {"name": "MECHANICAL STORAGE", "background": "#ffffff", "color": "#ff7b00", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "contents": "", "keywords": "", "w": 6, "h": 3}, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

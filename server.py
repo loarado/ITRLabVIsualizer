@@ -52,6 +52,8 @@ def validate_lab(doc):
         if not isinstance(item, dict) or not ID.fullmatch(str(item.get('id', ''))) or item['id'] in ids:
             raise ValueError('Every item needs a unique safe ID.')
         ids.add(item['id'])
+        if not text(item.get('locationId', ''), 100):
+            raise ValueError('Location ID must be text of at most 100 characters.')
         if (item.get('kind') not in KINDS or not text(item.get('name')) or not text(item.get('area', '')) or
                 not style(item) or type(item.get('locked')) is not bool):
             raise ValueError('Invalid item type, label, or style.')
@@ -61,6 +63,8 @@ def validate_lab(doc):
         if item['x'] + item['w'] - 1 > doc['cols'] or item['y'] + item['h'] - 1 > doc['rows']:
             raise ValueError('An item extends outside the grid.')
         if item['kind'] == 'misc':
+            if not HEX.fullmatch(str(item.get('outlineColor', '#233748'))) or not integer(item.get('outlineWidth', 1), 0, 20):
+                raise ValueError('Invalid Misc outline color or thickness.')
             if item.get('shape', 'square') not in ('square','line','triangle','circle') or type(item.get('showLabel', True)) is not bool:
                 raise ValueError('Invalid Misc shape or label visibility.')
             if item.get('lineDirection','horizontal') not in ('horizontal','vertical','diagonal-down','diagonal-up') or not integer(item.get('lineWidth',4),1,20):
@@ -276,6 +280,21 @@ class LabServer(ThreadingHTTPServer):
                 shelves[sid] = draft
                 updated.append((cached, draft))
         shelves.update(overrides)
+        previous = json.loads((self.data_dir/'lab.json').read_text())
+        old_names = {item['id']: item['name'] for item in previous['items'] if item['kind'] == 'shelf'}
+        for item in doc['items']:
+            sid = item['id']
+            if item['kind'] != 'shelf' or old_names.get(sid) == item['name']:
+                continue
+            shelf = shelves[sid]
+            if shelf['name'] != item['name']:
+                shelf['name'] = item['name']
+                if not any(draft is shelf for _, draft in updated) and sid not in overrides:
+                    shelf['revision'] += 1
+                    shelf['versionName'] = doc['versionName']
+                    cached = self.drafts.get((*prefix, 'shelves/'+sid))
+                    if cached:
+                        updated.append((cached, shelf))
         self.persist_lab(doc, doc['versionName'], shelves)
         for cached, draft in updated:
             cached['state']['data'] = draft
@@ -378,6 +397,25 @@ class Handler(BaseHTTPRequestHandler):
                         if reference and (not previous or reference != previous['state']['data'].get('_inventoryState')):
                             self.server.apply_inventory(key[:2], self.server.inventory_states[(*key[:2], reference)])
                             inventory_changed = True
+                        else:
+                            old_lab = previous['state']['data'] if previous else json.loads((self.server.data_dir/'lab.json').read_text())
+                            old_names = {item['id']: item['name'] for item in old_lab['items'] if item['kind'] == 'shelf'}
+                            for item in body['data']['items']:
+                                if item['kind'] != 'shelf' or old_names.get(item['id']) == item['name']:
+                                    continue
+                                shelf_key = (*key[:2], 'shelves/'+item['id'])
+                                cached = self.server.drafts.get(shelf_key)
+                                if cached:
+                                    state = copy.deepcopy(cached['state'])
+                                else:
+                                    file = self.server.data_dir/'shelves'/(item['id']+'.json')
+                                    shelf = normalize_shelf(json.loads(file.read_text()), item['name']) if file.exists() else blank_shelf(item['id'], item['name'])
+                                    state = dict(data=shelf, history=[], future=[], dirty=False)
+                                if state['data']['name'] != item['name']:
+                                    state['data']['name'] = item['name']
+                                    state['dirty'] = True
+                                    self.server.drafts[shelf_key] = dict(expires=time.time()+8*3600, state=state)
+                                    inventory_changed = True
                     self.server.drafts[key] = {'expires': time.time()+8*3600, 'state': body}
                     return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed})
                 cached = self.server.drafts.get(key)

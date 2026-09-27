@@ -33,11 +33,11 @@ function wallIntersectsRectangle(wall,rect){
   return rectangleEdges(rect).every(([corner])=>pointSegmentDistance(corner,wall.a,wall.b)<=wall.thickness/2+GEOMETRY_EPS);
 }
 function doorIntersectsRectangle(door,rect){
-  // The prohibited footprint is the drawn quarter disk, including its thin stroke.
+  // Reserve the interior of the quarter disk; boundary contact is allowed.
   // Transform into the door's positive quadrant, then find the nearest rectangle point.
   const [sx,sy]=doorSigns(door),xs=[sx*(rect.x-door.x),sx*(rect.x+rect.w-door.x)],ys=[sy*(rect.y-door.y),sy*(rect.y+rect.h-door.y)];
-  if(Math.max(...xs)<-.1||Math.max(...ys)<-.1)return false;
-  const x=Math.max(0,Math.min(...xs)),y=Math.max(0,Math.min(...ys));return x*x+y*y<(door.radius+.1)**2-GEOMETRY_EPS;
+  if(Math.max(...xs)<=GEOMETRY_EPS||Math.max(...ys)<=GEOMETRY_EPS)return false;
+  const x=Math.max(0,Math.min(...xs)),y=Math.max(0,Math.min(...ys));return x*x+y*y<door.radius**2-GEOMETRY_EPS;
 }
 function clearOfMapGeometry(item,data){const rect={x:item.x-1,y:item.y-1,w:item.w,h:item.h};return !(data.walls||[]).some(w=>wallIntersectsRectangle(w,rect))&&!(data.doors||[]).some(d=>doorIntersectsRectangle(d,rect));}
 

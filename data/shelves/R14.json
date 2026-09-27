@@ -1,13 +1,14 @@
 {
   "id": "R14",
-  "revision": 0,
+  "revision": 1,
   "rows": 34,
   "cols": 30,
   "schemaVersion": 2,
   "mode": "simple",
-  "name": "Metal storage shelf",
+  "name": "Material storage shelf",
   "contents": "",
   "keywords": "",
+  "versionName": "Recovered edits after Draft X1",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

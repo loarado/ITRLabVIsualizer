@@ -27,7 +27,7 @@ function openExplorer(){
 }
 async function inspectShelf(item){
   if(isAdmin)return;const ticket=++explorerRequest;$('#explorerContent').textContent='Loading shelf…';openExplorer();
-  try {const data=await api(`/api/shelves/${encodeURIComponent(item.id)}`);if(ticket!==explorerRequest||isAdmin)return;renderShelfInformation($('#explorerContent'),data,item.name);}
+  try {const data=await api(`/api/shelves/${encodeURIComponent(item.id)}`);if(ticket!==explorerRequest||isAdmin)return;renderShelfInformation($('#explorerContent'),data,item.name);$('#explorerContent').append(infoField('Location ID',item.locationId||item.id));}
   catch(error){if(ticket===explorerRequest)$('#explorerContent').textContent=error.message;}
 }
 if($('#explorerPanel')){
@@ -42,10 +42,10 @@ function inspectSection(section){
   host.append(title,infoField('Area',section.name),infoField('Access',section.restricted?'No access — restricted area':'Lab section'),infoField('In this section',contained.length?contained.map(item=>item.name).join('\n'):'No listed items.'));openExplorer();
 }
 function inspectItem(item){
-  if(isAdmin)return;explorerRequest++;const host=$('#explorerContent');host.replaceChildren();const title=document.createElement('h2');title.textContent=item.name;host.append(title,infoField('Type',item.kind),infoField('Area',itemArea(item,lab.data)),infoField('Location ID',item.id));openExplorer();
+  if(isAdmin)return;explorerRequest++;const host=$('#explorerContent');host.replaceChildren();const title=document.createElement('h2');title.textContent=item.name;host.append(title,infoField('Type',item.kind),infoField('Area',itemArea(item,lab.data)),infoField('Location ID',item.locationId||item.id));openExplorer();
 }
 function renderExplorerResults(items,query){
   const host=$('#explorerResults');host.replaceChildren();host.hidden=isAdmin||!query;if(host.hidden)return;
   if(!items.length){host.textContent='No matching shelves or items.';return;}
-  items.forEach(item=>{const button=document.createElement('button');button.textContent=`${shelfIndex[item.id]?.name||item.name} · ${item.id}`;button.addEventListener('click',()=>choose(item.id));host.append(button);});
+  items.forEach(item=>{const button=document.createElement('button');button.textContent=`${shelfIndex[item.id]?.name||item.name} · ${item.locationId||item.id}`;button.addEventListener('click',()=>choose(item.id));host.append(button);});
 }

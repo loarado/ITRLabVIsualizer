@@ -1,6 +1,6 @@
 {
   "id": "M03",
-  "revision": 0,
+  "revision": 1,
   "rows": 34,
   "cols": 30,
   "schemaVersion": 2,
@@ -8,6 +8,7 @@
   "name": "Material storage rack",
   "contents": "",
   "keywords": "",
+  "versionName": "Recovered edits after Draft X1",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

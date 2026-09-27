@@ -205,6 +205,43 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('PUT', '/api/lab', lab)[0], 200)
         self.assertTrue((self.data / 'shelves/new-shelf.json').exists())
 
+    def test_map_rename_syncs_new_and_copied_inventory_drafts(self):
+        self.login()
+        header = {'X-Editor-Instance': 'rename-test'}
+        lab = self.request('GET', '/api/lab')[1]
+        source = next(i for i in lab['items'] if i['kind'] == 'shelf')
+        for sid in ('new-shelf', 'copied-shelf'):
+            lab['items'].append(dict(source, id=sid, name='File Cabinet'))
+        original = copy.deepcopy(lab)
+        state = lambda data: dict(data=data, history=[], future=[], dirty=True)
+        self.assertEqual(self.request('PUT', '/api/drafts/lab', state(lab), header)[0], 200)
+        for sid in ('new-shelf', 'copied-shelf'):
+            shelf = self.request('GET', '/api/shelves/'+sid, headers=header)[1]
+            shelf.update(contents='Keep these contents', keywords='tools')
+            self.assertEqual(self.request('PUT', '/api/drafts/shelves/'+sid, state(shelf), header)[0], 200)
+        for item in lab['items'][-2:]:
+            item['name'] = 'Metal Shelf'
+        for layout, name in ((lab, 'Metal Shelf'), (original, 'File Cabinet'), (lab, 'Metal Shelf')):
+            result = self.request('PUT', '/api/drafts/lab', state(layout), header)
+            self.assertEqual(result[0], 200)
+            self.assertTrue(result[1]['inventoryChanged'])
+            for sid in ('new-shelf', 'copied-shelf'):
+                draft = self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data']
+                self.assertEqual(draft['name'], name)
+                self.assertEqual(draft['contents'], 'Keep these contents')
+                self.assertEqual(self.request('GET', '/api/shelf-index', headers=header)[1][sid]['name'], name)
+        self.assertEqual(self.request('PUT', '/api/lab', lab, header)[0], 200)
+        for sid in ('new-shelf', 'copied-shelf'):
+            self.assertEqual(self.request('GET', '/api/shelves/'+sid)[1]['name'], 'Metal Shelf')
+
+    def test_map_rename_without_inventory_draft_persists(self):
+        self.login()
+        lab = self.request('GET', '/api/lab')[1]
+        item = next(i for i in lab['items'] if i['kind'] == 'shelf')
+        item['name'] = 'Metal Shelf'
+        self.assertEqual(self.request('PUT', '/api/lab', lab)[0], 200)
+        self.assertEqual(self.request('GET', '/api/shelves/'+item['id'])[1]['name'], 'Metal Shelf')
+
     def test_initial_data_valid_and_bins_cannot_overlap(self):
         validate_lab(json.loads((self.data/'lab.json').read_text()))
         for path in (self.data/'shelves').glob('*.json'):
