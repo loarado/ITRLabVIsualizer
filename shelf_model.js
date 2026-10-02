@@ -1,7 +1,29 @@
 'use strict';
 function normalizeShelf(data,fallbackName=''){
   const hasBins=data.matrix?.some(row=>row.some(cell=>cell!==null));
-  return {...data,schemaVersion:data.schemaVersion??2,mode:data.mode??(hasBins?'complex':'simple'),name:data.name??fallbackName,contents:data.contents??'',keywords:data.keywords??''};
+  return {...data,schemaVersion:data.schemaVersion??2,mode:data.mode??(hasBins?'complex':'simple'),name:data.name??fallbackName,contents:data.contents??'',keywords:data.keywords??'',decor:data.decor??[]};
+}
+
+// Decor uses shelf-cell coordinates, independent of the inventory matrix.
+function validShelfDecor(shape,data){
+  return !!shape&&typeof shape.id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(shape.id)&&['rectangle','ellipse','triangle'].includes(shape.shape)&&
+    typeof shape.text==='string'&&shape.text.length<=500&&['x','y','w','h'].every(k=>Number.isFinite(shape[k])&&Number.isInteger(shape[k]*4))&&
+    shape.x>=0&&shape.y>=0&&shape.w>=.25&&shape.h>=.25&&shape.x+shape.w<=data.cols&&shape.y+shape.h<=data.rows&&
+    Number.isInteger(shape.outlineWidth)&&shape.outlineWidth>=0&&shape.outlineWidth<=20&&['outlineColor','fillColor','textColor'].every(k=>/^#[0-9a-f]{6}$/i.test(shape[k]));
+}
+function positionShelfDecor(el,shape,data){Object.assign(el.style,{left:shape.x/data.cols*100+'%',top:shape.y/data.rows*100+'%',width:shape.w/data.cols*100+'%',height:shape.h/data.rows*100+'%'});}
+function renderShelfDecor(grid,data,editing=null){
+  const layer=document.createElement('div');layer.className='shelf-decor-layer';grid.append(layer);
+  for(const shape of data.decor||[]){
+    const el=document.createElement('div');el.className='shelf-decor';el.dataset.decorId=shape.id;positionShelfDecor(el,shape,data);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-hidden','true');
+    const art=document.createElementNS(svg.namespaceURI,{rectangle:'rect',ellipse:'ellipse',triangle:'polygon'}[shape.shape]);
+    const attrs=shape.shape==='rectangle'?{x:0,y:0,width:100,height:100}:shape.shape==='ellipse'?{cx:50,cy:50,rx:50,ry:50}:{points:'50,0 100,100 0,100'};
+    Object.entries({...attrs,fill:shape.fillColor,stroke:shape.outlineColor,'stroke-width':shape.outlineWidth*2,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round'}).forEach(([k,v])=>art.setAttribute(k,v));svg.append(art);el.append(svg);
+    if(shape.text)el.append(labelFor({name:shape.text,fontSize:14,fontFamily:'system-ui',bold:false,color:shape.textColor}));
+    if(editing)editing(el,shape,layer);
+    layer.append(el);
+  }
 }
 
 function shelfBins(data){const result=[];data.matrix.forEach((row,r)=>row.forEach((bin,c)=>{if(bin)result.push({bin,r:r+(bin.offsetY||0),c:c+(bin.offsetX||0)});}));return result;}
@@ -10,9 +32,10 @@ function positionShelfBin(el,bin,r,c){gridPosition(el,{x:c*2+1,y:r*2+1,w:bin.w*2
 function readOnlyShelfGrid(host,data){
   const viewport=document.createElement('div');viewport.className='viewport readonly-shelf-viewport';
   const grid=document.createElement('div');grid.className='shelf-grid readonly-grid';grid.setAttribute('aria-label','Read-only shelf inventory matrix');configureShelfGrid(grid,data);
+  grid.classList.toggle('decor-only',data.mode==='simple');renderShelfDecor(grid,data);
   const tooltip=document.createElement('div');tooltip.className='bin-tooltip';tooltip.id='bin-tip-'+uniqueId();tooltip.setAttribute('role','tooltip');tooltip.hidden=true;
   const hide=()=>{tooltip.hidden=true;};
-  shelfBins(data).forEach(({bin,r,c})=>{
+  (data.mode==='simple'?[]:shelfBins(data)).forEach(({bin,r,c})=>{
     const el=document.createElement('button');el.className='grid-item shelf-bin readonly-bin';positionShelfBin(el,bin,r,c);el.style.backgroundColor=bin.background;el.style.setProperty('--bg',bin.background);el.append(labelFor(bin));el.setAttribute('aria-label',`${bin.name||'Unnamed bin'}, row ${r+1}, column ${c+1}`);el.setAttribute('aria-describedby',tooltip.id);
     const show=()=>{tooltip.replaceChildren(infoField(bin.name||'Unnamed bin',bin.contents),infoField('Keywords',bin.keywords));tooltip.hidden=false;const rect=el.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(rect.bottom+6,window.innerHeight-tooltip.offsetHeight-8))+'px';};
     el.addEventListener('mouseenter',show);el.addEventListener('focus',show);el.addEventListener('mouseleave',hide);el.addEventListener('blur',hide);el.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});grid.append(el);

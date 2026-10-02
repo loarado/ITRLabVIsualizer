@@ -9,8 +9,8 @@ function renderShelfInformation(host,data,fallbackName='Shelf'){
   const label=document.createElement('p');label.className='eyebrow';label.textContent=shelf.mode==='simple'?'Simple shelf':'Complex shelf';
   const title=document.createElement('h2');title.textContent=shelf.name||fallbackName;
   host.append(label,title,infoField('Contents',shelf.contents),infoField('Keywords',shelf.keywords));
+  if(shelf.mode==='complex'||shelf.decor.length)readOnlyShelfGrid(host,shelf);
   if(shelf.mode==='complex'){
-    readOnlyShelfGrid(host,shelf);
     const list=document.createElement('div');list.className='bin-information';let count=0;
     shelfBins(shelf).forEach(({bin,r,c})=>{count++;const card=document.createElement('article');card.className='bin-card';const name=document.createElement('h3');name.textContent=bin.name||'Unnamed bin';const location=document.createElement('p');location.className='muted';location.textContent=`Row ${r+1} · Column ${c+1} · ${bin.w} × ${bin.h} cells`;card.append(name,location,infoField('Contents',bin.contents),infoField('Keywords',bin.keywords));list.append(card);});
     const heading=document.createElement('h3');heading.textContent=`Bins (${count})`;host.append(heading,list);if(!count)host.append(infoField('Inventory','No bins recorded.'));

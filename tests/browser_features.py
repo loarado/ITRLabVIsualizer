@@ -66,7 +66,7 @@ class Features(unittest.TestCase):
 
     def test_explorer_layout(self):
         page=self.page;expect(page.locator('h1')).to_have_text('Lab Explorer');expect(page.locator('#access')).to_have_text('View Only');expect(page.locator('#auth')).to_be_visible()
-        for selector in ['aside','#export','#versionHistory','#save','#mapMode']:
+        for selector in ['aside','#versionHistory','#save','#mapMode']:
             expect(page.locator(selector)).to_be_hidden()
         self.login();expect(page.locator('h1')).to_have_text('Lab Editor');expect(page.locator('aside')).to_be_visible();expect(page.locator('#export')).to_be_visible()
         before=page.evaluate('JSON.stringify(lab.data)');page.locator('#auth').click();page.wait_for_function('!isAdmin');expect(page.locator('h1')).to_have_text('Lab Explorer');self.assertEqual(page.evaluate('JSON.stringify(lab.data)'),before)
@@ -84,17 +84,17 @@ class Features(unittest.TestCase):
 
     def test_complex_mode_preserves(self):
         self.login();page=self.page;page.locator('[data-id="R01"]').click();page.locator('#openShelf').click();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null')
-        page.locator('#shelfName').fill('Hardware');page.locator('#shelfName').press('Tab');page.locator('#shelfMode').select_option('complex');expect(page.locator('.shelf-viewport')).to_be_hidden();page.locator('#applyShelfMode').click();expect(page.locator('.shelf-viewport')).to_be_visible()
+        page.locator('#shelfName').fill('Hardware');page.locator('#shelfName').press('Tab');page.locator('#shelfMode').select_option('complex');expect(page.locator('.shelf-viewport')).to_be_visible();expect(page.locator('.shelf-bin')).to_have_count(0);page.locator('#applyShelfMode').click();expect(page.locator('.shelf-viewport')).to_be_visible()
         page.get_by_role('button',name='Empty cell, row 1, column 1',exact=True).click();page.locator('#addBin').click();page.locator('#name').fill('M3 bolts');page.locator('#name').press('Tab');page.locator('#contents').fill('Stainless fasteners');page.locator('#contents').press('Tab');page.locator('#keywords').fill('metric');page.locator('#keywords').press('Tab')
         matrix=page.evaluate('JSON.stringify(shelf.data.matrix)')
-        page.locator('#shelfMode').select_option('simple');page.locator('#applyShelfMode').click();expect(page.locator('.shelf-viewport')).to_be_hidden();self.save('Simple with retained bins');page.reload();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null');self.assertEqual(page.evaluate('JSON.stringify(shelf.data.matrix)'),matrix)
+        page.locator('#shelfMode').select_option('simple');page.locator('#applyShelfMode').click();expect(page.locator('.shelf-viewport')).to_be_visible();expect(page.locator('.shelf-bin')).to_have_count(0);self.save('Simple with retained bins');page.reload();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null');self.assertEqual(page.evaluate('JSON.stringify(shelf.data.matrix)'),matrix)
         page.locator('#shelfMode').select_option('complex');page.locator('#applyShelfMode').click();self.save('Complex shelf');page.reload();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null')
         expect(page.locator('#shelfName')).to_have_value('Hardware');self.assertEqual(page.evaluate('JSON.stringify(shelf.data.matrix)'),matrix);self.assertEqual(page.evaluate('shelf.data.mode'),'complex')
         saved=json.loads((self.data/'shelves/R01.json').read_text());self.assertEqual(saved['matrix'][0][0]['keywords'],'metric')
 
     def test_simple_shelf(self):
         self.login();page=self.page;page.locator('[data-id="R01"]').click();page.locator('#openShelf').click();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null')
-        expect(page.locator('.shelf-viewport')).to_be_hidden();self.assertEqual(page.evaluate('shelf.data.mode'),'simple')
+        expect(page.locator('.shelf-viewport')).to_be_visible();expect(page.locator('.shelf-bin')).to_have_count(0);self.assertEqual(page.evaluate('shelf.data.mode'),'simple')
         page.locator('#shelfName').fill('Fasteners');page.locator('#shelfName').press('Tab');page.locator('#shelfContents').fill('Bolts and washers');page.locator('#shelfContents').press('Tab');page.locator('#shelfKeywords').fill('hardware');page.locator('#shelfKeywords').press('Tab');self.save('Simple shelf')
         page.reload();page.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null');expect(page.locator('#shelfName')).to_have_value('Fasteners');expect(page.locator('#shelfContents')).to_have_value('Bolts and washers');expect(page.locator('#shelfKeywords')).to_have_value('hardware')
         saved=json.loads((self.data/'shelves/R01.json').read_text());self.assertEqual(saved['mode'],'simple');self.assertEqual(saved['name'],'Fasteners')

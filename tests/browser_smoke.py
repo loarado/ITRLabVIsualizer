@@ -102,7 +102,7 @@ with tempfile.TemporaryDirectory() as temp:
             expect(page.locator('#contents')).to_have_value('Stainless steel')
             # Resize cannot erase a bin; moving and a valid resize persist.
             page.locator('#rows').fill('1');page.locator('#resize').click()
-            expect(page.locator('#status')).to_contain_text('No inventory was removed')
+            expect(page.locator('#status')).to_contain_text('Nothing was removed')
             page.locator('#x').fill('4');page.locator('#x').press('Tab')
             page.locator('#rows').fill('12');page.locator('#cols').fill('12');page.locator('#resize').click()
             save_version(page);expect(page.locator('#status')).to_contain_text('Saved “')

@@ -4,7 +4,7 @@ function canEditMap(){return isAdmin&&mapEditing;}
 function canEditItem(item){return !!item&&isAdmin&&(item.kind==='section'?mapEditing:!mapEditing);}
 function setMapEditing(value){
   mapEditing=isAdmin&&value;selectedGeometry=null;selectedVertex=null;selectedId=null;selectedRoute=null;
-  render();
+  render();storeRecovery(false);
 }
 function renderWorkspace(){
   if(!isAdmin)mapEditing=false;

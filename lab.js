@@ -274,3 +274,6 @@ function renderMisc(el,item){
   art.setAttribute('fill',item.background);svg.append(art);el.append(svg);
   if(item.showLabel!==false)el.append(labelFor(item));
 }
+
+lab.getRecoveryUI=()=>({mapEditing,zoom});
+lab.restoreRecoveryUI=ui=>{if(typeof ui.mapEditing==='boolean')setMapEditing(ui.mapEditing);if(Number.isFinite(ui.zoom))setZoom(ui.zoom);};

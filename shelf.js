@@ -7,9 +7,10 @@ function binAt(){return shelf.data?.mode==='simple'||!selection?null:bins().find
 function bins(){return shelfBins(shelf.data);}
 function owner(r,c){return bins().find(p=>r>=p.r&&r<p.r+p.bin.h&&c>=p.c&&c<p.c+p.bin.w);}
 function fits(bin,r,c,ignore=selection){return shelfBinFits(shelf.data,bin,r,c,ignore);}
-function choose(r,c){selection={r,c};render();}
+function choose(r,c){selectedDecor=null;selection={r,c};render();}
 function renderGrid(){
-  grid.replaceChildren();configureShelfGrid(grid,shelf.data,cellSize);
+  grid.replaceChildren();configureShelfGrid(grid,shelf.data,cellSize);grid.classList.toggle('decor-only',shelf.data.mode==='simple');renderShelfDecor(grid,shelf.data,bindShelfDecor);
+  if(shelf.data.mode==='simple'){requestAnimationFrame(()=>fitLabels(grid));return;}
   const occupied=new Set();bins().forEach(({bin,r,c})=>{for(let rr=r;rr<r+bin.h;rr+=.5)for(let cc=c;cc<c+bin.w;cc+=.5)occupied.add(`${rr},${cc}`);});
   for(let r=0;r<shelf.data.rows;r+=.5)for(let c=0;c<shelf.data.cols;c+=.5){
     if(occupied.has(`${r},${c}`))continue;
@@ -26,7 +27,7 @@ function renderGrid(){
       el.setPointerCapture(event.pointerId);
       const move=e=>{target={r:r+snapHalf((e.clientY-startY)/(cellSize+1)),c:c+snapHalf((e.clientX-startX)/(cellSize+1))};moved=target.r!==r||target.c!==c;if(moved&&fits(bin,target.r,target.c,{r,c})){positionShelfBin(el,bin,target.r,target.c);el.classList.add('dragging');}};
       const cleanup=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',end);el.removeEventListener('pointercancel',cancel);};
-      const end=()=>{cleanup();selection={r,c};if(moved&&fits(bin,target.r,target.c,{r,c})){checkpoint();setShelfBin(shelf.data,r,c,null);setShelfBin(shelf.data,target.r,target.c,bin);selection=target;changed();}else if(moved)message('Bins cannot overlap or extend outside this shelf.',true);render();};
+      const end=()=>{cleanup();selectedDecor=null;selection={r,c};if(moved&&fits(bin,target.r,target.c,{r,c})){checkpoint();setShelfBin(shelf.data,r,c,null);setShelfBin(shelf.data,target.r,target.c,bin);selection=target;changed();}else if(moved)message('Bins cannot overlap or extend outside this shelf.',true);render();};
       const cancel=()=>{cleanup();render();};el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',cancel);
     });grid.append(el);
   });requestAnimationFrame(()=>fitLabels(grid));
@@ -47,9 +48,9 @@ function render(){
   $('#shelfMode').value=shelf.data.mode;
   $('#shelfModeLabel').textContent=simple?'Simple shelf':'Complex shelf';
   ['shelfName','shelfContents','shelfKeywords'].forEach((id,index)=>$('#'+id).value=shelf.data[['name','contents','keywords'][index]]);
-  ['search','zoomIn','zoomOut','gridHint'].forEach(id=>$('#'+id).hidden=simple);
-  $('.shelf-viewport').hidden=simple;
-  if(simple){$('#count').textContent='Simple shelf';return;}
+  ['search','gridHint'].forEach(id=>$('#'+id).hidden=simple);
+  ['zoomIn','zoomOut'].forEach(id=>$('#'+id).hidden=false);
+  $('.shelf-viewport').hidden=false;renderDecorControls();
   if(selection&&(selection.r>=shelf.data.rows||selection.c>=shelf.data.cols))selection=null;
   renderGrid();renderDetails();$('#rows').value=shelf.data.rows;$('#cols').value=shelf.data.cols;$('#count').textContent=`${bins().length} bins · ${shelf.data.rows} rows × ${shelf.data.cols} columns`;
 }
@@ -68,15 +69,16 @@ fields.forEach(key=>$('#'+key).addEventListener('change',()=>{
 }));
 $('#delete').addEventListener('click',()=>{if(!isAdmin||!binAt())return;checkpoint();setShelfBin(shelf.data,selection.r,selection.c,null);render();changed();});
 $('#resize').addEventListener('click',()=>{
-  if(!isAdmin||shelf.data.mode!=='complex')return;const rows=Number($('#rows').value),cols=Number($('#cols').value);
+  if(!isAdmin)return;const rows=Number($('#rows').value),cols=Number($('#cols').value);
   if(!Number.isInteger(rows)||!Number.isInteger(cols)||rows<1||rows>60||cols<1||cols>60){message('Rows and columns must be integers from 1 to 60.',true);return;}
-  if(bins().some(p=>p.r+p.bin.h>rows||p.c+p.bin.w>cols)){message('Move or delete bins outside the requested size first. No inventory was removed.',true);return;}
+  if(bins().some(p=>p.r+p.bin.h>rows||p.c+p.bin.w>cols)||shelf.data.decor.some(shape=>shape.x+shape.w>cols||shape.y+shape.h>rows)){message('Move or delete bins and decor outside the requested size first. Nothing was removed.',true);return;}
   checkpoint();shelf.data.matrix=Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>shelf.data.matrix[r]?.[c]??null));shelf.data.rows=rows;shelf.data.cols=cols;render();changed();
 });
 function validateImport(data){
   if(!data||!Number.isInteger(data.rows)||!Number.isInteger(data.cols)||data.rows<1||data.rows>60||data.cols<1||data.cols>60||!Array.isArray(data.matrix)||data.matrix.length!==data.rows)throw new Error('Expected rows, cols, and a matrix (1–60 rows/columns).');
   if(data.mode!==undefined&&!['simple','complex'].includes(data.mode))throw new Error('Shelf mode must be simple or complex.');
   for(const [key,limit] of [['name',500],['contents',10000],['keywords',2000]])if(data[key]!==undefined&&(typeof data[key]!=='string'||data[key].length>limit))throw new Error('Invalid shelf metadata.');
+  if(!Array.isArray(data.decor??[])||(data.decor??[]).length>200||new Set((data.decor??[]).map(d=>d?.id)).size!==(data.decor??[]).length||(data.decor??[]).some(d=>!validShelfDecor(d,data)))throw new Error('Invalid Shelf Decor.');
   const used=[],binIds=new Set();
   data.matrix.forEach((row,r)=>{
     if(!Array.isArray(row)||row.length!==data.cols)throw new Error('Every matrix row must contain cols cells.');
@@ -102,6 +104,7 @@ document.addEventListener('keydown',event=>{
   if(!bin||!delta)return;event.preventDefault();const r=selection.r+delta[0]*.5,c=selection.c+delta[1]*.5;
   if(fits(bin,r,c)){checkpoint();setShelfBin(shelf.data,selection.r,selection.c,null);setShelfBin(shelf.data,r,c,bin);selection={r,c};render();changed();}else message('That matrix position is occupied or outside the shelf.',true);
 });
+setupShelfDecor();
 [['shelfMetadata','Shelf information'],['details','Bin properties'],['matrixPanel','Matrix dimensions'],['filePanel','Inventory file']].forEach(([id,title])=>mountEditorGroup(id,title));
 if(!shelfId||!/^[A-Za-z0-9_-]{1,64}$/.test(shelfId)){$('#fatal').hidden=false;$('#fatal').textContent='Choose a shelf from the lab editor first.';message('No valid shelf selected.',true);document.querySelectorAll('[data-admin]').forEach(el=>el.disabled=true);}
 else {$('#subtitle').textContent=`${shelfId} · Independent shelf matrix`;$('#file').textContent=`data/shelves/${shelfId}.json`;startApp(shelf);api('/api/lab').then(data=>{const item=data.items.find(i=>i.id===shelfId);if(item)$('#subtitle').textContent=`${item.name} · ${shelfId} · ${itemArea(item,data)}`;}).catch(()=>{});}
@@ -124,4 +127,7 @@ shelf.pasteSelection=()=>{
   checkpoint();setShelfBin(shelf.data,target.y,target.x,{...clone(bin),id:'B-'+uniqueId()});selection={r:target.y,c:target.x};render();changed();
 };
 
-shelf.clearClipboard=()=>{binClipboard=null;selection=null;};
+shelf.clearClipboard=()=>{binClipboard=null;selection=null;selectedDecor=null;};
+
+shelf.getRecoveryUI=()=>({cellSize});
+shelf.restoreRecoveryUI=ui=>{if(Number.isFinite(ui.cellSize))zoom(ui.cellSize);};

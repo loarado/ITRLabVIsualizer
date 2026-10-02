@@ -124,6 +124,24 @@ def validate_shelf(doc, shelf_id):
     rows, cols = doc.get('rows'), doc.get('cols')
     if not integer(rows, 1, 60) or not integer(cols, 1, 60):
         raise ValueError('Shelf dimensions must be integers from 1 to 60.')
+    decor = doc.get('decor', [])
+    if not isinstance(decor, list) or len(decor) > 200:
+        raise ValueError('Shelf Decor is limited to 200 shapes.')
+    decor_ids = set()
+    for shape in decor:
+        if not isinstance(shape, dict) or not isinstance(shape.get('id'), str) or not ID.fullmatch(shape['id']) or shape['id'] in decor_ids:
+            raise ValueError('Shelf Decor IDs must be unique.')
+        decor_ids.add(shape['id'])
+        if shape.get('shape') not in ('rectangle', 'ellipse', 'triangle') or not text(shape.get('text'), 500):
+            raise ValueError('Invalid Shelf Decor shape or text.')
+        geometry = [shape.get(k) for k in ('x', 'y', 'w', 'h')]
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v*4 != int(v*4) for v in geometry):
+            raise ValueError('Shelf Decor uses quarter-cell increments.')
+        x, y, w, h = geometry
+        if x < 0 or y < 0 or w < .25 or h < .25 or x+w > cols or y+h > rows:
+            raise ValueError('Shelf Decor extends outside the canvas or is too small.')
+        if not integer(shape.get('outlineWidth'), 0, 20) or any(not isinstance(shape.get(k), str) or not re.fullmatch(r'#[0-9a-fA-F]{6}', shape[k]) for k in ('outlineColor', 'fillColor', 'textColor')):
+            raise ValueError('Invalid Shelf Decor colors or outline.')
     matrix = doc.get('matrix')
     if not isinstance(matrix, list) or len(matrix) != rows:
         raise ValueError('Matrix row count does not match rows.')
@@ -199,6 +217,7 @@ class LabServer(ThreadingHTTPServer):
         self.attempts = {}
         self.lock = threading.RLock()
         self.drafts = {}
+        self.draft_epochs = {}
         self.inventory_states = {}
         # Roll forward a fully validated, explicitly saved transaction after interruption.
         self.finish_transaction()
@@ -220,6 +239,7 @@ class LabServer(ThreadingHTTPServer):
 
     def prune_drafts(self):
         now = time.time()
+        self.draft_epochs = {k:v for k,v in self.draft_epochs.items() if self.sessions.get(k[0], 0) > now}
         self.inventory_states = {k:v for k,v in self.inventory_states.items() if self.sessions.get(k[0], 0) > now}
         self.drafts = {k:v for k,v in self.drafts.items()
                        if v['expires'] > now and self.sessions.get(k[0], 0) > now}
@@ -302,7 +322,7 @@ class LabServer(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    def json_response(self, code, data, cookie=None):
+    def json_response(self, code, data, cookie=None, headers=None):
         raw = json.dumps(data).encode()
         self.send_response(code)
         self.send_header('Content-Type', 'application/json')
@@ -311,6 +331,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(raw)))
         if cookie:
             self.send_header('Set-Cookie', cookie)
+        for name, value in (headers or {}).items():
+            self.send_header(name, str(value))
         self.end_headers()
         self.wfile.write(raw)
 
@@ -374,7 +396,12 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 key = self.draft_key()
                 self.server.prune_drafts()
+                epoch = self.server.draft_epochs.get(key, 0)
+                response_headers = {'X-Draft-Epoch': epoch}
                 if write:
+                    supplied = self.headers.get('X-Draft-Epoch')
+                    if supplied is not None and supplied != str(epoch):
+                        return self.json_response(409, {'error': 'This working copy was deleted. Load the saved state before editing again.', 'code': 'draft_deleted'})
                     body = self.read_body()
                     if not isinstance(body, dict) or type(body.get('dirty')) is not bool:
                         raise ValueError('Invalid draft.')
@@ -417,9 +444,9 @@ class Handler(BaseHTTPRequestHandler):
                                     self.server.drafts[shelf_key] = dict(expires=time.time()+8*3600, state=state)
                                     inventory_changed = True
                     self.server.drafts[key] = {'expires': time.time()+8*3600, 'state': body}
-                    return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed})
+                    return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed}, headers=response_headers)
                 cached = self.server.drafts.get(key)
-                return self.json_response(200, cached['state'] if cached else None)
+                return self.json_response(200, cached['state'] if cached else None, headers=response_headers)
             except (ValueError, UnicodeDecodeError) as error:
                 return self.json_response(400, {'error': str(error)})
 
@@ -427,6 +454,25 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == '/api/session':
             return self.json_response(200, {'admin': self.admin()})
+        if path == '/api/recovery-context':
+            if not self.admin():
+                return self.json_response(403, {'error': 'Admin login required.'})
+            with self.server.lock:
+                lab = json.loads((self.server.data_dir/'lab.json').read_text())
+                project = hashlib.sha256(str(self.server.data_dir.resolve()).encode()).hexdigest()[:24]
+                session = hashlib.sha256(self.token().encode()).hexdigest()[:24]
+                return self.json_response(200, {'scope': project+':'+session, 'labRevision': lab['revision']})
+        if path == '/api/drafts':
+            if not self.admin():
+                return self.json_response(403, {'error': 'Admin login required.'})
+            with self.server.lock:
+                self.server.prune_drafts()
+                drafts = []
+                for key, cached in self.server.drafts.items():
+                    if key[0] == self.token():
+                        state = cached['state']
+                        drafts.append(dict(instance=key[1], resource=key[2], name=state['data'].get('name') or ('Lab layout' if key[2]=='lab' else key[2]), dirty=state['dirty'], epoch=self.server.draft_epochs.get(key, 0)))
+                return self.json_response(200, {'drafts': drafts})
         if path.startswith('/api/drafts/'):
             return self.draft_request()
         if path == '/api/shelf-index':
@@ -488,7 +534,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json_response(200, normalize_shelf(doc, self.shelf_name(shelf_id)) if shelf_id else doc)
                 except (OSError, ValueError):
                     return self.json_response(500, {'error': 'Cannot read data file. Check its JSON.'})
-        public = {'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_model.js', 'explorer.js'}
+        public = {'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_decor.js', 'shelf_model.js', 'explorer.js'}
         name = unquote(path).lstrip('/') or 'lab_overview.html'
         if name not in public:
             return self.json_response(404, {'error': 'Not found.'})
@@ -583,6 +629,27 @@ class Handler(BaseHTTPRequestHandler):
             self.server.sessions[token] = now + 8*3600
             return self.json_response(200, {'admin': True}, f'itr_session={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800')
 
+    def do_DELETE(self):
+        if not self.admin() or not self.same_origin():
+            return self.json_response(403, {'error': 'Admin login required.'})
+        with self.server.lock:
+            try:
+                key = self.draft_key()
+                self.server.prune_drafts()
+                epoch = self.server.draft_epochs.get(key, 0)
+                if self.headers.get('X-Draft-Epoch', str(epoch)) != str(epoch):
+                    return self.json_response(409, {'error': 'The draft changed. Refresh the draft list.'})
+                self.server.drafts.pop(key, None)
+                self.server.draft_epochs[key] = epoch+1
+                # Inventory undo snapshots must not resurrect an explicitly deleted shelf draft.
+                if key[2].startswith('shelves/'):
+                    for ref, shelves in self.server.inventory_states.items():
+                        if ref[:2] == key[:2]:
+                            shelves.pop(key[2].split('/')[1], None)
+                return self.json_response(200, {'deleted': True}, headers={'X-Draft-Epoch': epoch+1})
+            except ValueError as error:
+                return self.json_response(400, {'error': str(error)})
+
     def do_PUT(self):
         if urlsplit(self.path).path.startswith('/api/drafts/'):
             return self.draft_request(write=True)
@@ -624,7 +691,7 @@ class Handler(BaseHTTPRequestHandler):
                     if cached_lab:
                         cached_lab['state']['data'] = lab_doc
                         cached_lab['state']['dirty'] = False
-                return self.json_response(200, {'revision': doc['revision']})
+                return self.json_response(200, {'revision': doc['revision']}, headers={'X-Lab-Revision': lab_doc['revision'] if shelf_id else doc['revision']})
             except RevisionConflict as error:
                 return self.json_response(409, {'error': str(error)})
             except (ValueError, UnicodeDecodeError) as error:

@@ -10,11 +10,16 @@ let savePromise;
 let history = [];
 let future = [];
 let app;
-async function api(path, method='GET', body) {
-  const response = await fetch(path, {method, headers: {'X-Editor-Instance':editorInstance,...(body?{'Content-Type':'application/json'}:{})}, body: body ? JSON.stringify(body) : undefined});
+const draftEpochs=new Map();
+let draftPresent=false;
+async function api(path, method='GET', body, instance=editorInstance) {
+  const draftKey=instance+':'+path, isDraft=path.startsWith('/api/drafts/');
+  const response = await fetch(path, {method, headers: {'X-Editor-Instance':instance,...(isDraft&&method!=='GET'?{'X-Draft-Epoch':String(draftEpochs.get(draftKey)??0)}:{}),...(body?{'Content-Type':'application/json'}:{})}, body: body ? JSON.stringify(body) : undefined});
   let result;
   try { result = await response.json(); } catch { throw new Error('Run this app with python3 server.py. The editor needs its save API.'); }
-  if (!response.ok) { const error=new Error(result.error || `Request failed (${response.status}).`); error.status=response.status; throw error; }
+  if (!response.ok) { const error=new Error(result.error || `Request failed (${response.status}).`); error.status=response.status;error.code=result.code; throw error; }
+  if(isDraft&&response.headers.has('X-Draft-Epoch'))draftEpochs.set(draftKey,Number(response.headers.get('X-Draft-Epoch')));
+  if(response.headers.has('X-Lab-Revision'))result.labRevision=Number(response.headers.get('X-Lab-Revision'));
   return result;
 }
 function message(text, error=false) { $('#status').textContent = text; $('#status').classList.toggle('error', error); }
@@ -23,15 +28,16 @@ function checkpoint() { history.push(clone(app.data)); if(history.length>40) his
 if(!/^itr-[a-f0-9]{32}$/.test(window.name))window.name='itr-'+Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
 const editorInstance=window.name;
 let cacheQueue=Promise.resolve(true), allowNavigation=false;
-function changed() { dirty=true; generation++; message('Draft changed · not saved'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>cacheDraft(),250); updateUndo(); }
+function changed() { dirty=true; generation++; message('Draft changed · not saved');storeRecovery(true); clearTimeout(saveTimer); saveTimer=setTimeout(()=>cacheDraft(),250); updateUndo(); }
 function updateUndo() { $('#undo').disabled=!isAdmin||!history.length; $('#redo').disabled=!isAdmin||!future.length; }
 async function cacheDraft() {
   clearTimeout(saveTimer);
   if(!isAdmin||!app?.data)return true;
+  if(!dirty&&!history.length&&!future.length&&!draftPresent)return true;
   const state={data:clone(app.data),history:clone(history),future:clone(future),dirty};
   cacheQueue=cacheQueue.then(async()=>{
-    try {const result=await api(app.endpoint.replace('/api/','/api/drafts/'),'PUT',state);if(result.inventoryChanged)await app.onInventoryChanged?.();return true;}
-    catch(error){message('Draft is still in this page, but caching failed: '+error.message,true);return false;}
+    try {const result=await api(app.endpoint.replace('/api/','/api/drafts/'),'PUT',state);draftPresent=true;acknowledgeRecovery(app.endpoint.slice(5),state);if(result.inventoryChanged)await app.onInventoryChanged?.();return true;}
+    catch(error){if(error.code==='draft_deleted'){await resetDeletedDraft();return false;}message('Draft is still in this page, but caching failed: '+error.message,true);return false;}
   });
   return cacheQueue;
 }
@@ -59,10 +65,11 @@ async function save(name) {
     const result=await api(app.endpoint,'PUT',snapshot);
     app.data.revision=result.revision;app.data.versionName=name;
     if(version===generation)dirty=false;
+    recoveryAfterSave(result.labRevision);
     await cacheDraft();await app.onSaved?.();
     message(dirty?`Saved “${name}”; newer edits remain in your draft`:`Saved “${name}” · revision ${result.revision}`);
     return true;
-  } catch(error) {if(error.status===403)setAuth(false);message(error.message,true);return false;} finally {saving=false;}})();
+  } catch(error) {if(error.status===403){recoveryReady=false;await showCommittedVisitor();}message(error.message,true);return false;} finally {saving=false;}})();
   return savePromise;
 }
 function undoEdit(redo=false){
@@ -73,6 +80,8 @@ function undoEdit(redo=false){
 }
 async function recoverDraft(){
   const cached=await api(app.endpoint.replace('/api/','/api/drafts/'));
+  draftPresent=!!cached;
+  if(cached&&cached.data.revision!==app.data.revision){draftPresent=false;removeRecovery(app.endpoint.slice(5));recoveryNotice='A newer saved version was loaded. An older server draft remains in Manage drafts.';return false;}
   if(cached){app.data=cached.data;history=cached.history;future=cached.future;dirty=cached.dirty;app.render();updateUndo();message(dirty?'Recovered unsaved instance draft':'Recovered editor instance');return true;}
   return false;
 }
@@ -82,6 +91,11 @@ function setAuth(value) {
   $('#access').textContent=value?'Admin · editing enabled':'View Only';
   document.querySelectorAll('[data-admin]').forEach(el=>el.disabled=!value);
   app?.render(); updateUndo();app?.onAuthChanged?.(value);
+}
+async function showCommittedVisitor(){
+  clearTimeout(saveTimer);history=[];future=[];dirty=false;draftPresent=false;
+  try{app.data=await api(app.endpoint);setAuth(false);updateUndo();}
+  catch(error){if(error.status===404){app.data=null;setAuth(false);allowNavigation=true;location.replace('lab_overview.html');}else throw error;}
 }
 function download(data,name) {
   data=clone(data);delete data._inventoryState;delete data._previousInventoryState;
@@ -119,15 +133,17 @@ function overlaps(a,b) {return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.
 function defaults() {return {name:'New item',background:'#dc4545',color:'#ffffff',fontSize:14,fontFamily:'system-ui',bold:true};}
 async function startApp(controller) {
   app=controller;
+  setupDraftManager();
+  setupRecoveryEvents();
   const dialog=document.createElement('dialog');dialog.id='saveVersionDialog';dialog.innerHTML='<form method="dialog"><h2>Save a named version</h2><label class="field">Version name<input id="versionName" maxlength="120" required autocomplete="off" placeholder="e.g. Fall lab arrangement"></label><p class="hint">This saves your current draft to disk.</p><div class="actions"><button class="primary" value="save">Save version</button><button value="cancel" formnovalidate>Cancel</button></div></form>';document.body.append(dialog);
   $('#auth').addEventListener('click',async()=>{
-    if(isAdmin) {if(!await cacheDraft())return;if((dirty||app.hasUnsavedChildren?.())&&!confirm('Log out and discard this session’s unsaved drafts? Export first to keep a copy.'))return;try{await api('/api/logout','POST',{});setAuth(false);history=[];future=[];dirty=false;app.data=await api(app.endpoint);app.render();updateUndo();}catch(e){message(e.message,true);}}
+    if(isAdmin) {if(!await cacheDraft())return;if((dirty||app.hasUnsavedChildren?.())&&!confirm('Log out and discard this session’s unsaved drafts? Export first to keep a copy.'))return;try{await api('/api/logout','POST',{});clearRecoveryScope();await showCommittedVisitor();}catch(e){message(e.message,true);}}
     else {$('#loginError').textContent='';$('#login').showModal();$('#password').focus();}
   });
   $('#cancelLogin').addEventListener('click',()=>$('#login').close());
   $('#loginForm').addEventListener('submit',async event=>{
     event.preventDefault();
-    try {await api('/api/login','POST',{password:$('#password').value});$('#password').value='';$('#login').close();setAuth(true);if(!await recoverDraft())message(dirty?'Draft ready to save':'Admin editing enabled');}
+    try {await api('/api/login','POST',{password:$('#password').value});$('#password').value='';$('#login').close();await prepareRecovery();app.data=await api(app.endpoint);const recovered=await recoverDraft();setAuth(true);if(!recovered)message('Admin editing enabled');restoreRecoveryUI();if(recoveryNotice)message(recoveryNotice);}
     catch(error){$('#loginError').textContent=error.message;}
   });
   $('#save').addEventListener('click',()=>save());
@@ -138,7 +154,7 @@ async function startApp(controller) {
     if(dirty&&!confirm('Discard your unsaved draft and reload the server version? Export first if you need a copy.'))return;
     clearTimeout(saveTimer);
     if(saving) await savePromise;
-    try {const latest=await api(app.endpoint);checkpoint();app.data=latest;dirty=false;app.render();updateUndo();await cacheDraft();message('Latest saved version loaded');}catch(error){message(error.message,true);}
+    try {await cacheQueue;const latest=await api(app.endpoint);checkpoint();app.data=latest;dirty=false;removeRecovery(app.endpoint.slice(5));app.render();updateUndo();await cacheDraft();message('Latest saved version loaded');}catch(error){message(error.message,true);}
   });
   window.addEventListener('beforeunload',event=>{if(dirty&&!allowNavigation){event.preventDefault();event.returnValue='';}});
   document.addEventListener('keydown',event=>{
@@ -148,7 +164,7 @@ async function startApp(controller) {
     const typing=['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)||document.activeElement.isContentEditable;
     if((event.ctrlKey||event.metaKey)&&!typing&&(key==='z'||key==='y')){event.preventDefault();undoEdit(key==='y'||event.shiftKey);} 
   });
-  try {const [data,session]=await Promise.all([api(app.endpoint),api('/api/session')]);app.data=data;setAuth(session.admin);if(!session.admin||!await recoverDraft())message('Loaded from server');}
+  try {const session=await api('/api/session');if(session.admin)await prepareRecovery();app.data=await api(app.endpoint);const recovered=session.admin&&await recoverDraft();setAuth(session.admin);if(!recovered)message('Loaded from server');if(session.admin){restoreRecoveryUI();if(recoveryNotice)message(recoveryNotice);}}
   catch(error){message(error.message,true);$('#fatal').hidden=false;$('#fatal').textContent=error.message+' Stop the old static server and run: python3 server.py';}
 }
 

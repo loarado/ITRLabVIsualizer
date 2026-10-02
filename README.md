@@ -95,7 +95,7 @@ Arrow changes remain in the draft and support Undo, Redo, and version restore. C
 ## Edit a shelf
 
 1. As an admin, select a shelf and click **Open this shelf’s inventory**. Lab drafts are cached before navigation.
-2. New shelves default to **Simple**: enter **Shelf name**, **Shelf contents**, and **Keywords**. The bin grid and matrix controls are hidden.
+2. New shelves default to **Simple**: enter **Shelf name**, **Shelf contents**, and **Keywords**. The canvas supports visual Shelf Decor; inventory bins remain hidden until Complex mode.
 3. To use detailed inventory, choose **Complex** in **Shelf mode** and click **Apply mode**. This activates the existing matrix editor.
 4. In Complex mode, select an empty half-cell to **Add bin here**, or edit an existing bin's name, contents, keywords, position, size, and style. Dragging and arrow keys snap to 0.5 units; dimensions use 0.5 steps with a minimum of 1. **Ctrl/Cmd+C/V** copies the selected bin with its metadata/style into the nearest valid space, or refuses if the shelf is full. Matrix resizing preserves bins.
 5. Switching either way preserves all metadata and every bin. Dormant bins remain stored in Simple mode but are not shown or indexed until Complex mode is active again.
@@ -107,12 +107,34 @@ Each editor opens its saved contents or recovers its cached draft for this insta
 
 ## Instance memory and Undo
 
-Each signed-in browser tab has an independent lab draft and independent shelf drafts. The backend caches the draft plus up to **40 Undo/Redo steps** in RAM, keyed by login session, tab instance, and editor. A refresh or navigation between the lab and a shelf in the same tab recovers this memory. Another tab or user cannot access that instance’s draft.
+Each signed-in browser tab has an independent lab draft and independent shelf drafts. The backend caches the draft plus up to **40 Undo/Redo steps** in RAM, keyed by login session, tab instance, and editor. Another tab does not automatically load that working copy; **Manage drafts** can list and delete working copies across tabs in the same authenticated session. Other login sessions cannot access them.
 
 - **Ctrl/Cmd+Z** undoes a grid edit; **Ctrl/Cmd+Shift+Z** or **Ctrl+Y** redoes it. When typing in a field, the browser’s normal text undo remains available.
 - Draft caching happens shortly after edits and is flushed before editor navigation. Caching never creates a persistent version.
 - Drafts are temporary: server restart, logout, session expiry, or eight hours without cache updates clears them. A fresh tab starts a new instance. Use a named save or Export JSON to retain work permanently.
 - A saved version is shared; a cached draft is private to its instance. Save-conflict checks still prevent overwriting another admin’s newer saved version.
+
+### Shelf Decor
+
+**Shelf Decor** in the shelf sidebar adds rectangles/squares, circles/ellipses, and triangles. Drag a shape to move it and use its bottom-right handle or width/height fields to resize. Positions and dimensions snap to quarter-cells, with a minimum size of 0.25 cells. Arrow keys move selected decor by a quarter-cell. Outline thickness (0–20 px), outline/fill/text colors, and optional wrapping text are editable. Delete Decor or Delete/Backspace removes only the selected shape; typing fields retain normal keyboard behavior.
+
+Bins stay above decor. If a bin covers a shape, select the shape from the sidebar. Turn off **Edit decor on canvas** to reach empty cells under shapes. Decor belongs to the shelf, remains in both modes, and appears read-only in the Explorer with bin tooltips still available. Canvas shrinking cannot cut off bins or decor.
+
+Shelf JSON gains an optional `decor` array of objects with `id`, `shape`, `x`, `y`, `w`, `h`, `text`, `outlineWidth`, `outlineColor`, `fillColor`, and `textColor`. Coordinates are zero-based shelf cells. IDs are unique within a shelf. Existing files without decor need no migration. Decor is excluded from inventory indexing/search and is preserved by shelf export/import, copies, drafts, named saves, and versions. Rendering is shared in `shelf_model.js`; `shelf_decor.js` adds editing behavior.
+
+### Delete temporary drafts
+
+Open **Manage drafts** from either editor, choose **Delete Draft**, and confirm with the red button. Cancel or Escape makes no change. Deletion removes exactly that session/tab/resource working copy from backend memory and its browser recovery record. It never removes saved JSON, inventory files, or version history. Deleting the active copy loads the latest saved state; deleting the last copy leaves an empty list. A draft-only shelf falls back to its blank inventory while its parent map draft still exists, or returns to the lab if it no longer exists. Other drafts remain untouched. Server deletion counters prevent late writes or stale recovery records from recreating deleted drafts; subsequent deliberate edits can create a new working copy.
+
+### Refresh recovery
+
+`editor_recovery.js` keeps a small localStorage safety copy of each working document after meaningful edits and drag-end, before the delayed server cache write. A pending text-field edit is flushed through its normal change handler on refresh. Keys are scoped by browser origin, a server-provided project/session identifier, tab instance, and lab/shelf resource. Records include format, timestamp, committed lab revision, document revision, and draft-deletion counter. UI recovery includes editing mode, zoom, scroll, and expanded groups; selections are cleared.
+
+On load, authentication and recovery context are established first. The map recovers before inventories so newly added shelves can load. Pending browser copies pass the existing server draft validation before the working document is displayed and editing is enabled. Normal server drafts retain undo history; the emergency browser copy preserves current data rather than duplicating the full undo stack. Invalid, expired (eight hours), deleted, or older-revision snapshots are ignored. Storage failures show a warning and leave server caching available.
+
+Successful **Save changes** clears the committed browser copies and preserves edits made during the save. Failed saves retain recovery data. Intentional logout clears browser recovery for that login session, discards its server drafts, and loads committed visitor data. Recovery creates no saved versions. Because sessions remain temporary and are held in server memory, this is refresh protection during an active session, not a replacement for saving/exporting before logout, session expiry, or server restart.
+
+When updating the running application, save or export active work before restarting `server.py` to load new API routes. Development tests use disposable data and do not restart your live server.
 
 ## Files and matrix format
 
