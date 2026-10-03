@@ -25,9 +25,12 @@ function renderShelfInformation(host, data, fallbackName = 'Shelf') {
   host.append(
     label,
     title,
-    infoField('Contents', shelf.contents),
+    infoField('Descriptive notes', shelf.contents),
     infoField('Keywords', shelf.keywords),
   );
+  const stockPanel = document.createElement('section');
+  inventoryLocationPanel(stockPanel, shelf.id, null, true);
+  host.append(stockPanel);
   if (shelf.mode === 'complex' || shelf.decor.length)
     readOnlyShelfGrid(host, shelf);
   if (shelf.mode === 'complex') {
@@ -46,9 +49,13 @@ function renderShelfInformation(host, data, fallbackName = 'Shelf') {
       card.append(
         name,
         location,
-        infoField('Contents', bin.contents),
+        infoField('Descriptive notes', bin.contents),
         infoField('Keywords', bin.keywords),
       );
+      card.dataset.binId = bin.id;
+      const stockPanel = document.createElement('section');
+      inventoryLocationPanel(stockPanel, shelf.id, bin.id);
+      card.append(stockPanel);
       list.append(card);
     });
     const heading = document.createElement('h3');

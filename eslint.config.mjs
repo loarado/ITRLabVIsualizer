@@ -5,13 +5,13 @@ import globals from 'globals';
 // Classic scripts, in the order loaded by each active HTML page.
 const pages = [
   [
-    'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js',
+    'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'inventory_ui.js',
     'map_geometry.js', 'shelf_model.js', 'explorer.js', 'map_editor.js',
     'lab_tools.js', 'map_elements.js', 'lab.js',
   ],
   [
     'shelf_model.js', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js',
-    'common.js', 'map_geometry.js', 'explorer.js', 'shelf_decor.js', 'shelf.js',
+    'common.js', 'inventory_ui.js', 'map_geometry.js', 'explorer.js', 'shelf_decor.js', 'shelf.js',
   ],
 ];
 const files = [...new Set(pages.flat())];

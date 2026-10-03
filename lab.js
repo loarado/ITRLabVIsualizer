@@ -435,6 +435,9 @@ function renderDetails() {
   $('#sectionFields').hidden = item.kind !== 'section';
   $('#openShelf').hidden = item.kind !== 'shelf';
   $('#shelfFile').hidden = item.kind !== 'shelf';
+  $('#mapStockPanel').hidden = item.kind !== 'shelf';
+  if (item.kind === 'shelf')
+    inventoryLocationPanel($('#mapStockPanel'), item.id, null, true);
   $('#openShelf').href = `shelf_editor.html?id=${encodeURIComponent(item.id)}`;
   $('#shelfFile').textContent = `File: data/shelves/${item.id}.json`;
   $('#delete').disabled = !isAdmin || item.locked;

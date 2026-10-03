@@ -175,6 +175,7 @@ function render() {
   shelf.data = normalizeShelf(shelf.data);
   $('h1').textContent = isAdmin ? 'Shelf Editor' : 'Lab Explorer';
   $('#shelfReadOnly').hidden = isAdmin;
+  $('#shelfStockPanel').hidden = !isAdmin;
   if (!isAdmin) {
     renderShelfInformation($('#shelfReadOnly'), shelf.data, shelfId);
     $('.shelf-viewport').hidden = true;
@@ -204,6 +205,12 @@ function render() {
     selection = null;
   renderGrid();
   renderDetails();
+  inventoryLocationPanel(
+    $('#shelfStockPanel'),
+    shelfId,
+    binAt()?.id || null,
+    !binAt(),
+  );
   $('#rows').value = shelf.data.rows;
   $('#cols').value = shelf.data.cols;
   $('#count').textContent =

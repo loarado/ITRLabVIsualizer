@@ -1,6 +1,6 @@
 """Structured stock independent of geometry history; dependency-free JSON model."""
 import copy
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP, localcontext
 import hashlib
 import json
 import re
@@ -104,4 +104,6 @@ def estimated_value(item, stock):
     # ISO currencies with zero/three/four minor digits; other codes use two.
     digits = 0 if item['currency'] in {'JPY','KRW','VND','CLP','ISK','PYG','RWF','UGX','XAF','XOF','XPF','BIF','DJF','GNF','KMF','VUV'} else 3 if item['currency'] in {'BHD','IQD','JOD','KWD','LYD','OMR','TND'} else 4 if item['currency'] in {'CLF','UYW'} else 2
     quantum = Decimal(1).scaleb(-digits)
-    return dict(amount=format((Decimal(stock['quantity']) * Decimal(item['unitPrice'])).quantize(quantum, rounding=ROUND_HALF_UP), 'f'), currency=item['currency'])
+    with localcontext() as context:
+        context.prec = 50
+        return dict(amount=format((Decimal(stock['quantity']) * Decimal(item['unitPrice'])).quantize(quantum, rounding=ROUND_HALF_UP), 'f'), currency=item['currency'])

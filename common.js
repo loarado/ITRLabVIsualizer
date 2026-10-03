@@ -160,6 +160,7 @@ async function save(name) {
       recoveryAfterSave(result.labRevision);
       await cacheDraft();
       await app.onSaved?.();
+      await refreshInventory();
       message(
         dirty
           ? `Saved “${name}”; newer edits remain in your draft`
@@ -228,6 +229,7 @@ function setAuth(value) {
   app?.render();
   updateUndo();
   app?.onAuthChanged?.(value);
+  inventoryAuthChanged(value);
 }
 async function showCommittedVisitor() {
   clearTimeout(saveTimer);

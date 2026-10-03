@@ -87,6 +87,65 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(inventory['stocks']['entry']['quantity'],'23')
         self.assertEqual((self.data/'inventory.json').read_bytes(),original)
 
+    def mutation(self, **body):
+        import secrets
+        body.setdefault('revision', self.server.stock_document()['revision'])
+        body.setdefault('operationId','op-'+secrets.token_hex(8))
+        return self.request('POST','/api/inventory',body)
+
+    def test_authorization_concurrency_and_multi_location_editor(self):
+        self.assertEqual(self.mutation(action='save',item={'name':'M4 bolts'})[0],403)
+        self.login()
+        first=self.mutation(action='save',item={'name':'M4 bolts'},stock=dict(shelfId='R01',binId=None,tracking='exact',quantity='10',unit='each'))
+        self.assertEqual(first[0],200);item_id=first[1]['itemId'];stock_id=first[1]['stockId']
+        second=self.mutation(action='save',itemId=item_id,stock=dict(shelfId='R02',binId=None,tracking='presence',unit='pack'))
+        self.assertEqual(second[0],200)
+        doc=self.request('GET','/api/inventory')[1];self.assertEqual(len(doc['items']),1);self.assertEqual(len(doc['stocks']),2)
+        self.assertEqual(self.mutation(action='save',revision=0,itemId=item_id,item={'name':'Stale'})[0],409)
+        self.assertEqual(self.mutation(action='save',itemId=item_id,stockId=stock_id,stock=dict(shelfId='R01',binId=None,tracking='exact',quantity='-1',unit='each'))[0],400)
+        self.assertEqual(self.server.stock_document()['stocks'][stock_id]['quantity'],'10')
+        self.assertEqual(self.mutation(action='save',itemId=item_id,item={'name':'M4 steel bolts'})[0],200)
+        self.assertEqual(self.server.stock_document()['items'][item_id]['name'],'M4 steel bolts')
+        self.assertEqual(self.request('POST','/api/inventory',dict(action='save'),{'Origin':'http://evil.example'})[0],403)
+        self.request('POST','/api/logout',{})
+        self.assertEqual(self.request('GET','/api/inventory/history')[0],403)
+        self.assertEqual(self.mutation(action='archive',stockId=stock_id)[0],403)
+
+    def test_atomic_transfers_corrections_archive_and_audit(self):
+        self.login()
+        created=self.mutation(action='save',item={'name':'Fastener','unitPrice':'0.10','currency':'USD','priceUnit':'each'},stock=dict(shelfId='R01',tracking='exact',quantity='12.5',unit='each'))[1]
+        item_id=created['itemId'];stock_id=created['stockId']
+        self.assertEqual(self.mutation(action='transfer',stockId=stock_id,amount='20',shelfId='R02')[0],400)
+        self.assertEqual(self.mutation(action='transfer',stockId=stock_id,amount='0',shelfId='R02')[0],400)
+        body=dict(action='transfer',stockId=stock_id,amount='2.5',shelfId='R02',revision=self.server.stock_document()['revision'],operationId='retry-transfer')
+        self.assertEqual(self.request('POST','/api/inventory',body)[0],200)
+        self.assertEqual(self.request('POST','/api/inventory',body)[0],200)
+        stocks=self.server.stock_document()['stocks'];self.assertEqual(sorted(s['quantity'] for s in stocks.values()),['10.0','2.5'])
+        self.assertEqual(self.mutation(action='transfer',stockId=stock_id,amount='1.25',shelfId='R02')[0],200)
+        self.assertEqual(sum(__import__('decimal').Decimal(s['quantity']) for s in self.server.stock_document()['stocks'].values()),__import__('decimal').Decimal('12.5'))
+        self.assertEqual(self.mutation(action='archive',stockId=stock_id)[0],200)
+        self.assertTrue(self.server.stock_document()['stocks'][stock_id]['archived'])
+        self.assertEqual(self.mutation(action='reactivate',stockId=stock_id)[0],200)
+        audit=self.request('GET','/api/inventory/history')[1];self.assertEqual(audit[0]['action'],'reactivate')
+        self.assertEqual(self.request('GET','/api/inventory/history/1')[1]['stocks'][stock_id]['quantity'],'12.5')
+        self.assertFalse((self.data/'pending-save.json').exists())
+        backup=self.request('GET','/api/backup')[1]
+        self.assertEqual(backup['format'],'itr-full-backup');self.assertEqual(backup['data']['inventory.json'],self.server.stock_document())
+        self.assertIn('history/inventory/1.json',backup['data'])
+
+    def test_inventory_interrupted_save_rolls_forward_and_retry_is_safe(self):
+        from unittest.mock import patch
+        self.login()
+        body=dict(action='save',item={'name':'Recovered'},stock=dict(shelfId='R01',unit='each'),revision=0,operationId='failed-disk-operation')
+        with patch.object(self.server,'finish_transaction',side_effect=[None,OSError('test disk failure')]):
+            self.assertEqual(self.request('POST','/api/inventory',body)[0],500)
+        self.assertTrue((self.data/'pending-save.json').exists())
+        self.restart();self.login()
+        self.assertEqual(len(self.server.stock_document()['items']),1)
+        self.assertEqual(self.request('POST','/api/inventory',body)[0],200)
+        self.assertEqual(len(self.server.stock_document()['items']),1)
+        self.assertFalse((self.data/'pending-save.json').exists())
+
     def test_unknown_values_decimal_units_and_currencies(self):
         item=validate_item({'name':'M4 bolts'})
         self.assertIsNone(item['unitPrice'])

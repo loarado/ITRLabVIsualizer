@@ -17,7 +17,8 @@ import secrets
 import threading
 import time
 import tarfile
-from inventory import identify_bins, empty_inventory, location_key
+from inventory import identify_bins, empty_inventory, location_key, validate_item, validate_stock, decimal_value, estimated_value
+from decimal import Decimal
 from urllib.parse import urlsplit, unquote
 
 ROOT = Path(__file__).resolve().parent
@@ -266,6 +267,86 @@ class LabServer(ThreadingHTTPServer):
     def stock_document(self):
         return json.loads((self.data_dir / 'inventory.json').read_text())
 
+    def commit_stock(self, body):
+        if not isinstance(body, dict):
+            raise ValueError('Invalid inventory request.')
+        current = self.stock_document()
+        operation = body.get('operationId')
+        if not isinstance(operation, str) or not ID.fullmatch(operation):
+            raise ValueError('A unique operation ID is required.')
+        if operation in current.get('operations', {}):
+            return current['operations'][operation]
+        if type(body.get('revision')) is not int or body['revision'] != current['revision']:
+            raise RevisionConflict('Inventory changed in another editor. Your entry is kept open; reload inventory and reconcile before saving.')
+        doc = copy.deepcopy(current)
+        locations = self.stock_locations()
+        result = {}
+        action = body.get('action')
+        if action == 'save':
+            item_id = body.get('itemId')
+            if item_id and item_id not in doc['items']:
+                raise ValueError('Item no longer exists.')
+            if 'item' in body:
+                item_id = item_id or 'I-' + secrets.token_hex(16)
+                doc['items'][item_id] = validate_item(body['item'])
+            if not item_id:
+                raise ValueError('Choose an item or enter its name.')
+            result['itemId'] = item_id
+            if 'stock' in body:
+                stock_id = body.get('stockId') or 'ST-' + secrets.token_hex(16)
+                if body.get('stockId') and stock_id not in doc['stocks']:
+                    raise ValueError('Stock entry no longer exists.')
+                previous = doc['stocks'].get(stock_id)
+                if previous and previous['itemId'] != item_id:
+                    raise ValueError('Editing stock cannot change its item identity.')
+                stock = validate_stock(dict(body['stock'], itemId=item_id), doc['items'], locations, previous)
+                for sid, other in doc['stocks'].items():
+                    if sid != stock_id and not other.get('archived') and not stock['archived'] and all(other.get(k) == stock.get(k) for k in ('itemId','shelfId','binId','unit')):
+                        raise ValueError('This item already has stock at that location in that unit. Edit its existing entry instead.')
+                doc['stocks'][stock_id] = stock
+                result['stockId'] = stock_id
+        elif action in ('archive', 'reactivate'):
+            stock = doc['stocks'].get(body.get('stockId'))
+            if not stock:
+                raise ValueError('Stock entry not found.')
+            if action == 'reactivate' and any(not other.get('archived') and other is not stock and all(other.get(k) == stock.get(k) for k in ('itemId','shelfId','binId','unit')) for other in doc['stocks'].values()):
+                raise ValueError('An active entry already exists at this location. Reconcile stock first.')
+            stock['archived'] = action == 'archive'
+        elif action == 'transfer':
+            source = doc['stocks'].get(body.get('stockId'))
+            if not source or source.get('archived') or source['tracking'] != 'exact' or source['quantity'] is None:
+                raise ValueError('Partial transfers require active stock with a known exact quantity. Use Edit stock to relocate other tracking types.')
+            amount = Decimal(decimal_value(body.get('amount'), 'Transfer amount', optional=False))
+            if amount <= 0 or amount > Decimal(source['quantity']):
+                raise ValueError('Transfer amount must be positive and cannot exceed the source quantity.')
+            target = validate_stock(dict(source, shelfId=body.get('shelfId'), binId=body.get('binId'), quantity=format(amount,'f')), doc['items'], locations)
+            if (target['shelfId'],target['binId']) == (source['shelfId'],source['binId']):
+                raise ValueError('Choose a different destination.')
+            destination = next((stock for stock in doc['stocks'].values() if not stock.get('archived') and all(stock[k] == target[k] for k in ('itemId','shelfId','binId','unit'))), None)
+            if destination:
+                if destination['tracking'] != 'exact' or destination['quantity'] is None:
+                    raise ValueError('Destination stock needs a known exact quantity before merging a transfer.')
+                destination['quantity'] = decimal_value(format(Decimal(destination['quantity'])+amount,'f'), 'Destination quantity')
+            else:
+                doc['stocks']['ST-' + secrets.token_hex(16)] = target
+            source['quantity'] = format(Decimal(source['quantity'])-amount,'f')
+        else:
+            raise ValueError('Unknown inventory operation.')
+        doc['revision'] += 1
+        result['revision'] = doc['revision']
+        doc.setdefault('operations', {})[operation] = result
+        doc['lastChange'] = dict(savedAt=datetime.now(timezone.utc).isoformat(), action=action,
+                                reason=body.get('reason', 'Inventory ' + action), operationId=operation)
+        if not text(doc['lastChange']['reason'], 500):
+            raise ValueError('Correction note is limited to 500 characters.')
+        writes = {'inventory.json':doc}
+        # Audit snapshots are independent of map versions and include before/after.
+        for state in (current, doc):
+            writes[f"history/inventory/{state['revision']}.json"] = state
+        write_json(self.data_dir / 'pending-save.json', writes)
+        self.finish_transaction()
+        return result
+
     def stock_locations(self, prefix=None):
         """Resolve identities from current geometry, retaining stock in absent locations."""
         self.prune_drafts()
@@ -512,11 +593,43 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response(400, {'error': str(error)})
 
     def do_GET(self):
+        with self.server.lock:
+            try:
+                self.server.finish_transaction()
+            except OSError:
+                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
         path = urlsplit(self.path).path
+        if path == '/api/backup' or path.startswith('/api/inventory/history'):
+            if not self.admin():
+                return self.json_response(403, {'error': 'Admin login required.'})
+            with self.server.lock:
+                try:
+                    if path == '/api/backup':
+                        files = {str(p.relative_to(self.server.data_dir)): json.loads(p.read_text())
+                                 for p in self.server.data_dir.rglob('*.json') if p.name != 'pending-save.json'}
+                        return self.json_response(200, dict(format='itr-full-backup', schemaVersion=1,
+                            savedAt=datetime.now(timezone.utc).isoformat(), data=files,
+                            defaults={'lab.json':json.loads((ROOT / 'defaults/lab.json').read_text())}))
+                    if path == '/api/inventory/history':
+                        entries = []
+                        for p in (self.server.data_dir / 'history/inventory').glob('*.json'):
+                            state = json.loads(p.read_text())
+                            entries.append(dict(revision=state['revision'], **state.get('lastChange', {})))
+                        return self.json_response(200, sorted(entries, key=lambda e:e['revision'], reverse=True))
+                    match = re.fullmatch(r'/api/inventory/history/(\d{1,12})', path)
+                    if match:
+                        p = self.server.data_dir / 'history/inventory' / (str(int(match[1]))+'.json')
+                        if p.exists():
+                            return self.json_response(200, json.loads(p.read_text()))
+                    return self.json_response(404, {'error':'Audit snapshot not found.'})
+                except (OSError, ValueError, KeyError):
+                    return self.json_response(500, {'error':'Could not read backup or audit history.'})
         if path == '/api/inventory':
             with self.server.lock:
                 try:
                     doc = self.server.stock_document()
+                    for stock in doc['stocks'].values():
+                        stock['estimatedValue'] = estimated_value(doc['items'][stock['itemId']], stock)
                     prefix = (self.token(), self.headers.get('X-Editor-Instance', '')) if self.admin() else None
                     return self.json_response(200, dict(doc, locations=self.server.stock_locations(prefix)))
                 except (OSError, ValueError, KeyError):
@@ -603,7 +716,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json_response(200, normalize_shelf(doc, self.shelf_name(shelf_id)) if shelf_id else doc)
                 except (OSError, ValueError):
                     return self.json_response(500, {'error': 'Cannot read data file. Check its JSON.'})
-        public = {'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_decor.js', 'shelf_model.js', 'explorer.js'}
+        public = {'inventory_ui.js', 'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_decor.js', 'shelf_model.js', 'explorer.js'}
         name = unquote(path).lstrip('/') or 'lab_overview.html'
         if name not in public:
             return self.json_response(404, {'error': 'Not found.'})
@@ -620,10 +733,26 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_POST(self):
+        with self.server.lock:
+            try:
+                self.server.finish_transaction()
+            except OSError:
+                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
         if not self.same_origin():
             return self.json_response(403, {'error': 'Cross-origin requests are not allowed.'})
         path = urlsplit(self.path).path
         with self.server.lock:
+            if path == '/api/inventory':
+                if not self.admin():
+                    return self.json_response(403, {'error':'Admin login required to edit inventory.'})
+                try:
+                    return self.json_response(200, self.server.commit_stock(self.read_body()))
+                except RevisionConflict as error:
+                    return self.json_response(409, {'error':str(error)})
+                except (ValueError, KeyError, TypeError, UnicodeDecodeError) as error:
+                    return self.json_response(400, {'error':str(error)})
+                except OSError:
+                    return self.json_response(500, {'error':'Could not complete inventory save. Your entry is still open. Retry the same operation to check whether it committed.'})
             if path == '/api/lab/restore':
                 if not self.admin():
                     return self.json_response(403, {'error': 'Admin login required to restore a layout.'})
@@ -699,6 +828,11 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_response(200, {'admin': True}, f'itr_session={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800')
 
     def do_DELETE(self):
+        with self.server.lock:
+            try:
+                self.server.finish_transaction()
+            except OSError:
+                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
         if not self.admin() or not self.same_origin():
             return self.json_response(403, {'error': 'Admin login required.'})
         with self.server.lock:
@@ -720,6 +854,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response(400, {'error': str(error)})
 
     def do_PUT(self):
+        with self.server.lock:
+            try:
+                self.server.finish_transaction()
+            except OSError:
+                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
         if urlsplit(self.path).path.startswith('/api/drafts/'):
             return self.draft_request(write=True)
         if not self.same_origin() or not self.admin():
