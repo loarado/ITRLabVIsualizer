@@ -76,6 +76,21 @@ class InventoryNavigation(unittest.TestCase):
         expect(p.locator('#inventoryList')).to_contain_text('low')
         self.assertEqual(json.loads((self.data/'lab.json').read_text())['revision'],0)
 
+    def test_admin_shelf_editor_exposes_retained_target_bin_without_mode_change(self):
+        self.seed()
+        shelf=json.loads((self.data/'shelves/R01.json').read_text());shelf['mode']='simple';write_json(self.data/'shelves/R01.json',shelf)
+        self.login();p=self.page
+        p.goto(self.url+'/shelf_editor.html?id=R01&bin=shared-bin')
+        p.wait_for_function('typeof shelf!=="undefined" && isAdmin && inventoryState')
+        expect(p.locator('#shelfReadOnly')).to_be_visible()
+        expect(p.locator('#shelfReadOnly .bin-card.inventory-target')).to_have_attribute('data-bin-id','shared-bin')
+        expect(p.locator('#shelfReadOnly .bin-card.inventory-target')).to_contain_text('M4 bolts')
+        self.assertEqual(p.evaluate('shelf.data.mode'),'simple')
+        p.locator('#shelfName').fill('Updated name');p.locator('#shelfName').dispatch_event('change')
+        expect(p.locator('#shelfReadOnly')).to_be_visible()
+        expect(p.locator('#shelfReadOnly .bin-card.inventory-target')).to_contain_text('M4 bolts')
+        self.assertEqual(p.evaluate('shelf.data.mode'),'simple')
+
     def test_hidden_and_unmapped_stock_stays_discoverable(self):
         self.seed()
         shelf=json.loads((self.data/'shelves/R01.json').read_text());shelf['mode']='simple';write_json(self.data/'shelves/R01.json',shelf)

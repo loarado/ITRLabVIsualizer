@@ -140,11 +140,64 @@ class InventoryTests(unittest.TestCase):
         with patch.object(self.server,'finish_transaction',side_effect=[None,OSError('test disk failure')]):
             self.assertEqual(self.request('POST','/api/inventory',body)[0],500)
         self.assertTrue((self.data/'pending-save.json').exists())
+        journal=(self.data/'pending-save.json').read_bytes()
+        self.assertEqual(self.request('GET','/api/inventory')[0],503)
+        self.assertEqual((self.data/'pending-save.json').read_bytes(),journal)
         self.restart();self.login()
         self.assertEqual(len(self.server.stock_document()['items']),1)
         self.assertEqual(self.request('POST','/api/inventory',body)[0],200)
         self.assertEqual(len(self.server.stock_document()['items']),1)
         self.assertFalse((self.data/'pending-save.json').exists())
+
+    def test_full_backup_recovery_validates_before_writing_and_preserves_all_records(self):
+        import tempfile
+        from restore_backup import restore_backup
+        self.login()
+        self.mutation(action='save',item={'name':'Backup stock'},stock=dict(shelfId='R01',quantity=None,tracking='exact',unit='pack'))
+        backup=self.request('GET','/api/backup')[1]
+        with tempfile.TemporaryDirectory() as temp:
+            target=__import__('pathlib').Path(temp)/'recovered'
+            restore_backup(backup,target)
+            for name,doc in backup['data'].items():
+                self.assertEqual(json.loads((target/'data'/name).read_text()),doc)
+            self.assertEqual(json.loads((target/'defaults/lab.json').read_text()),backup['defaults']['lab.json'])
+            with self.assertRaises(ValueError):restore_backup(backup,target)
+            for mutate in ('negative','path','missing-shelf'):
+                invalid=copy.deepcopy(backup)
+                if mutate=='negative':next(iter(invalid['data']['inventory.json']['stocks'].values()))['quantity']='-5'
+                elif mutate=='path':invalid['data']['../escape.json']={}
+                else:invalid['data'].pop('shelves/R01.json')
+                bad=__import__('pathlib').Path(temp)/mutate
+                with self.assertRaises(ValueError):restore_backup(invalid,bad)
+                self.assertFalse(bad.exists())
+            recovered=LabServer(('127.0.0.1',0),target/'data','itr',target/'defaults')
+            self.assertEqual(recovered.stock_document(),backup['data']['inventory.json'])
+            self.assertEqual(recovered.stock_locations()['R01']['label'],self.server.stock_locations()['R01']['label'])
+            recovered.server_close()
+
+    def test_location_move_resize_rename_retains_stock_identity(self):
+        self.login()
+        shelf=self.request('GET','/api/shelves/R01')[1]
+        shelf.update(mode='complex',versionName='Original bin')
+        shelf['matrix'][0][0]=dict(bin_data(),id='stable-bin')
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf)[0],200)
+        created=self.mutation(action='save',item={'name':'Stable stock'},stock=dict(shelfId='R01',binId='stable-bin',tracking='exact',quantity='12',unit='each'))[1]
+        stock_id=created['stockId'];before=(self.data/'inventory.json').read_bytes()
+        shelf=self.request('GET','/api/shelves/R01')[1]
+        bin=shelf['matrix'][0][0];shelf['matrix'][0][0]=None
+        bin.update(name='Renamed bin',contents='Changed notes',w=3,h=1.5)
+        shelf['matrix'][3][5]=bin;shelf['versionName']='Moved and resized'
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf)[0],200)
+        lab=self.request('GET','/api/lab')[1]
+        next(i for i in lab['items'] if i['id']=='R01').update(name='Renamed shelf',locationId='Edited label')
+        self.assertEqual(self.request('PUT','/api/lab',lab)[0],200)
+        doc=self.request('GET','/api/inventory')[1]
+        self.assertEqual(doc['stocks'][stock_id]['binId'],'stable-bin')
+        self.assertEqual(doc['stocks'][stock_id]['quantity'],'12')
+        self.assertIn('Renamed shelf',doc['locations']['R01/stable-bin']['label'])
+        self.assertIn('Renamed bin',doc['locations']['R01/stable-bin']['label'])
+        self.assertIn('Edited label',doc['locations']['R01/stable-bin']['label'])
+        self.assertEqual((self.data/'inventory.json').read_bytes(),before)
 
     def test_unknown_values_decimal_units_and_currencies(self):
         item=validate_item({'name':'M4 bolts'})

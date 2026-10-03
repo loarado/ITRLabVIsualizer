@@ -212,9 +212,10 @@ class RevisionConflict(ValueError):
 
 
 class LabServer(ThreadingHTTPServer):
-    def __init__(self, address, data_dir, password):
+    def __init__(self, address, data_dir, password, defaults_dir=None):
         super().__init__(address, Handler)
         self.data_dir = Path(data_dir)
+        self.defaults_dir = Path(defaults_dir) if defaults_dir else ROOT / 'defaults'
         self.password_hash = hashlib.sha256(password.encode()).digest()
         self.sessions = {}
         self.attempts = {}
@@ -244,7 +245,7 @@ class LabServer(ThreadingHTTPServer):
         backup = backup_dir / ("before-locations-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + secrets.token_hex(4) + ".tar.gz")
         with tarfile.open(backup, "w:gz") as archive:
             archive.add(self.data_dir, arcname="data")
-            archive.add(ROOT / "defaults", arcname="defaults")
+            archive.add(self.defaults_dir, arcname="defaults")
         write_json(self.data_dir / "pending-save.json", writes)
         self.finish_transaction()
 
@@ -474,7 +475,10 @@ class Handler(BaseHTTPRequestHandler):
         for name, value in (headers or {}).items():
             self.send_header(name, str(value))
         self.end_headers()
-        self.wfile.write(raw)
+        try:
+            self.wfile.write(raw)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # A client may navigate away while a read is in flight.
 
     def token(self):
         jar = cookies.SimpleCookie()
@@ -591,12 +595,33 @@ class Handler(BaseHTTPRequestHandler):
             except (ValueError, UnicodeDecodeError) as error:
                 return self.json_response(400, {'error': str(error)})
 
-    def do_GET(self):
+    def consistent_request(self, callback, recover=False):
+        # Keep the journal check and the complete request under the same lock.
+        # GET never changes saved data or silently completes a pending save.
         with self.server.lock:
-            try:
-                self.server.finish_transaction()
-            except OSError:
-                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
+            pending = (self.server.data_dir / 'pending-save.json').exists()
+            if pending and (not recover or not self.admin() or not self.same_origin()):
+                return self.json_response(503, {'error':'An explicitly saved transaction is pending disk recovery. Retry the same save when storage is available, or restart the server after protecting active drafts.'})
+            if recover:
+                try:
+                    self.server.finish_transaction()
+                except OSError:
+                    return self.json_response(503, {'error':'A saved transaction is pending disk recovery. Retry the same save when storage is available.'})
+            return callback()
+
+    def do_GET(self):
+        return self.consistent_request(self.request_get)
+
+    def do_POST(self):
+        return self.consistent_request(self.request_post, recover=True)
+
+    def do_PUT(self):
+        return self.consistent_request(self.request_put, recover=True)
+
+    def do_DELETE(self):
+        return self.consistent_request(self.request_delete, recover=True)
+
+    def request_get(self):
         path = urlsplit(self.path).path
         if path == '/api/backup' or path.startswith('/api/inventory/history'):
             if not self.admin():
@@ -608,7 +633,7 @@ class Handler(BaseHTTPRequestHandler):
                                  for p in self.server.data_dir.rglob('*.json') if p.name != 'pending-save.json'}
                         return self.json_response(200, dict(format='itr-full-backup', schemaVersion=1,
                             savedAt=datetime.now(timezone.utc).isoformat(), data=files,
-                            defaults={'lab.json':json.loads((ROOT / 'defaults/lab.json').read_text())}))
+                            defaults={'lab.json':json.loads((self.server.defaults_dir / 'lab.json').read_text())}))
                     if path == '/api/inventory/history':
                         entries = []
                         for p in (self.server.data_dir / 'history/inventory').glob('*.json'):
@@ -733,14 +758,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-cache')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.end_headers()
-        self.wfile.write(raw)
+        try:
+            self.wfile.write(raw)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # A client may navigate away while a read is in flight.
 
-    def do_POST(self):
-        with self.server.lock:
-            try:
-                self.server.finish_transaction()
-            except OSError:
-                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
+    def request_post(self):
         if not self.same_origin():
             return self.json_response(403, {'error': 'Cross-origin requests are not allowed.'})
         path = urlsplit(self.path).path
@@ -769,7 +792,7 @@ class Handler(BaseHTTPRequestHandler):
                     version = str(body.get('version', ''))
                     restored_shelves = None
                     if version == 'original':
-                        doc = json.loads((ROOT / 'defaults' / 'lab.json').read_text())
+                        doc = json.loads((self.server.defaults_dir / 'lab.json').read_text())
                     elif re.fullmatch(r'\d{1,12}', version) and int(version) <= current['revision']:
                         file = self.server.data_dir / 'history' / 'lab' / f'{int(version)}.json'
                         if file.exists():
@@ -830,12 +853,7 @@ class Handler(BaseHTTPRequestHandler):
             self.server.sessions[token] = now + 8*3600
             return self.json_response(200, {'admin': True}, f'itr_session={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800')
 
-    def do_DELETE(self):
-        with self.server.lock:
-            try:
-                self.server.finish_transaction()
-            except OSError:
-                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
+    def request_delete(self):
         if not self.admin() or not self.same_origin():
             return self.json_response(403, {'error': 'Admin login required.'})
         with self.server.lock:
@@ -856,12 +874,7 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as error:
                 return self.json_response(400, {'error': str(error)})
 
-    def do_PUT(self):
-        with self.server.lock:
-            try:
-                self.server.finish_transaction()
-            except OSError:
-                return self.json_response(503, {'error': 'A saved transaction is pending disk recovery. Retry when storage is available.'})
+    def request_put(self):
         if urlsplit(self.path).path.startswith('/api/drafts/'):
             return self.draft_request(write=True)
         if not self.same_origin() or not self.admin():
@@ -916,9 +929,10 @@ def main():
     parser.add_argument('--port', type=int, default=8000)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--data-dir', default=str(ROOT / 'data'))
+    parser.add_argument('--defaults-dir', default=str(ROOT / 'defaults'))
     args = parser.parse_args()
     try:
-        server = LabServer((args.host, args.port), args.data_dir, os.environ.get('ITR_ADMIN_PASSWORD', 'itr'))
+        server = LabServer((args.host, args.port), args.data_dir, os.environ.get('ITR_ADMIN_PASSWORD', 'itr'), args.defaults_dir)
     except OSError as error:
         parser.exit(1, f'Could not start server: {error}\nStop the old server with Ctrl+C, or choose --port 8001.\n')
     host = 'localhost' if args.host in ('127.0.0.1', '0.0.0.0') else args.host

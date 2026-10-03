@@ -1,5 +1,6 @@
 'use strict';
 const shelfId = new URLSearchParams(location.search).get('id');
+const shelfTargetBin = new URLSearchParams(location.search).get('bin');
 const shelf = {
   data: null,
   endpoint: `/api/shelves/${encodeURIComponent(shelfId || '')}`,
@@ -174,10 +175,16 @@ function render() {
   if (!shelf.data) return;
   shelf.data = normalizeShelf(shelf.data);
   $('h1').textContent = isAdmin ? 'Shelf Editor' : 'Lab Explorer';
-  $('#shelfReadOnly').hidden = isAdmin;
+  $('#shelfReadOnly').hidden =
+    isAdmin && !(shelfTargetBin && shelf.data.mode === 'simple');
   $('#shelfStockPanel').hidden = !isAdmin;
   if (!isAdmin) {
-    renderShelfInformation($('#shelfReadOnly'), shelf.data, shelfId);
+    renderShelfInformation(
+      $('#shelfReadOnly'),
+      shelf.data,
+      shelfId,
+      shelfTargetBin,
+    );
     $('.shelf-viewport').hidden = true;
     ['search', 'zoomIn', 'zoomOut', 'gridHint'].forEach(
       (id) => ($('#' + id).hidden = true),
@@ -186,6 +193,13 @@ function render() {
       shelf.data.mode === 'simple' ? 'Simple shelf' : `${bins().length} bins`;
     return;
   }
+  if (shelfTargetBin && shelf.data.mode === 'simple')
+    renderShelfInformation(
+      $('#shelfReadOnly'),
+      shelf.data,
+      shelfId,
+      shelfTargetBin,
+    );
   const simple = shelf.data.mode === 'simple';
   document.body.classList.toggle('simple-shelf', simple);
   $('#shelfMode').value = shelf.data.mode;

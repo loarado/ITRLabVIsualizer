@@ -52,4 +52,30 @@ class InventorySafety(unittest.TestCase):
         self.save('Removed location')
         self.assertEqual((self.data/'inventory.json').read_bytes(),original)
 
+    def test_import_structure_retains_notes_and_never_imports_stock(self):
+        p=self.page;self.login()
+        p.goto(self.url+'/shelf_editor.html?id=R01');p.wait_for_function('isAdmin && recoveryReady')
+        p.locator('#shelfMode').select_option('complex');p.locator('#applyShelfMode').click()
+        p.get_by_role('button',name='Empty cell, row 1, column 1',exact=True).click();p.locator('#addBin').click()
+        self.save('Before import')
+        old_id=p.evaluate('binAt().id')
+        inv=empty_inventory();inv['items']['bolts']=validate_item({'name':'Preserved stock'})
+        inv['stocks']['stock']=dict(itemId='bolts',shelfId='R01',binId=old_id,tracking='exact',quantity='9',unit='each',archived=False,locationLabel='Prior bin')
+        write_json(self.data/'inventory.json',inv);original=(self.data/'inventory.json').read_bytes()
+        legacy=p.evaluate('shelf.data');legacy['matrix'][0][0].pop('id');legacy['matrix'][0][0]['contents']='Imported descriptive notes'
+        legacy['stocks']={'fake':{'quantity':'1000'}};legacy['items']={'fake':{'name':'Never import me'}}
+        p.on('dialog',lambda d:d.accept())
+        p.locator('#import').set_input_files(dict(name='old-shelf.json',mimeType='application/json',buffer=json.dumps(legacy).encode()))
+        p.wait_for_function('shelf.data.matrix[0][0].contents==="Imported descriptive notes"')
+        new_id=p.evaluate('shelf.data.matrix[0][0].id');self.assertNotEqual(new_id,old_id)
+        self.assertNotIn('stocks',p.evaluate('shelf.data'))
+        self.save('Imported structure')
+        self.assertEqual((self.data/'inventory.json').read_bytes(),original)
+        p.evaluate('refreshInventory()')
+        self.assertNotIn('R01/'+old_id,p.evaluate('inventoryState.locations'))
+        self.assertEqual(p.evaluate('inventoryState.stocks.stock.quantity'),'9')
+        p.locator('#undo').click()
+        self.assertEqual(p.evaluate('shelf.data.matrix[0][0].id'),old_id)
+        self.assertEqual((self.data/'inventory.json').read_bytes(),original)
+
 if __name__=='__main__':unittest.main()

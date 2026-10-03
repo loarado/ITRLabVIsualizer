@@ -60,6 +60,22 @@ class ShelfDecor(unittest.TestCase):
         p.evaluate('shelf.clearClipboard()')
         self.assertIsNone(p.evaluate('decorClipboard'))
 
+    def test_switching_bin_and_decor_clipboards_uses_active_selection(self):
+        p=self.page;self.login()
+        p.goto(self.url+'/shelf_editor.html?id=R01');p.wait_for_function('isAdmin && recoveryReady')
+        p.locator('#shelfMode').select_option('complex');p.locator('#applyShelfMode').click()
+        p.get_by_role('button',name='Empty cell, row 1, column 1',exact=True).click();p.locator('#addBin').click()
+        p.locator('.shelf-bin').focus();p.keyboard.press('Control+c')
+        p.locator('#addDecor').click();p.locator('.shelf-decor.selected').focus()
+        p.keyboard.press('Meta+c');p.keyboard.press('Meta+v')
+        p.wait_for_function('shelf.data.decor.length===2')
+        self.assertEqual(p.evaluate('shelfBins(shelf.data).length'),1)
+        p.locator('.shelf-bin').focus();p.locator('.shelf-bin').click()
+        p.keyboard.press('Control+c');p.keyboard.press('Control+v')
+        p.wait_for_function('shelfBins(shelf.data).length===2')
+        self.assertEqual(p.evaluate('shelf.data.decor.length'),2)
+        self.assertIsNone(p.evaluate('decorClipboard'))
+
     def test_shelf_design_and_persistence(self):
         p = self.page
         self.login()

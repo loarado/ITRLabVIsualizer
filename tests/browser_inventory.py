@@ -64,9 +64,37 @@ class InventoryEditor(unittest.TestCase):
         p.locator('#shelfStockPanel').get_by_role('button',name='Bolts',exact=True).click()
         p.get_by_role('button',name='Transfer quantity',exact=True).click()
         p.locator('#transfer-location').select_option('R02');p.locator('#transfer-amount').fill('3')
+        # Commit on the disposable server but simulate a lost acknowledgement.
+        def lose_ack(route):
+            if route.request.method=='POST':
+                route.fetch()
+                route.fulfill(status=503,content_type='application/json',body='{"error":"Lost transfer acknowledgement"}')
+            else:route.continue_()
+        p.route('**/api/inventory',lose_ack)
+        p.get_by_role('button',name='Transfer stock',exact=True).click()
+        expect(p.locator('#transfer-feedback')).to_contain_text('Lost transfer acknowledgement')
+        p.unroute('**/api/inventory')
         p.get_by_role('button',name='Transfer stock',exact=True).click();expect(p.locator('#inventoryTransfer')).not_to_be_visible()
+        self.errors[:] = [e for e in self.errors if 'status of 503' not in e]
         expect(p.locator('#inventoryDetailContent')).to_contain_text('7 each');expect(p.locator('#inventoryDetailContent')).to_contain_text('3 each')
         doc=json.loads((self.data/'inventory.json').read_text());self.assertEqual(len(doc['items']),2);self.assertEqual(len(doc['stocks']),3)
+
+    def test_unsaved_transfer_recovers_on_refresh(self):
+        p=self.page;self.login();p.locator('[data-id="R01"]').click()
+        p.locator('#mapStockPanel').get_by_role('button',name='Add inventory to this shelf',exact=True).click()
+        self.create('Recoverable transfer','10')
+        p.locator('#mapStockPanel').get_by_role('button',name='Recoverable transfer',exact=True).click()
+        p.get_by_role('button',name='Transfer quantity',exact=True).click()
+        p.locator('#transfer-location').select_option('R02');p.locator('#transfer-amount').fill('4')
+        operation=p.evaluate('inventoryTransferEntry.operationId')
+        p.on('dialog',lambda dialog:dialog.accept())
+        p.reload();p.wait_for_function('typeof inventoryTransferEntry!=="undefined" && inventoryTransferEntry')
+        expect(p.locator('#transfer-amount')).to_have_value('4')
+        expect(p.locator('#transfer-location')).to_have_value('R02')
+        self.assertEqual(p.evaluate('inventoryTransferEntry.operationId'),operation)
+        p.get_by_role('button',name='Transfer stock',exact=True).click();expect(p.locator('#inventoryTransfer')).not_to_be_visible()
+        doc=json.loads((self.data/'inventory.json').read_text());self.assertEqual(sorted(s['quantity'] for s in doc['stocks'].values()),['4','6'])
+        self.assertIsNone(p.evaluate("localStorage.getItem(recoveryKey('inventory-transfer'))"))
 
     def test_entry_refresh_recovery_failed_save_and_concurrent_review(self):
         p=self.page;self.login();p.locator('[data-id="R01"]').click()

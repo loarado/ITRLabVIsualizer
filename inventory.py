@@ -93,7 +93,7 @@ def validate_stock(stock, items, locations, previous=None):
         raise ValueError('Enter a unit, such as each or pack.')
     result['notes'] = clean_text(stock.get('notes', ''), 'stock notes', 10000)
     result['archived'] = bool(previous and previous.get('archived'))
-    result['locationLabel'] = locations.get(key, {}).get('label', previous.get('locationLabel', 'Unassigned') if previous else 'Unassigned')
+    result['locationLabel'] = locations.get(key, {}).get('label', previous.get('locationLabel', key) if previous else key) if key else 'Unassigned'
     return result
 
 

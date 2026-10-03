@@ -45,7 +45,9 @@ function inventoryLocation(stock) {
   return {
     key,
     location,
-    label: location?.label || stock.locationLabel || 'Unassigned',
+    label: stock.shelfId
+      ? location?.label || stock.locationLabel || stock.shelfId
+      : 'Unassigned',
     mapped: !!location?.mapped,
     hidden: !!location?.hidden,
   };
@@ -600,17 +602,47 @@ function setupInventoryEditor() {
       } catch {}
       message('Inventory saved · layout history unchanged');
     } catch (error) {
-      $('#inv-feedback').textContent = error.message;
+      $('#inv-feedback').textContent =
+        error.message +
+        (!error.status || error.status >= 500
+          ? ' Entry retained. Retry without changing the form to check whether the save committed.'
+          : '');
       if (error.status === 409) {
         await refreshInventory();
-        $('#inv-latest').textContent = JSON.stringify(
-          {
-            item: inventoryState.items[body.itemId],
-            stock: inventoryState.stocks[body.stockId],
-          },
-          null,
-          2,
-        );
+        const latestItem = inventoryState.items[body.itemId],
+          latestStock = inventoryState.stocks[body.stockId];
+        const details = [
+          `Saved inventory revision ${inventoryState.revision}`,
+          inventoryState.lastChange?.reason || '',
+        ];
+        if (latestItem)
+          itemInputKeys.forEach((key) =>
+            details.push(
+              `${key === 'name' ? 'Item name' : key}: ${latestItem[key] ?? 'Unknown'}`,
+            ),
+          );
+        else
+          details.push(
+            'Recorded items: ' +
+              Object.values(inventoryState.items)
+                .map((item) => item.name)
+                .join(', '),
+          );
+        if (latestStock)
+          details.push(
+            'Location: ' + inventoryLocation(latestStock).label,
+            'Stock: ' + inventoryStockText(latestStock),
+            'Stock notes: ' + (latestStock.notes || ''),
+          );
+        $('#inv-latest').textContent = details.filter(Boolean).join('\n');
+        Object.entries(inventoryState.items).forEach(([id, item]) => {
+          if (
+            !Array.from($('#inv-existing').options).some(
+              (option) => option.value === id,
+            )
+          )
+            $('#inv-existing').add(new Option(item.name, id));
+        });
         $('#inv-conflict').hidden = false;
       }
     } finally {
