@@ -439,6 +439,11 @@ async function startApp(controller) {
   document.addEventListener('keydown', (event) => {
     if (document.querySelector('dialog[open]')) return;
     const key = event.key.toLowerCase();
+    if (app.inventoryOnly) {
+      if ((event.ctrlKey || event.metaKey) && key === 's')
+        event.preventDefault();
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && key === 's') {
       event.preventDefault();
       save();

@@ -14,6 +14,7 @@ const pages = [
     'common.js', 'inventory_ui.js', 'map_geometry.js', 'explorer.js', 'shelf_decor.js', 'shelf.js',
   ],
 ];
+pages.push(['editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'inventory_ui.js', 'inventory_list.js']);
 const files = [...new Set(pages.flat())];
 
 // Derive only actual top-level declarations, never unresolved references.

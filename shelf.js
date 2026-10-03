@@ -504,7 +504,25 @@ if (!shelfId || !/^[A-Za-z0-9_-]{1,64}$/.test(shelfId)) {
 } else {
   $('#subtitle').textContent = `${shelfId} · Independent shelf matrix`;
   $('#file').textContent = `data/shelves/${shelfId}.json`;
-  startApp(shelf);
+  startApp(shelf).then(() => {
+    const binId = new URLSearchParams(location.search).get('bin');
+    if (!binId) return;
+    const target = bins().find(({ bin }) => bin.id === binId);
+    if (!target) {
+      message(
+        'This bin is unavailable; its stock is retained in LAB INVENTORY.',
+        true,
+      );
+      return;
+    }
+    if (isAdmin && shelf.data.mode === 'complex') {
+      choose(target.r, target.c);
+      grid
+        .querySelector('.shelf-bin.selected')
+        ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else
+      renderShelfInformation($('#shelfReadOnly'), shelf.data, shelfId, binId);
+  });
   api('/api/lab')
     .then((data) => {
       const item = data.items.find((i) => i.id === shelfId);

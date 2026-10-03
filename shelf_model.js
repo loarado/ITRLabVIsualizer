@@ -118,7 +118,7 @@ function configureShelfGrid(grid, data, size = 22) {
 function positionShelfBin(el, bin, r, c) {
   gridPosition(el, { x: c * 2 + 1, y: r * 2 + 1, w: bin.w * 2, h: bin.h * 2 });
 }
-function readOnlyShelfGrid(host, data) {
+function readOnlyShelfGrid(host, data, targetBin = null) {
   const viewport = document.createElement('div');
   viewport.className = 'viewport readonly-shelf-viewport';
   const grid = document.createElement('div');
@@ -138,6 +138,21 @@ function readOnlyShelfGrid(host, data) {
   (data.mode === 'simple' ? [] : shelfBins(data)).forEach(({ bin, r, c }) => {
     const el = document.createElement('button');
     el.className = 'grid-item shelf-bin readonly-bin';
+    el.dataset.binId = bin.id;
+    el.classList.toggle('inventory-target', bin.id === targetBin);
+    el.addEventListener('click', () => {
+      const card = Array.from(host.querySelectorAll('.bin-card')).find(
+        (card) => card.dataset.binId === bin.id,
+      );
+      if (card) {
+        host
+          .querySelectorAll('.bin-card')
+          .forEach((card) => card.classList.remove('inventory-target'));
+        card.classList.add('inventory-target');
+        card.scrollIntoView({ block: 'nearest' });
+        card.focus({ preventScroll: true });
+      }
+    });
     positionShelfBin(el, bin, r, c);
     el.style.backgroundColor = bin.background;
     el.style.setProperty('--bg', bin.background);

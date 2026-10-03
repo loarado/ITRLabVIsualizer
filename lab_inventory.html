@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    />
+    <title>Lab Inventory · ITR Lab</title
+    ><link rel="stylesheet" href="editor.css" />
+    <script src="editor_groups.js" defer></script
+    ><script src="draft_manager.js" defer></script>
+    <script src="editor_recovery.js" defer></script
+    ><script src="common.js" defer></script>
+    <script src="inventory_ui.js" defer></script
+    ><script src="inventory_list.js" defer></script>
+  </head>
+  <body class="is-explorer inventory-page">
+    <header
+      ><div
+        ><div class="eyebrow">ILLINOIS TECH ROBOTICS LAB</div
+        ><h1>LAB INVENTORY</h1
+        ><span class="muted">Shared items and stock across the lab</span></div
+      ><div class="actions"
+        ><span id="access" class="muted">Connecting…</span
+        ><button id="auth">Admin Login</button></div
+      ></header
+    >
+    <main>
+      <div id="fatal" class="fatal" role="alert" hidden></div>
+      <p
+        >Find supplies and equipment, inspect every recorded location, or use
+        <strong>Show on map</strong> to find a shelf and bin.</p
+      >
+      <div class="toolbar"
+        ><input
+          id="inventorySearch"
+          type="search"
+          placeholder="Search items, keywords, vendor, notes, locations…"
+          aria-label="Search structured inventory"
+        /><label
+          >Locations<select id="inventoryFilter"
+            ><option value="all">All records</option
+            ><option value="mapped">Mapped stock</option
+            ><option value="unmapped">Unassigned / unmapped</option
+            ><option value="archived">Archived stock</option></select
+          ></label
+        ></div
+      >
+      <div class="actions"
+        ><button id="inventoryAdd" class="primary" hidden>Add inventory</button
+        ><button id="inventoryRefresh">Refresh inventory</button
+        ><button id="inventoryAudit" hidden>Inventory activity</button
+        ><button id="inventoryBackup" hidden
+          >Download full lab backup</button
+        ></div
+      >
+      <p class="hint"
+        >Shelf and bin descriptions are descriptive notes, kept separately from
+        these structured records. Blank counts and prices mean unknown. Stock
+        and layout have independent save histories.</p
+      >
+      <p id="inventoryCount" role="status"></p
+      ><div id="inventoryList" class="inventory-list"></div>
+      <div class="statusbar"
+        ><span id="status" role="status" aria-live="polite">Loading…</span></div
+      >
+      <div hidden
+        ><button id="save"></button><button id="undo"></button
+        ><button id="redo"></button><button id="reload"></button
+        ><button id="export"></button
+      ></div>
+    </main>
+    <dialog id="inventoryAuditDialog" class="inventory-dialog"
+      ><h2>Inventory activity</h2
+      ><p class="hint"
+        >Corrections and transfers have their own audit snapshots. Map undo and
+        version restore leave stock changes in place. Use an explicit stock
+        correction to reconcile an older count.</p
+      ><div id="inventoryAuditList"></div
+      ><button id="inventoryAuditClose">Close activity</button></dialog
+    >
+    <dialog id="login"
+      ><form id="loginForm"
+        ><h2>Admin login</h2
+        ><p class="muted">Sign in to record shared inventory.</p
+        ><label class="field"
+          >Password<input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            required /></label
+        ><p id="loginError" role="alert"></p
+        ><div class="actions"
+          ><button type="submit" class="primary">Sign in</button
+          ><button type="button" id="cancelLogin">Cancel</button></div
+        ></form
+      ></dialog
+    >
+  </body>
+</html>

@@ -1,4 +1,5 @@
 'use strict';
+let inventoryMapFocusId = null;
 let selectedId = null,
   zoom = 1,
   shelfIndex = {},
@@ -8,7 +9,7 @@ const lab = {
   endpoint: '/api/lab',
   filename: 'lab.json',
   render,
-  onAuthChanged: refreshShelfIndex,
+  onAuthChanged: () => refreshShelfIndex(),
   onInventoryChanged: refreshShelfIndex,
 };
 const plan = $('#plan');
@@ -160,6 +161,10 @@ function validPosition(item) {
   );
 }
 function choose(id) {
+  inventoryMapFocusId = null;
+  plan
+    .querySelectorAll('.inventory-target')
+    .forEach((el) => el.classList.remove('inventory-target'));
   const target = lab.data.items.find((i) => i.id === id);
   if (!isAdmin && target?.kind === 'shelf') {
     inspectShelf(target);
@@ -315,6 +320,7 @@ function renderPlan() {
         (item.id === selectedId ? ' selected' : '') +
         (canEditItem(item) && !item.locked ? ' editable' : '');
       el.dataset.id = item.id;
+      el.classList.toggle('inventory-target', item.id === inventoryMapFocusId);
       el.style.backgroundColor = item.background;
       el.style.setProperty('--bg', item.background);
       el.title = `${item.name} · ${item.locationId || item.id}`;
@@ -478,6 +484,13 @@ function renderDirectory() {
       const sub = document.createElement('small');
       sub.textContent = `${item.locationId || item.id}${item.locked ? ' · locked' : ''}`;
       b.append(sub);
+      if (query && shelfIndex[item.id]?.structuredItems?.length) {
+        const matches = document.createElement('small');
+        matches.textContent =
+          'Structured inventory: ' +
+          shelfIndex[item.id].structuredItems.join(', ');
+        b.append(matches);
+      }
       b.addEventListener('click', () => {
         choose(item.id);
         plan
@@ -769,12 +782,16 @@ document.addEventListener('keydown', (event) => {
 ].forEach(([id, title]) => mountEditorGroup(id, title));
 new ResizeObserver(() => fitLabels(plan)).observe(plan);
 setZoom(1);
-startApp(lab);
+startApp(lab).then(() => {
+  const query = new URLSearchParams(location.search);
+  if (query.get('shelf'))
+    lab.showInventoryLocation(query.get('shelf'), query.get('bin'));
+});
 
 $('#sectionsVisible').addEventListener('change', renderPlan);
 
-async function refreshShelfIndex() {
-  closeExplorer(true);
+async function refreshShelfIndex(closePanel = true) {
+  if (closePanel) closeExplorer(true);
   const ticket = ++indexRequest,
     admin = isAdmin;
   try {
@@ -952,3 +969,41 @@ lab.restoreRecoveryUI = (ui) => {
   if (typeof ui.mapEditing === 'boolean') setMapEditing(ui.mapEditing);
   if (Number.isFinite(ui.zoom)) setZoom(ui.zoom);
 };
+
+lab.showInventoryLocation = async (shelfId, binId = null) => {
+  const item = lab.data?.items.find(
+    (item) => item.kind === 'shelf' && item.id === shelfId,
+  );
+  if (!item) {
+    message(
+      'This shelf is unavailable on the current map. Its stock remains in LAB INVENTORY.',
+      true,
+    );
+    return;
+  }
+  if (inventoryEntryDirty || inventoryTransferDirty) {
+    message(
+      'Review or close the recovered inventory entry before opening its map location.',
+      true,
+    );
+    return;
+  }
+  if (isAdmin && !(await cacheDraft())) return;
+  setMapEditing(false);
+  $('#shelfVisible').checked = true;
+  $('#search').value = '';
+  $('#filter').value = '';
+  inventoryMapFocusId = item.id;
+  selectedId = isAdmin ? item.id : null;
+  selectedRoute = null;
+  selectedGeometry = null;
+  selectedVertex = null;
+  render();
+  const element = plan.querySelector(`[data-id="${item.id}"]`);
+  element?.classList.add('inventory-target');
+  element?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  await inspectShelf(item, binId, true);
+};
+document.addEventListener('inventory-updated', () => {
+  if (lab.data) refreshShelfIndex(false);
+});

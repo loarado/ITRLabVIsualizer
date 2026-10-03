@@ -234,7 +234,6 @@ class LabServer(ThreadingHTTPServer):
             identified = identify_bins(source)
             validate_shelf(identified, path.stem)
             if identified != source:
-                identified["revision"] = source.get("revision", 0) + 1
                 writes["shelves/" + path.name] = identified
         if not (self.data_dir / "inventory.json").exists():
             writes["inventory.json"] = empty_inventory()
@@ -665,6 +664,7 @@ class Handler(BaseHTTPRequestHandler):
                     cached_lab = self.server.drafts.get((*prefix, 'lab')) if self.admin() else None
                     lab = cached_lab['state']['data'] if cached_lab else json.loads((self.server.data_dir/'lab.json').read_text())
                     index = {}
+                    inventory = self.server.stock_document()
                     for item in lab['items']:
                         if item['kind'] != 'shelf':
                             continue
@@ -678,7 +678,10 @@ class Handler(BaseHTTPRequestHandler):
                                 for bin in row:
                                     if bin:
                                         terms.extend([bin['name'], bin['contents'], bin['keywords']])
+                        structured = [inventory['items'][stock['itemId']] for stock in inventory['stocks'].values() if stock.get('shelfId') == item['id'] and not stock.get('archived')]
+                        terms.extend(' '.join(str(record.get(k, '')) for k in ('name','category','keywords','description','vendor','notes')) for record in structured)
                         index[item['id']] = {key: doc[key] for key in ('name', 'mode', 'contents', 'keywords')}
+                        index[item['id']]['structuredItems'] = list({record['name'] for record in structured})
                         index[item['id']]['searchText'] = ' '.join(terms).lower()
                         index[item['id']]['draftDirty'] = bool(cached and cached['state']['dirty'])
                     return self.json_response(200, index)
@@ -716,7 +719,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json_response(200, normalize_shelf(doc, self.shelf_name(shelf_id)) if shelf_id else doc)
                 except (OSError, ValueError):
                     return self.json_response(500, {'error': 'Cannot read data file. Check its JSON.'})
-        public = {'inventory_ui.js', 'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_decor.js', 'shelf_model.js', 'explorer.js'}
+        public = {'lab_inventory.html', 'inventory_list.js', 'inventory_ui.js', 'lab_overview.html', 'shelf_editor.html', 'shelf_inventory_editor.html', 'editor.css', 'editor_groups.js', 'draft_manager.js', 'editor_recovery.js', 'common.js', 'lab.js', 'lab_tools.js', 'map_editor.js', 'map_geometry.js', 'map_elements.js', 'shelf.js', 'shelf_decor.js', 'shelf_model.js', 'explorer.js'}
         name = unquote(path).lstrip('/') or 'lab_overview.html'
         if name not in public:
             return self.json_response(404, {'error': 'Not found.'})

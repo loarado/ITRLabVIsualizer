@@ -38,7 +38,7 @@ class InventoryTests(unittest.TestCase):
         self.restart()
         saved = json.loads((self.data/'shelves/R01.json').read_text())
         self.assertEqual(saved['matrix'][0][3]['id'],'existing')
-        self.assertEqual(saved['revision'],shelf['revision']+1)
+        self.assertEqual(saved['revision'],shelf['revision'])
         self.assertEqual(saved['contents'],'Keep notes')
         self.assertEqual(identify_bins(shelf)['matrix'],saved['matrix'])
         self.assertEqual(history.read_bytes(),before)

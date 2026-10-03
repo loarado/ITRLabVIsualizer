@@ -123,6 +123,10 @@ function inventoryLocationPanel(
     );
     if (includeBins && stock.binId)
       row.append(inventoryNode('small', inventoryLocation(stock).label));
+    if (!inventoryLocation(stock).mapped)
+      row.append(
+        inventoryNode('small', 'Unmapped stock · preserved for relocation'),
+      );
     if (inventoryLocation(stock).hidden)
       row.append(
         inventoryNode(
@@ -673,3 +677,25 @@ function setupInventoryEditor() {
   });
 }
 setupInventoryEditor();
+
+const sectionNavigation = document.createElement('nav');
+sectionNavigation.className = 'section-navigation';
+sectionNavigation.setAttribute('aria-label', 'Lab sections');
+for (const [name, target] of [
+  ['LAB MAP', 'lab_overview.html'],
+  ['LAB INVENTORY', 'lab_inventory.html'],
+]) {
+  const link = inventoryNode('a', name, 'button');
+  link.href = target;
+  if (
+    location.pathname.endsWith('lab_inventory.html') ===
+    (target === 'lab_inventory.html')
+  )
+    link.setAttribute('aria-current', 'page');
+  link.addEventListener('click', async (event) => {
+    event.preventDefault();
+    await leaveEditor(target);
+  });
+  sectionNavigation.append(link);
+}
+$('header').after(sectionNavigation);
