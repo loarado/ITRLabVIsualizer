@@ -1,0 +1,41 @@
+{
+  "id": "S-9b5c6cdf",
+  "revision": 1,
+  "rows": 12,
+  "cols": 18,
+  "schemaVersion": 3,
+  "mode": "complex",
+  "name": "TV Table / Storage",
+  "contents": "",
+  "keywords": "",
+  "decor": [
+    {
+      "id": "D-9b327814a7aece8b251ffe7f5cf1eb9f",
+      "shape": "rectangle",
+      "x": 0,
+      "y": 0,
+      "w": 18,
+      "h": 12,
+      "text": "",
+      "outlineWidth": 2,
+      "outlineColor": "#424242",
+      "fillColor": "#686b6e",
+      "textColor": "#ffffff"
+    }
+  ],
+  "versionName": "Draft Shelf Lounge",
+  "matrix": [
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d519dfe47b387fdc93a4a272b6a19937", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-83392888632e083ab65435fcc2571001", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-08248f1d03f170341274ec1e3dbf200f", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetY": 0.5}, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d5a9142d14d2a3fddf26f898d3c6be44", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-912166c34488b3ff3c9afca96dd6b9ed", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-293e7e4928b0277156f797f256e26ad1", "contents": "", "keywords": "", "w": 5.5, "h": 1}, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-de9d682f71392548a2867ed67a5aecff", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d6d0df85dba1f4a7d62fd95affa94208", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-86d61de583096ff7c48818271fbc6023", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetY": 0.5}, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-84e04ccdbf1a7903585a981704ca3711", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-4a66a2ae74539e2e27edaeb794a3b483", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-f60549e6688957a0c6cd9807252a3863", "contents": "", "keywords": "", "w": 5.5, "h": 1}, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d37e1ab402c700a239fdb5cc1724aeea", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-320df3ad27f7c9d854613520f49b99db", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-6325d0203355288327e1cf9bc67de39a", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetY": 0.5}, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-1f1f70da105c917e11d9a04daaf932a0", "contents": "", "keywords": "", "w": 5.5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-1f6728c8009e31eda77f5eb103aff416", "contents": "", "keywords": "", "w": 5, "h": 1, "offsetX": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-2ac84d6f1666fcd84421964209f64da8", "contents": "", "keywords": "", "w": 5.5, "h": 1}, null, null, null, null, null],
+    [{"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-de7edd5da751c9a0d64b07dfdb7d6457", "contents": "", "keywords": "", "w": 5.5, "h": 2, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-c75c5f7cd2992108972aa50c02f2b74f", "contents": "", "keywords": "", "w": 5, "h": 2, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, {"name": "Empty", "background": "#3d3d3d", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-854e40dacf0bc7dc5c7af31644222060", "contents": "", "keywords": "", "w": 5.5, "h": 2, "offsetY": 0.5}, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  ]
+}

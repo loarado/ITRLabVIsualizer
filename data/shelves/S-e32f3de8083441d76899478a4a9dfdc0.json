@@ -1,6 +1,6 @@
 {
-  "id": "R02",
-  "revision": 3,
+  "id": "S-e32f3de8083441d76899478a4a9dfdc0",
+  "revision": 1,
   "rows": 20,
   "cols": 15,
   "schemaVersion": 2,
@@ -8,7 +8,6 @@
   "name": "PROJECT STORAGE",
   "contents": "",
   "keywords": "",
-  "versionName": "Draft Shelf L1",
   "decor": [
     {
       "id": "D-c71b2cd43a953ab92978279017b4bd0c",
@@ -128,6 +127,7 @@
       "textColor": "#000000"
     }
   ],
+  "versionName": "Draft Shelf L1",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

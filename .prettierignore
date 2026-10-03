@@ -1,0 +1,17 @@
+# Only the explicitly approved active editors and scripts are format targets.
+/*
+!/lab_overview.html
+!/shelf_editor.html
+!/common.js
+!/draft_manager.js
+!/editor_groups.js
+!/editor_recovery.js
+!/explorer.js
+!/lab.js
+!/lab_tools.js
+!/map_editor.js
+!/map_elements.js
+!/map_geometry.js
+!/shelf.js
+!/shelf_decor.js
+!/shelf_model.js

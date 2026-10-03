@@ -1,14 +1,13 @@
 {
-  "id": "R02",
-  "revision": 3,
+  "id": "S-9646b1d383d2596cc38d7b152e92b369",
+  "revision": 1,
   "rows": 20,
   "cols": 15,
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "mode": "complex",
-  "name": "PROJECT STORAGE",
+  "name": "Computer Shelf",
   "contents": "",
   "keywords": "",
-  "versionName": "Draft Shelf L1",
   "decor": [
     {
       "id": "D-c71b2cd43a953ab92978279017b4bd0c",
@@ -113,25 +112,13 @@
       "outlineColor": "#000000",
       "fillColor": "#000000",
       "textColor": "#ffffff"
-    },
-    {
-      "id": "D-5dcea617af6b3f5cc81488f0a3a31dc6",
-      "shape": "rectangle",
-      "x": 3.75,
-      "y": 6.25,
-      "w": 7.5,
-      "h": 2.75,
-      "text": "PROJECT STORAGE",
-      "outlineWidth": 2,
-      "outlineColor": "#f3f3e7",
-      "fillColor": "#f3f3e7",
-      "textColor": "#000000"
     }
   ],
+  "versionName": "Draft Shelf L4",
   "matrix": [
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, {"name": "New bin", "background": "#dc4545", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-2b10f29c17e1e0400267f71a637052bc", "contents": "", "keywords": "", "w": 2, "h": 2}, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],

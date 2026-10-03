@@ -178,25 +178,83 @@ Prefer the editor or JSON import for changes. If hand-editing files while browse
 
 New shelf files are created when the lab is explicitly saved; saving a new shelf from a cached lab draft can also create its file. Removing a shelf from the map retains its inventory file; Undo or restoring an item with the same ID reconnects it. A shared HTML editor loads the selected shelf file; there is no duplicated HTML per shelf.
 
-## Tests
+## Development checks
 
-Backend tests use temporary data seeded from the original layout; they do not change your saved lab:
+Running the application still requires only Python: `python3 server.py`. Node, npm,
+Prettier, ESLint, and Playwright are optional development tools; there is no build step.
+Do not use a live lab server for testing or restart it with unsaved work.
+
+For formatting and linting, install Node.js 22.13+ (22.x) or 24+ (with npm), then run from
+the project root:
+
+```bash
+npm ci --ignore-scripts
+npm run format:check
+npm run lint
+```
+
+`package-lock.json` pins the development dependencies. `npm run format` applies
+Prettier to the same explicit scope: the two active HTML pages and their 13
+first-party JavaScript files, listed in `package.json`. It excludes data, defaults,
+history, the legacy standalone editor, CSS, documentation, and installed/generated
+files. `.prettierignore` also limits formatting to this approved source list.
+Strict HTML whitespace handling intentionally places some tag brackets on adjacent
+lines to preserve inline spacing; embedded-language formatting is disabled to
+preserve inline code and template contents.
+
+Lint runs without autofix. `eslint.config.mjs` models each page's classic-script
+loading group and derives shared globals only from actual top-level declarations.
+Update those groups and the explicit package script lists when adding or removing
+an active script. The configuration itself uses a separate Node environment.
+The small rule set catches undefined names, invalid global assignments, duplicate
+arguments/keys/cases, unreachable code, invalid regular expressions, and invalid
+`typeof` comparisons; it does not enforce another formatting style.
+
+### Backend tests
+
+No Node or third-party Python packages are needed:
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
-The optional browser checks require Playwright and Chromium:
+With development tooling installed, `npm run test:backend` runs the same command.
+This verifies the backend only, not browser behavior.
+
+### Browser tests
+
+Optional browser verification requires Playwright and Chromium. For example:
 
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
 python3 -m pip install playwright
 python3 -m playwright install chromium
 python3 tests/browser_smoke.py
-python3 tests/browser_features.py -v
-python3 tests/browser_updates.py Updates -v
+python3 tests/run_browser_suite.py
 ```
 
-The feature suite covers visitor, Admin, and Lab Map Editor flows; visibility/data separation; categories; adding every item type; outline selection, dragging, keyboard input, deletion; shelf mode persistence/migration; aggregated search; read-only panels; theme transitions; and 1440/768/390-pixel layouts. Tests use isolated fixture data.
+On Linux, Chromium also needs its system libraries; if they are missing,
+`python3 -m playwright install-deps chromium` installs them and may require
+administrator access. Keep the virtual environment activated when running the
+npm test commands so `python3` resolves to the environment with Playwright.
+
+```bash
+npm run test:browser
+npm test
+```
+
+`test:browser` runs the standalone smoke script, then the browser suite. The suite
+runs each distinct inherited test once and deliberately excludes the smoke script.
+`npm test` runs backend tests followed by both browser entry points. These commands
+stop and return a failure when a command fails; missing Playwright or Chromium is
+not a browser pass. Report any skipped checks separately from a complete result.
+
+Tests use disposable fixture data and independent servers on randomly assigned
+local ports. They cover saved versions, draft recovery/deletion, shelf modes and
+decor, copying, undo/redo, exports, map geometry, visitor/Admin controls, and
+responsive layouts. They do not write to the populated `data/` or `defaults/`
+directories. Browser screenshots go to the system temporary directory.
 
 ## Geometry and saved-state details
 
