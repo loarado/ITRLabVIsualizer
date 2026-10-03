@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "revision": 3,
+  "items": {
+    "I-bb1235c12003b4b784484521197e1586": {
+      "name": "Wrench",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "each",
+      "unitPrice": null,
+      "currency": "USD"
+    }
+  },
+  "stocks": {
+    "ST-1109e2c8a5d0c1fe8d7bccf12e4b3dde": {
+      "itemId": "I-bb1235c12003b4b784484521197e1586",
+      "shelfId": null,
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Unassigned"
+    },
+    "ST-9eb280ad566536bd59863b42df6149e1": {
+      "itemId": "I-bb1235c12003b4b784484521197e1586",
+      "shelfId": "W03",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Red tools drawers / table · W03"
+    }
+  },
+  "operations": {
+    "op-015a367d68e73250480002f55318eaf5": {
+      "itemId": "I-bb1235c12003b4b784484521197e1586",
+      "stockId": "ST-1109e2c8a5d0c1fe8d7bccf12e4b3dde",
+      "revision": 1
+    },
+    "op-6d6e9e9dfc7249bd9214339036d3e4c1": {
+      "itemId": "I-bb1235c12003b4b784484521197e1586",
+      "stockId": "ST-1109e2c8a5d0c1fe8d7bccf12e4b3dde",
+      "revision": 2
+    },
+    "op-730fb87e9a6a4cefa4ef4f599b375a53": {
+      "itemId": "I-bb1235c12003b4b784484521197e1586",
+      "stockId": "ST-9eb280ad566536bd59863b42df6149e1",
+      "revision": 3
+    }
+  },
+  "lastChange": {
+    "savedAt": "2026-10-03T19:09:36.326300+00:00",
+    "action": "save",
+    "reason": "Inventory correction / entry",
+    "operationId": "op-730fb87e9a6a4cefa4ef4f599b375a53"
+  }
+}
