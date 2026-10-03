@@ -227,3 +227,37 @@ function setupShelfDecor() {
     }
   });
 }
+
+function pasteShelfDecor(source) {
+  if (shelf.data.decor.length >= 200) {
+    message('A shelf supports up to 200 decor shapes.', true);
+    return;
+  }
+  const shape = { ...clone(source), id: 'D-' + uniqueId() };
+  const target = nearbyPositions(
+    source.x,
+    source.y,
+    0.25,
+    0.25,
+    shelf.data.cols,
+    shelf.data.rows,
+    0.25,
+  ).find(
+    (p) =>
+      (p.x !== source.x || p.y !== source.y) &&
+      validShelfDecor({ ...shape, ...p }, shelf.data),
+  );
+  if (!target) {
+    message(
+      'No nearby position within this shelf fits the copied decor. Resize the canvas or shape.',
+      true,
+    );
+    return;
+  }
+  checkpoint();
+  Object.assign(shape, target);
+  shelf.data.decor.push(shape);
+  decorClipboard = clone(shape);
+  chooseDecor(shape.id);
+  changed();
+}

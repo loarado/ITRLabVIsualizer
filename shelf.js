@@ -524,12 +524,27 @@ $('#applyShelfMode').addEventListener('click', () => {
 });
 
 let binClipboard = null;
-shelf.clipboardContext = () => shelf.data?.mode === 'complex' && !!binAt();
+let decorClipboard = null;
+shelf.clipboardContext = () =>
+  !!currentDecor() ||
+  (shelf.data?.mode === 'complex' && !!binAt()) ||
+  !!decorClipboard;
 shelf.copySelection = () => {
+  if (currentDecor()) {
+    decorClipboard = clone(currentDecor());
+    binClipboard = null;
+    message('Shelf Decor copied · Ctrl/Cmd+V to paste');
+    return;
+  }
+  decorClipboard = null;
   binClipboard = { bin: clone(binAt()), ...selection };
   message('Bin copied · Ctrl/Cmd+V to paste');
 };
 shelf.pasteSelection = () => {
+  if (isAdmin && decorClipboard) {
+    pasteShelfDecor(decorClipboard);
+    return;
+  }
   if (!isAdmin || shelf.data.mode !== 'complex' || !binClipboard) return;
   const { bin, r, c } = binClipboard,
     target = nearbyPositions(
@@ -557,6 +572,7 @@ shelf.pasteSelection = () => {
 
 shelf.clearClipboard = () => {
   binClipboard = null;
+  decorClipboard = null;
   selection = null;
   selectedDecor = null;
 };

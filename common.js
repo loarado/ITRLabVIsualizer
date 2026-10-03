@@ -417,6 +417,7 @@ async function startApp(controller) {
       const latest = await api(app.endpoint);
       checkpoint();
       app.data = latest;
+      app.clearClipboard?.();
       dirty = false;
       removeRecovery(app.endpoint.slice(5));
       app.render();
