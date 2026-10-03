@@ -16,6 +16,8 @@ import re
 import secrets
 import threading
 import time
+import tarfile
+from inventory import identify_bins, empty_inventory, location_key
 from urllib.parse import urlsplit, unquote
 
 ROOT = Path(__file__).resolve().parent
@@ -174,7 +176,7 @@ def validate_shelf(doc, shelf_id):
 
 def normalize_shelf(doc, name=''):
     """Read legacy matrices without rewriting files or dropping dormant bins."""
-    result = dict(doc)
+    result = identify_bins(doc)
     result.setdefault('schemaVersion', 2)
     result.setdefault('mode', 'complex' if any(cell is not None for row in doc.get('matrix', []) for cell in row) else 'simple')
     result.setdefault('name', name)
@@ -221,6 +223,30 @@ class LabServer(ThreadingHTTPServer):
         self.inventory_states = {}
         # Roll forward a fully validated, explicitly saved transaction after interruption.
         self.finish_transaction()
+        self.migrate_locations()
+
+    def migrate_locations(self):
+        """Checkpoint first; migrate current files only, including unplaced shelves."""
+        writes = {}
+        for path in sorted((self.data_dir / "shelves").glob("*.json")):
+            source = json.loads(path.read_text())
+            identified = identify_bins(source)
+            validate_shelf(identified, path.stem)
+            if identified != source:
+                identified["revision"] = source.get("revision", 0) + 1
+                writes["shelves/" + path.name] = identified
+        if not (self.data_dir / "inventory.json").exists():
+            writes["inventory.json"] = empty_inventory()
+        if not writes:
+            return
+        backup_dir = self.data_dir.parent / ".itr-backups"
+        backup_dir.mkdir(exist_ok=True)
+        backup = backup_dir / ("before-locations-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + secrets.token_hex(4) + ".tar.gz")
+        with tarfile.open(backup, "w:gz") as archive:
+            archive.add(self.data_dir, arcname="data")
+            archive.add(ROOT / "defaults", arcname="defaults")
+        write_json(self.data_dir / "pending-save.json", writes)
+        self.finish_transaction()
 
     def finish_transaction(self):
         journal = self.data_dir / 'pending-save.json'
@@ -236,6 +262,39 @@ class LabServer(ThreadingHTTPServer):
                 path = self.data_dir / 'shelves' / (item['id'] + '.json')
                 result[item['id']] = normalize_shelf(json.loads(path.read_text()), item['name']) if path.exists() else blank_shelf(item['id'], item['name'])
         return result
+
+    def stock_document(self):
+        return json.loads((self.data_dir / 'inventory.json').read_text())
+
+    def stock_locations(self, prefix=None):
+        """Resolve identities from current geometry, retaining stock in absent locations."""
+        self.prune_drafts()
+        lab = json.loads((self.data_dir / 'lab.json').read_text())
+        saved_shelves = {i['id'] for i in lab['items'] if i['kind'] == 'shelf'}
+        cached_lab = self.drafts.get((*prefix, 'lab')) if prefix else None
+        if cached_lab:
+            lab = cached_lab['state']['data']
+        mapped = {i['id']: i for i in lab['items'] if i['kind'] == 'shelf'}
+        ids = {p.stem for p in (self.data_dir / 'shelves').glob('*.json')} | set(mapped)
+        locations = {}
+        for sid in sorted(ids):
+            path = self.data_dir / 'shelves' / (sid + '.json')
+            persisted = normalize_shelf(json.loads(path.read_text())) if path.exists() else blank_shelf(sid)
+            saved_bins = {b['id'] for row in persisted['matrix'] for b in row if b}
+            cached = self.drafts.get((*prefix, 'shelves/' + sid)) if prefix else None
+            shelf = normalize_shelf(cached['state']['data']) if cached else persisted
+            item = mapped.get(sid, {})
+            label = item.get('locationId') or sid
+            label = (shelf['name'] or item.get('name', sid)) + ' · ' + label
+            common = dict(shelfId=sid, mapped=sid in mapped, saved=sid in saved_shelves, shelfMode=shelf['mode'])
+            locations[sid] = dict(common, binId=None, label=label, hidden=False)
+            for row in shelf['matrix']:
+                for bin in row:
+                    if bin:
+                        key = location_key(sid, bin['id'])
+                        locations[key] = dict(common, binId=bin['id'], label=label + ' / ' + (bin['name'] or 'Unnamed bin'),
+                                              hidden=shelf['mode'] == 'simple', saved=sid in saved_shelves and bin['id'] in saved_bins)
+        return locations
 
     def prune_drafts(self):
         now = time.time()
@@ -254,7 +313,7 @@ class LabServer(ThreadingHTTPServer):
             validate_shelf(shelf, sid)
         for sid, shelf in shelves.items():
             target = self.data_dir / 'shelves' / (sid+'.json')
-            restored = copy.deepcopy(shelf)
+            restored = normalize_shelf(shelf)
             restored['revision'] = json.loads(target.read_text())['revision'] if target.exists() else 0
             key = (*prefix, 'shelves/'+sid)
             previous = self.drafts.get(key)
@@ -292,6 +351,7 @@ class LabServer(ThreadingHTTPServer):
                     updated.append((cached, overrides[sid]))
             elif cached and cached['state']['dirty']:
                 draft = copy.deepcopy(cached['state']['data'])
+                draft = normalize_shelf(draft)
                 validate_shelf(draft, sid)
                 if draft.get('revision') != persisted['revision']:
                     raise RevisionConflict(f'Shelf {sid} changed on the server. Reload that shelf before saving the lab.')
@@ -415,6 +475,7 @@ class Handler(BaseHTTPRequestHandler):
                                 raise ValueError('Inventory undo memory has expired. Reload the saved version.')
                         else:
                             validate_shelf(doc, key[2].split('/')[1])
+                            doc.update(normalize_shelf(doc))
                     if key not in self.server.drafts and len(self.server.drafts) >= 100:
                         raise ValueError('Draft cache is full. Close unused sessions and try again.')
                     inventory_changed = False
@@ -452,6 +513,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlsplit(self.path).path
+        if path == '/api/inventory':
+            with self.server.lock:
+                try:
+                    doc = self.server.stock_document()
+                    prefix = (self.token(), self.headers.get('X-Editor-Instance', '')) if self.admin() else None
+                    return self.json_response(200, dict(doc, locations=self.server.stock_locations(prefix)))
+                except (OSError, ValueError, KeyError):
+                    return self.json_response(500, {'error': 'Could not read inventory.'})
         if path == '/api/session':
             return self.json_response(200, {'admin': self.admin()})
         if path == '/api/recovery-context':

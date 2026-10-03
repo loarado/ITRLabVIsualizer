@@ -1,3 +1,4 @@
+from inventory import identify_bins
 import copy
 import http.client
 import json
@@ -139,7 +140,7 @@ class ServerTests(unittest.TestCase):
                         background='#ffffff', color='#000000', fontSize=12, fontFamily='Arial', bold=False)
                 state = dict(data=shelf, history=[], future=[], dirty=True)
                 self.assertEqual(self.request('PUT', '/api/drafts/shelves/'+sid, state, header)[0], 200)
-                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data'], shelf)
+                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data'], identify_bins(shelf))
             lab = self.request('GET', '/api/lab')[1]
             lab['versionName'] = label
             status, result = self.request('PUT', '/api/lab', lab, header)
@@ -330,7 +331,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('PUT', '/api/shelves/R01', migrated)[0], 200)
         saved = self.request('GET', '/api/shelves/R01')[1]
         self.assertEqual(saved['mode'], 'simple')
-        self.assertEqual(saved['matrix'], legacy['matrix'])
+        self.assertEqual(saved['matrix'], identify_bins(legacy)['matrix'])
         saved['mode'] = 'complex'
         self.assertEqual(self.request('PUT', '/api/shelves/R01', saved)[0], 200)
         self.assertEqual(self.request('GET', '/api/shelves/R01')[1]['contents'], 'Screws')
