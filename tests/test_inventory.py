@@ -58,6 +58,35 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(self.request('GET','/api/shelves/old-import')[1]['matrix'],identify_bins(legacy)['matrix'])
         self.assertEqual((self.data/'shelves/old-import.json').read_bytes(),raw)
 
+    def test_stock_survives_location_removal_modes_and_layout_restore(self):
+        self.login()
+        header={'X-Editor-Instance':'stock-safety'}
+        shelf=self.request('GET','/api/shelves/R01')[1]
+        shelf.update(mode='complex',versionName='Stock location')
+        shelf['matrix'][0][0]=dict(bin_data(),id='bin-one')
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf,header)[0],200)
+        stock=dict(itemId='bolts',shelfId='R01',binId='bin-one',tracking='exact',quantity='23',unit='each',notes='',archived=False)
+        inventory=self.server.stock_document();inventory['items']['bolts']=validate_item({'name':'M4 bolts'});inventory['stocks']['entry']=stock
+        write_json(self.data/'inventory.json',inventory)
+        original=(self.data/'inventory.json').read_bytes()
+        shelf=self.request('GET','/api/shelves/R01')[1];shelf.update(mode='simple',versionName='Hidden bins')
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf,header)[0],200)
+        self.assertTrue(self.request('GET','/api/inventory')[1]['locations']['R01/bin-one']['hidden'])
+        shelf=self.request('GET','/api/shelves/R01')[1];shelf['matrix'][0][0]=None
+        self.assertEqual(self.request('PUT','/api/shelves/R01',shelf,header)[0],200)
+        self.assertNotIn('R01/bin-one',self.request('GET','/api/inventory')[1]['locations'])
+        lab=self.request('GET','/api/lab')[1]
+        restored=self.request('POST','/api/lab/restore',dict(version='1',revision=lab['revision']),header)[1]
+        self.assertIn('R01/bin-one',self.request('GET','/api/inventory',headers=header)[1]['locations'])
+        self.assertEqual(self.request('PUT','/api/lab',restored,header)[0],200)
+        self.assertEqual((self.data/'inventory.json').read_bytes(),original)
+        lab=self.request('GET','/api/lab')[1];lab['items']=[i for i in lab['items'] if i['id']!='R01']
+        self.assertEqual(self.request('PUT','/api/lab',lab,header)[0],200)
+        inventory=self.request('GET','/api/inventory')[1]
+        self.assertFalse(inventory['locations']['R01/bin-one']['mapped'])
+        self.assertEqual(inventory['stocks']['entry']['quantity'],'23')
+        self.assertEqual((self.data/'inventory.json').read_bytes(),original)
+
     def test_unknown_values_decimal_units_and_currencies(self):
         item=validate_item({'name':'M4 bolts'})
         self.assertIsNone(item['unitPrice'])

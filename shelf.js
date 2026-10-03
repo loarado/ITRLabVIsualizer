@@ -268,8 +268,11 @@ fields.forEach((key) =>
     changed();
   }),
 );
-$('#delete').addEventListener('click', () => {
-  if (!isAdmin || !binAt()) return;
+$('#delete').addEventListener('click', async () => {
+  const bin = binAt();
+  if (!isAdmin || !bin) return;
+  if (!(await confirmInventoryRemoval(shelfId, bin.id))) return;
+  if (!isAdmin || binAt()?.id !== bin.id) return;
   checkpoint();
   setShelfBin(shelf.data, selection.r, selection.c, null);
   render();
@@ -410,6 +413,13 @@ $('#import').addEventListener('change', async (event) => {
       throw new Error('File is too large (maximum 4 MB).');
     const data = JSON.parse(await file.text());
     validateImport(data);
+    if (!(await confirmInventoryRemoval(shelfId))) return;
+    shelfBins(data).forEach(({ bin }) => {
+      bin.id = 'B-' + uniqueId();
+    });
+    delete data.items;
+    delete data.stocks;
+    delete data.inventory;
     checkpoint();
     shelf.data = normalizeShelf({
       ...shelf.data,
@@ -568,6 +578,9 @@ shelf.pasteSelection = () => {
   selection = { r: target.y, c: target.x };
   render();
   changed();
+  message(
+    'Bin structure pasted · descriptive notes copied; inventory excluded',
+  );
 };
 
 shelf.clearClipboard = () => {

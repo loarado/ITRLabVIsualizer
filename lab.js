@@ -591,8 +591,11 @@ $('#openShelf').addEventListener('click', async (event) => {
   const target = event.currentTarget.href;
   await leaveEditor(target);
 });
-$('#delete').addEventListener('click', () => {
+$('#delete').addEventListener('click', async () => {
   const item = selected();
+  if (!canEditItem(item) || item.locked) return;
+  if (item.kind === 'shelf' && !(await confirmInventoryRemoval(item.id)))
+    return;
   if (!canEditItem(item) || item.locked) return;
   checkpoint();
   lab.data.items = lab.data.items.filter((i) => i.id !== item.id);
@@ -835,6 +838,9 @@ lab.pasteSelection = async () => {
       revision: 0,
     };
     delete data.versionName;
+    shelfBins(data).forEach(({ bin }) => {
+      bin.id = 'B-' + uniqueId();
+    });
     await api('/api/drafts/shelves/' + item.id, 'PUT', {
       data,
       history: [],
@@ -852,6 +858,10 @@ lab.pasteSelection = async () => {
   changed();
   await cacheDraft();
   await refreshShelfIndex();
+  if (inventory)
+    message(
+      'Shelf structure pasted · bins, decor and descriptive notes copied; inventory excluded',
+    );
 };
 
 document.querySelectorAll('[data-category],#sectionsVisible').forEach((input) =>

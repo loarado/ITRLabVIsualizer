@@ -530,3 +530,25 @@ function uniqueId() {
     n.toString(16).padStart(2, '0'),
   ).join('');
 }
+
+async function confirmInventoryRemoval(shelfId, binId = null) {
+  try {
+    const inventory = await api('/api/inventory');
+    const count = Object.values(inventory.stocks).filter(
+      (stock) => stock.shelfId === shelfId && (!binId || stock.binId === binId),
+    ).length;
+    return (
+      !count ||
+      confirm(
+        `${count} inventory entries use this location. Removing or replacing its structure keeps all stock in LAB INVENTORY as unmapped. Restore the same location or move stock to another location there. Continue?`,
+      )
+    );
+  } catch (error) {
+    message(
+      'Could not check inventory before removing the location: ' +
+        error.message,
+      true,
+    );
+    return false;
+  }
+}
