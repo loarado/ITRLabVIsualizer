@@ -38,76 +38,102 @@ To change the starting password, set `ITR_ADMIN_PASSWORD` before starting the se
 ITR_ADMIN_PASSWORD='your-new-password' python3 server.py
 ```
 
-## Structured inventory: LAB MAP and LAB INVENTORY
+## Inventory: presence first, optional detail
 
-Use the **LAB MAP** and **LAB INVENTORY** links at the top of every active page.
-Inventory is optional and can be recorded incrementally. Existing shelf/bin names,
-contents, keywords, modes, matrices and decor are retained. Contents fields are
-**descriptive notes**, not stock entries, and are never parsed into items or counts.
+**LAB MAP** and **LAB INVENTORY** use the same item and stock records. Most entries
+need only a name. **Presence** means an item is at a location, with no count or price
+required. Inventory names use compact wrapping entries. In LAB INVENTORY, click a
+name to locate it on LAB MAP; use the adjacent pencil to edit as an admin. A separate
+**Details** disclosure appears only for meaningful information, including zero counts
+and prices. Names, locations, internal metadata and default presence values do not
+create empty disclosures. Optional fields in the editor start collapsed;
+blank quantity and price remain unknown. Existing detailed records retain their data.
+Approximate availability remains supported in optional details.
 
-- An **item** identifies a supply/equipment type. It has a required name and optional
-  category, keywords, description, product link, vendor, unit price/currency and notes.
-  Similar names remain separate unless you deliberately choose an existing item.
-- A **location** is a shelf ID plus an optional bin ID. Bin identity is **shelf-scoped**:
-  previously copied shelves can contain the same nested bin IDs without sharing stock.
-  Names, visible Location ID labels and geometry can change without breaking links.
-- A **stock entry** connects one item to one location (or Unassigned). Multiple items
-  can occupy one bin; one item can occupy many locations. One active entry is allowed
-  per item/location/unit, so add to an existing entry rather than duplicating it.
+For fast entry, sign in, click a shelf on **LAB MAP**, and type in **Add inventory…**.
+On a Complex shelf, click a bin in the preview first. Press Enter or the adjacent
+**Add** button. The saved entry appears immediately and the input stays focused for
+the next name. Simple shelves offer direct shelf inventory; Complex shelves keep
+one **Inventory** overview containing both direct shelf stock and bin inventory.
+Selecting a bin switches that same section to **Selected Inventory**. Clicking an
+overview entry selects its only bin and expands real details; entries in multiple
+bins offer a compact location choice. **Clear bin** returns to the overview. Quick
+entry adds to the shelf in the overview and to the selected bin otherwise. The preview includes decor and cannot move or resize bins.
+Use **Open Shelf Editor** for structural changes. Read-only visitors can select bins
+and inspect the same compact rows without editing controls.
 
-As an admin, select a shelf/bin and use **Add inventory to this shelf/bin**, or use
-**Add inventory** in LAB INVENTORY. Save a new physical location in a named layout
-before entering its stock. Choose an existing item to record it elsewhere; choose
-**Create a new, distinct item** when it is a different type. Item-detail edits apply
-at every location. Required inputs are only item name and a unit (default: `each`).
-Location is filled automatically for contextual entry; Unassigned is also valid.
+Save a newly created location in a named layout before recording stock there.
+Quick entry trims blank input, handles input-method composition, blocks simultaneous
+submissions and reuses its operation ID after uncertain saves. A single exact-name
+match already at the destination is returned without changing its details or quantity.
+Several distinct same-name entries require choosing an identity from their details.
+Quick entry never splits commas or merges similar names across locations. To record
+an existing item elsewhere, open its item details and choose **Add this item to
+another location**, or use **Item identity** in optional details.
 
-Tracking supports **Exact quantity** (blank = unknown), **Approximate availability**
-(available, low, out of stock), and **Presence only** (counts unnecessary). Record
-individual pieces as `each` and packages as `pack`, with contents per pack in notes.
-Counts and prices are decimal strings, not floating-point values. Blank prices/counts
-never become zero. A known exact count and price with matching units produces a
-currency-rounded **estimated inventory value** for that entry. Values are never
-summed across units or currencies, and never represent historical spending or a budget.
+In **LAB INVENTORY**, choose **Add inventory**, type a name and select a destination
+on the visual lab map. Click a Simple shelf directly; a Complex shelf opens a bin
+preview and provides **Use this shelf** for direct shelf stock. **Back to lab map**
+lets you switch destinations while preserving the name and optional details. Tables,
+machines and carts are also destinations. Walls, doors, sections, arrows, text and
+Misc decorative markers cannot hold stock. The optional location selector supports
+Unassigned and recovery of unmapped entries. Moving or renaming an object preserves
+its stable inventory link; deleting it preserves its stock as unmapped.
 
-**Save inventory** writes stock immediately, with success/error feedback and no named
-map version. **Save changes** continues to save a named geometry/description version.
-Inventory edits from either page refresh the same records and panels. Other tabs receive
-an update signal; a focused page refreshes inventory when it becomes visible. Use
-**Refresh inventory** to check changes from other browsers. Saves reject stale inventory
-revisions. The editor retains the unsaved form, shows the latest saved record, and lets
-you explicitly review your correction or use the latest values before saving again.
+Inventory saves immediately, independently of named layout saves. Both views refresh
+the same records. Other tabs receive an update signal; **Refresh inventory** checks
+other browsers. Stale detailed edits retain the form and require reviewing the latest
+record. A stale quick entry refreshes inventory and offers a retry of the retained name.
+Detailed forms and transfers have session/tab-scoped browser recovery. Inline quick
+entry retains failed text in the open panel but does not persist unsaved typing across
+reloads. Save entries before leaving the page.
 
-**Edit stock / relocate** corrects a count, tracking method, notes or the entire location.
-**Transfer quantity** moves a positive known exact amount in the same unit: source and
-destination update in one transaction. It refuses negative counts, excessive transfers,
-same-location transfers and merges into an unknown/non-exact destination. Failed-save
-retries reuse an operation ID to prevent duplicate transfers or entries. Retry an uncertain
-save without changing its form to confirm its outcome. Approximate/presence entries
-can be relocated as a whole using Edit stock. **Archive entry** preserves its quantity
-and history; it is still visible in item details and the Archived filter. Reactivation
-refuses conflicting active entries.
+Exact quantities and prices use decimal strings. Estimated value is shown only when
+stock units and price units agree, rounded for the recorded currency. Values never
+combine different units or currencies. **Transfer quantity** atomically moves a known
+exact amount; **Edit stock / relocate** moves other entries as a whole. **Archive**
+keeps an entry and its quantities for review/reactivation. In the edit interface,
+**Remove from this location** removes only that item’s assignments at the selected
+location. **Delete permanently** removes the item and all active and archived
+assignments, with one confirmation naming the item and affected locations. These
+actions require an admin session and the current inventory revision; stale edits
+cannot recreate deleted identities. Deletion first checkpoints the saved lab, retains
+audit snapshots and reports, and stores a technical deleted-identity marker outside
+active inventory. **Manage locations** opens the existing location management view.
+Layout undo, restore and copying never undo stock changes or copy inventory. Copying
+bins or shelves assigns fresh structural IDs; original stock remains at its source.
 
-Search LAB INVENTORY by item name or metadata, open details for all locations, and
-choose **Show on map**. It reveals the shelf even when storage visibility was disabled,
-opens the shelf drawer and highlights the exact bin by stable identity. Simple-mode
-bins are exposed in a navigation preview with an explanation. Unassigned/unmapped
-stock has no misleading map button; use Edit stock to relocate it. Map search continues
-to match legacy descriptions and marks structured inventory results explicitly.
+Clicking an inventory name highlights its distinct mapped location associations by
+stable identity. Exactly one recorded mapped destination opens its panel automatically,
+selects its bin when applicable, and centers it at a useful zoom. Several locations
+highlight together and offer destination choices; multiple bins on one shelf open
+that shelf’s overview without selecting an arbitrary bin. Unavailable locations are
+explained. An item with mapped and unavailable associations offers an explicit choice.
+Desktop focus reserves the drawer width; narrow screens use a bottom drawer. The map
+remains pannable and zoomable. **Clear highlighting** exits the location view and
+restores previous visibility, zoom and map scroll. This state never changes geometry.
+Rapid navigation invalidates pending requests for earlier destinations.
 
-Removing a shelf/bin or importing replacement structure preserves stock; a stocked
-location prompts with that consequence before removal. Missing locations remain
-unmapped and searchable. Restoring the same IDs reconnects the **current** stock.
-Map undo/redo and named-version restores never reverse stock edits or recreate stock.
-Copying shelves/bins preserves descriptive notes as template information and excludes
-all structured stock. There is no automatic item merging or stock copying.
+Map search returns concise destinations such as **Hardware Shelf · Motor Bin**.
+Each bin result opens that specific bin. Shelf names, notes/keywords, bin names and
+inventory information remain searchable; a shelf-metadata match opens the overview.
 
-Unsaved inventory entries and transfers have a local safety copy scoped to project,
-authenticated session and tab, with the existing eight-hour recovery lifetime. Refresh
-recovers their fields and original inventory revision; navigation/refresh is protected
-while editing. Explicit cancel discards the safety copy. Logout clears this session's
-copies. These forms are not backend map drafts and cannot be committed by a layout
-save. Save before logout/session expiry/server restart for durable entry.
+## Anonymous shelf reports
+
+Each shelf panel has one **Report incorrect information** action. Any visitor can
+submit a description without an account, name or email. A selected bin can optionally
+be included as context. A successful submission confirms receipt; failures retain the
+text. Reports never change inventory automatically.
+
+Admins see **Shelf reports · N pending** in the header. Open it to review the shelf,
+optional context, text, local submission time and status. **Open location / editing
+controls** navigates to the affected shelf; **Resolve** and **Dismiss** keep the report
+with its status. Renamed locations use their current label; removed locations retain
+original context. The indicator refreshes on focus and every 30 seconds while logged
+in. Review data and status changes require admin authorization. Report text is rendered
+as text, limited to 2,000 characters; the server allows five submissions per minute
+and twenty per hour per network address. Addresses are not stored in report records.
+Retries and accidental identical repeats within five minutes do not create duplicates.
 
 ## Inventory storage, migration and coordinated recovery
 
@@ -121,18 +147,32 @@ restoring layout needs no second stock transaction. SQLite would add a second
 transaction/backup system without improving this first version; no runtime dependency
 or geometry-storage rewrite is introduced.
 
-On the first updated server startup, missing bin IDs are assigned in current shelf
-files, including unplaced shelves. Existing shelf/bin IDs, metadata, geometry and
-revision values are retained. No structured stock is invented. The server first writes
-a recoverable `../.itr-backups/before-locations-*.tar.gz` checkpoint containing data and
-defaults, then journals the migration. Repeating startup is a no-op when IDs exist.
-Historical snapshots stay unchanged. Legacy reads resolve deterministic IDs in memory
-without changing disk. A restored old bin lacking an ID reconnects only when its
-shelf, anchor and complete legacy contents match the originally migrated bin. An
-ambiguous old location remains separate and existing stock stays unmapped for explicit
-relocation; names/coordinates are never used to guess an existing identity after edits.
-Shelf imports assign fresh IDs and do not restore stock. Use layout versions for layout
-restoration and full backups for complete recovery.
+Startup first assigns missing stable bin IDs in current shelf files, preserving
+existing identities, geometry and revision numbers. Historical snapshots remain
+unchanged. Before writes, the server checkpoints `data/` and `defaults/` under
+`../.itr-backups/`, then uses the existing atomic save journal.
+
+The one-time **bin-contents migration** converts current comma-separated bin contents
+into presence entries at their original bins. It trims whitespace, ignores empty
+segments and treats prose without commas as one name. It includes dormant bins and
+retained unplaced shelf files without treating them as mapped locations. Existing
+structured entries are never split or overwritten. An unambiguous equivalent entry
+at the bin is skipped; ambiguous identities and overlong names are retained for review.
+Bin names do not create or rename items, and keywords never create stock.
+
+Original contents and keywords are recoverable in `data/bin-contents-migration.json`
+and the `before-bin-contents-*.tar.gz` checkpoint. **Inventory activity** displays
+converted, skipped-duplicate and review counts and provides an admin-only source
+record download. Bin Contents/Keywords editing and display are retired; shelf-level
+notes and keywords stay available. Blank default “New bin” labels display as “empty”
+regardless of geometry/style, while inventory and meaningful metadata preserve labels.
+
+The migration marker makes restarts safe. Keep it with the inventory in every backup.
+Old imports and layout restores retire competing bin fields into recoverable
+`legacyBinText`, never convert historical prose into new stock and never reverse real
+stock edits. Shelf imports assign fresh bin IDs. Deterministic legacy IDs reconnect
+old locations only when their original shelf/anchor/legacy document identity agrees;
+ambiguous locations remain available for explicit relocation.
 
 **Before updating a running server, save or export your active layout drafts and save
 inventory entries. Restarting loses authenticated sessions and RAM drafts.** Then start
@@ -141,7 +181,7 @@ checks never operate on your populated data.
 
 Use **Download full lab backup** (admin only) in LAB INVENTORY for a coherent saved
 snapshot of layout, every shelf file including unplaced shelves, structured inventory,
-map and inventory histories, and defaults. It excludes private unsaved drafts. The JSON
+map and inventory histories, migration sources/marker, anonymous reports, and defaults. It excludes private unsaved drafts. The JSON
 is labelled `itr-full-backup`; Export JSON in map/shelf editors contains geometry and
 notes only. Audit downloads are reference snapshots, not complete recovery backups.
 Alternatively, save drafts, stop the server, and copy `data/` and `defaults/` together;
@@ -170,9 +210,9 @@ packages or runtime dependencies have been added.
 
 Visitors see **Lab Explorer**, a red interface with technical UI typography and the map's original item fonts/colors. **Admin Login** and **View Only** remain visible. Editor sidebars, coordinate fields, export, history, and save controls are hidden.
 
-Click a shelf to open a read-only information drawer. Simple shelves show shelf metadata; Complex shelves show the physical grid, including half-cell bins. Complex shelves initially fit the whole grid in the viewing area. Use **+ / −** to inspect bins and **Fit shelf** to return to the overview; zoomed shelves can be scrolled. Hover or focus a bin for its name, contents, and keywords; the list below provides full details. The grid cannot be edited in View Only. Click a section to see its area, access status, and contained items. Close the drawer with **Close**, **Escape**, or its backdrop.
+Click a shelf to open a read-only information drawer. Simple shelves show shelf metadata; Complex shelves show the physical grid, including half-cell bins. Complex shelves initially fit the whole grid in the viewing area. Use **+ / −** to inspect bins and **Fit shelf** to return to the overview; zoomed shelves can be scrolled. Click or focus a bin to select it and view its compact inventory below the map. No separate bin cards or bin keyword fields are shown. The grid cannot be edited in View Only. Click a section to see its area, access status, and contained items. Close the drawer with **Close** or **Escape**; the map remains interactive while the drawer is open.
 
-The grouped **Sections**, **Paths**, **Storage**, **Tables**, **Carts / seating**, and **Machines / tools** checkboxes only affect visibility. Hidden objects have no map hit targets. They never modify saved data. Search matches partial text without regard to case, including shelf names, contents, keywords, and active Complex bin metadata. Matching results can be opened directly. Narrow screens support horizontal map scrolling and zoom.
+The grouped **Sections**, **Paths**, **Storage**, **Tables**, **Carts / seating**, and **Machines / tools** checkboxes only affect visibility. Hidden objects have no map hit targets. They never modify saved data. Search matches partial text without regard to case, including shelf names, shelf notes/keywords, bin names, and shared inventory metadata. Matching results can be opened directly. Narrow screens support horizontal map scrolling and zoom.
 
 ## Edit normal items (Admin)
 
@@ -222,11 +262,11 @@ Arrow changes remain in the draft and support Undo, Redo, and version restore. C
 
 ## Edit a shelf
 
-1. As an admin, select a shelf and click **Open this shelf’s inventory**. Lab drafts are cached before navigation.
+1. As an admin, select a shelf to view inventory, or click **Open Shelf Editor** for structural changes. Lab drafts are cached before navigation.
 2. New shelves default to **Simple**: enter **Shelf name**, **Shelf descriptive notes**, and **Keywords**. The canvas supports visual Shelf Decor; inventory bins remain hidden until Complex mode.
-3. To use detailed inventory, choose **Complex** in **Shelf mode** and click **Apply mode**. This activates the existing matrix editor.
-4. In Complex mode, select an empty half-cell to **Add bin here**, or edit an existing bin's name, contents, keywords, position, size, and style. Dragging and arrow keys snap to 0.5 units; dimensions use 0.5 steps with a minimum of 1. **Ctrl/Cmd+C/V** copies the selected bin with its metadata/style into the nearest valid space, or refuses if the shelf is full. Matrix resizing preserves bins.
-5. Switching either way preserves all metadata and every bin. Dormant bins remain stored in Simple mode. Their structured inventory remains searchable in LAB INVENTORY and map inventory search; item details can expose a retained bin or relocate its stock. Legacy bin descriptions remain indexed only in Complex mode.
+3. To lay out bins, choose **Complex** in **Shelf mode** and click **Apply mode**. This activates the existing matrix editor.
+4. In Complex mode, select an empty half-cell to **Add bin here**, or edit an existing bin's name, position, size, and style. Bin contents are the shared inventory entries; there are no bin Contents or Keywords inputs. Dragging and arrow keys snap to 0.5 units; dimensions use 0.5 steps with a minimum of 1. **Ctrl/Cmd+C/V** copies the selected bin with its metadata/style into the nearest valid space, or refuses if the shelf is full. Matrix resizing preserves bins.
+5. Switching either way preserves all metadata and every bin. Dormant bins remain stored in Simple mode. Their structured inventory remains searchable in LAB INVENTORY and map inventory search; item details can expose a retained bin or relocate its stock. Legacy bin prose is preserved in migration/recovery data; current inventory is searchable in both views.
 6. Save a named version and reload to share and verify the shelf contents.
 
 Each layout editor opens its saved contents or recovers its cached draft for this instance. **Save changes** (or Ctrl/Cmd+S) opens a version-name dialog; only confirming **Save version** writes changes to disk. Canceling the dialog leaves the draft unsaved. Saving from either editor commits the instance’s lab and included shelf drafts as one named lab version, while keeping shelf layouts in independent files. This includes layout edits cached while moving between editors. Saved versions capture the corresponding matrices and descriptive notes. Structured inventory uses its separate Save inventory workflow. Other browsers see saved data, not your draft.
@@ -268,7 +308,9 @@ When updating the running application, save or export active work before restart
 
 ## Files and matrix format
 
-- `inventory.py`, `inventory_ui.js`, `inventory_list.js`, `lab_inventory.html` — Structured item/stock model, shared contextual editor, catalog, and stable map links.
+- `inventory.py`, `inventory_ui.js`, `inventory_list.js`, `lab_inventory.html` — Shared item/stock model, quick entry, visual destination picker, compact rows and map highlighting.
+- `reports.py`, `data/reports.json` — Anonymous submission validation and durable admin review.
+- `data/bin-contents-migration.json` — Conversion marker, original bin prose and review summary; include in backups.
 - `restore_backup.py` — Validated full-backup recovery into a new directory.
 - `data/inventory.json`, `data/history/inventory/` — Stock records and independent audit snapshots.
 - `server.py` — Dependency-free Python server, admin sessions, validation, revision checks, and atomic JSON writes.
@@ -297,17 +339,17 @@ Each matrix cell is either `null` or a bin object. A bin is stored at the intege
   "rows": 2,
   "cols": 3,
   "matrix": [
-    [{"name":"M4 bolts","contents":"Hex bolts","keywords":"hardware","w":2,"h":1,"background":"#dc4545","color":"#ffffff","fontSize":14,"fontFamily":"system-ui","bold":true}, null, null],
+    [{"id":"B-fasteners","name":"Fastener bin","w":2,"h":1,"background":"#dc4545","color":"#ffffff","fontSize":14,"fontFamily":"system-ui","bold":true}, null, null],
     [null, null, null]
   ]
 }
 ```
 
-Legacy matrix-only shelf files are normalized in memory: populated matrices become Complex; empty matrices become Simple. Missing metadata gets safe defaults, with the lab label as the legacy shelf-name fallback. Reads never rewrite the source file; an explicit named save writes the new fields. Startup performs the checkpointed bin-ID migration described below, without rewriting historical snapshots or resetting revision numbers. Complex grids are retained even in Simple mode. Existing lab section entries remain in their legacy JSON representation for compatibility, while the UI treats them exclusively as map structure.
+Legacy matrix-only shelf files are normalized in memory: populated matrices become Complex; empty matrices become Simple. Missing metadata gets safe defaults, with the lab label as the legacy shelf-name fallback. Reads never rewrite the source file; an explicit named save writes the new fields. Startup performs the checkpointed bin-ID and bin-contents migrations described above, without rewriting historical snapshots or resetting revision numbers. Complex grids are retained even in Simple mode. Existing lab section entries remain in their legacy JSON representation for compatibility, while the UI treats them exclusively as map structure.
 
 Supported fonts are `system-ui`, `Arial`, `Georgia`, and `monospace`. Colors are six-digit hex strings. Font sizes range from 6–96; rows and columns range from 1–60. Each shelf file stores one matrix row per line for easier manual editing.
 
-Prefer the editor or JSON import for changes. If hand-editing files while browsers are open, increment `revision` so stale browser drafts cannot overwrite those changes. **Reload saved** after editing a file. Back up `data/` and `defaults/` together, or download a full lab backup from LAB INVENTORY. This includes `inventory.json` and both history trees; a layout export alone is not an inventory backup.
+Prefer the editor or JSON import for changes. If hand-editing files while browsers are open, increment `revision` so stale browser drafts cannot overwrite those changes. **Reload saved** after editing a file. Back up `data/` and `defaults/` together, or download a full lab backup from LAB INVENTORY. This includes `inventory.json`, `bin-contents-migration.json`, `reports.json` when present, and both history trees; a layout export alone is not an inventory backup.
 
 New shelf files are created when the lab is explicitly saved; saving a new shelf from a cached lab draft can also create its file. Removing a shelf from the map retains its inventory file; Undo or restoring an item with the same ID reconnects it. A shared HTML editor loads the selected shelf file; there is no duplicated HTML per shelf.
 
@@ -391,7 +433,7 @@ directories. Browser screenshots go to the system temporary directory.
 
 ## Geometry and saved-state details
 
-Map zoom ranges from **75% to 300%**; the new minimum is 25% smaller than the old 100% minimum. Fit returns to 100%. Panning uses the viewport scrollbars, and all editing converts pointer positions through the actual rendered map bounds.
+Normal map zoom ranges from **75% to 300%**; temporary inventory focus can fit multiple destinations below 75%. The normal minimum is 25% smaller than the old 100% minimum. Fit returns to 100%. Panning uses the viewport scrollbars, and all editing converts pointer positions through the actual rendered map bounds.
 
 Interior `walls` are arrays of `{id, a: [x,y], b: [x,y], thickness}`. `doors` are arrays of `{id, x, y, radius, orientation}` with hinge coordinates and NW/NE/SW/SE orientation. Missing arrays mean no elements and are not added merely by reading an older file. They save with the map and appear read-only outside Lab Map Editor. Legacy rectangular wall items still load separately.
 
@@ -409,4 +451,15 @@ Misc markers can overlap equipment, walls, doors, other markers, and areas outsi
 
 Misc shapes stretch to their grid width and height: squares become rectangles and circles become ellipses. Select a misc item to edit its outline color and thickness (0 hides the outline). Line outlines surround the colored line.
 
-Select a shelf in the lab editor to edit its **Location ID**. This searchable location label appears in the directory and visitor information. Its inventory file and link keep their stable internal ID. Location labels and misc styling support undo and become persistent with Save changes.
+Select a shelf in the lab editor to edit its **Location ID**. This searchable label
+appears in the directory, panels and shelf editor. Readable labels such as R08 and
+L01 stay unchanged. Startup checkpoints the lab and backfills generated shelf IDs
+with unused S-1, S-2, … labels, preserving internal IDs, filenames, revisions and
+inventory/report links. The repeatable migration changes current presentation only;
+it does not rewrite historical layouts. `data/location-labels.json` reserves labels
+for saved, copied, draft and retained shelf identities. Allocation and collision
+checks run under the server lock. Restored layouts recover an identity’s own label
+or receive an unused label if an imported label belongs to another identity. Moving
+or renaming a shelf keeps its label. Explicit label edits reject collisions. Location
+labels and misc styling support undo and become persistent with Save changes.
+Include the registry with full backups; older backups acquire it on startup.

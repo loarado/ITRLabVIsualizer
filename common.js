@@ -80,6 +80,14 @@ function updateUndo() {
   $('#undo').disabled = !isAdmin || !history.length;
   $('#redo').disabled = !isAdmin || !future.length;
 }
+function applyLocationLabels(labels, submitted = null) {
+  if (!labels || !app?.data?.items) return;
+  for (const item of app.data.items) {
+    const before = submitted?.items?.find((entry) => entry.id === item.id);
+    if (labels[item.id] && (!before || item.locationId === before.locationId))
+      item.locationId = labels[item.id];
+  }
+}
 async function cacheDraft() {
   clearTimeout(saveTimer);
   if (!isAdmin || !app?.data) return true;
@@ -97,6 +105,7 @@ async function cacheDraft() {
         'PUT',
         state,
       );
+      applyLocationLabels(result.locationLabels, state.data);
       draftPresent = true;
       acknowledgeRecovery(app.endpoint.slice(5), state);
       if (result.inventoryChanged) await app.onInventoryChanged?.();
@@ -154,6 +163,7 @@ async function save(name) {
       if (!(await cacheDraft()))
         throw new Error('Save postponed because draft caching failed.');
       const result = await api(app.endpoint, 'PUT', snapshot);
+      applyLocationLabels(result.locationLabels, snapshot);
       app.data.revision = result.revision;
       app.data.versionName = name;
       if (version === generation) dirty = false;

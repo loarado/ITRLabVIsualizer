@@ -1,5 +1,5 @@
 {
-  "revision": 163,
+  "revision": 165,
   "cols": 120,
   "rows": 65,
   "items": [
@@ -619,7 +619,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R02"
     },
     {
       "id": "R07",
@@ -635,7 +636,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R07"
     },
     {
       "id": "R08",
@@ -651,7 +653,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R08"
     },
     {
       "id": "R09",
@@ -667,7 +670,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R09"
     },
     {
       "id": "R11",
@@ -683,7 +687,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R11"
     },
     {
       "id": "R12",
@@ -699,7 +704,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R12"
     },
     {
       "id": "R13",
@@ -715,7 +721,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R13"
     },
     {
       "id": "R14",
@@ -731,7 +738,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Robotics"
+      "area": "Robotics",
+      "locationId": "R14"
     },
     {
       "id": "M01",
@@ -747,7 +755,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Material storage"
+      "area": "Material storage",
+      "locationId": "M01"
     },
     {
       "id": "M02",
@@ -763,7 +772,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Material storage"
+      "area": "Material storage",
+      "locationId": "M02"
     },
     {
       "id": "M03",
@@ -779,7 +789,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Material storage"
+      "area": "Material storage",
+      "locationId": "M03"
     },
     {
       "id": "W03",
@@ -795,7 +806,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Workspace"
+      "area": "Workspace",
+      "locationId": "W03"
     },
     {
       "id": "W04",
@@ -811,7 +823,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Workspace"
+      "area": "Workspace",
+      "locationId": "W04"
     },
     {
       "id": "T01",
@@ -827,7 +840,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Machinery"
+      "area": "Machinery",
+      "locationId": "T01"
     },
     {
       "id": "T02",
@@ -843,7 +857,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Machinery"
+      "area": "Machinery",
+      "locationId": "T02"
     },
     {
       "id": "T07",
@@ -859,7 +874,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Machinery"
+      "area": "Machinery",
+      "locationId": "T07"
     },
     {
       "id": "L01",
@@ -875,7 +891,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Lounge"
+      "area": "Lounge",
+      "locationId": "L01"
     },
     {
       "id": "L02",
@@ -891,7 +908,8 @@
       "fontFamily": "system-ui",
       "bold": true,
       "locked": false,
-      "area": "Lounge"
+      "area": "Lounge",
+      "locationId": "L02"
     },
     {
       "name": "Cosplay Floor Space",
@@ -970,7 +988,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-1"
     },
     {
       "id": "S-9d9d4ef7d21cb09922aa418b293271dc",
@@ -985,7 +1004,8 @@
       "fontSize": 6,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-2"
     },
     {
       "id": "S-75243d8b596f93a42f01ebfa91f82f57",
@@ -1000,7 +1020,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-3"
     },
     {
       "name": "3d Printer",
@@ -1141,7 +1162,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-4"
     },
     {
       "name": "Fridge",
@@ -1175,7 +1197,8 @@
       "y": 35,
       "w": 2,
       "h": 2,
-      "locked": false
+      "locked": false,
+      "locationId": "S-5"
     },
     {
       "name": "Trash Can",
@@ -1209,7 +1232,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-6"
     },
     {
       "id": "S-7669a32ae8fc582133db77c51ca92a40",
@@ -1224,7 +1248,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-7"
     },
     {
       "id": "S-093d9f9b18904754cd5a91135c369df0",
@@ -1239,7 +1264,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-8"
     },
     {
       "id": "S-8d17450a155e02d97718f89a657e7f6d",
@@ -1254,7 +1280,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-9"
     },
     {
       "id": "S-da188fca2963dc2edd6fc124ffa3d44b",
@@ -1269,7 +1296,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-10"
     },
     {
       "id": "S-c7a6419d1f08996737079e188cc54b63",
@@ -1284,7 +1312,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-11"
     },
     {
       "id": "S-394bb9d930fd8bc3cacd1bee181220df",
@@ -1299,7 +1328,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-12"
     },
     {
       "name": "Shop Vac",
@@ -1382,7 +1412,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-13"
     },
     {
       "id": "S-452281cb968e3884f55340bce90c2569",
@@ -1397,7 +1428,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-14"
     },
     {
       "id": "M-03e5693be85c9e727bc9f264dba47c22",
@@ -1427,7 +1459,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-15"
     },
     {
       "id": "S-1e96757ca5cfc5740461986f42bc7218",
@@ -1442,7 +1475,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-16"
     },
     {
       "id": "T-9ba82bc11522beb2507ab3a7113fc2ff",
@@ -1502,7 +1536,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-17"
     },
     {
       "id": "M-071f1b3f748e71b1a34ac736f2670ab0",
@@ -1547,7 +1582,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-18"
     },
     {
       "id": "S-e4d84eae47a6a0182f980ce5b5147def",
@@ -1562,7 +1598,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-19"
     },
     {
       "name": "Fire Extinguisher ",
@@ -1717,7 +1754,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-20"
     },
     {
       "id": "S-fa1b4b91a29a82460509ea60993a9d32",
@@ -1732,7 +1770,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-21"
     },
     {
       "id": "C-a7be36c0d7d9df45089d2d8fc63c9f99",
@@ -1792,7 +1831,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-22"
     },
     {
       "name": "Small Bins",
@@ -1807,7 +1847,8 @@
       "y": 38,
       "w": 1,
       "h": 2,
-      "locked": false
+      "locked": false,
+      "locationId": "S-23"
     },
     {
       "name": "Electrical Storage  ",
@@ -1822,7 +1863,8 @@
       "y": 33,
       "w": 1,
       "h": 3,
-      "locked": false
+      "locked": false,
+      "locationId": "S-24"
     },
     {
       "id": "S-f14aa98397c983aec924ddbfa21d2476",
@@ -1837,7 +1879,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-25"
     },
     {
       "id": "T-cbff59eec87b1acecc4433a247cda7fb",
@@ -1987,7 +2030,8 @@
       "y": 47,
       "w": 2,
       "h": 2,
-      "locked": false
+      "locked": false,
+      "locationId": "S-26"
     },
     {
       "name": "Cabinet",
@@ -2002,7 +2046,8 @@
       "y": 49,
       "w": 1,
       "h": 1,
-      "locked": false
+      "locked": false,
+      "locationId": "S-27"
     },
     {
       "name": "Trash Can",
@@ -2851,7 +2896,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-28"
     },
     {
       "id": "S-35fc87b69acc48237949dd0cf7b4c109",
@@ -2866,7 +2912,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-29"
     },
     {
       "name": "Julien's Stuff",
@@ -2921,7 +2968,8 @@
       "y": 57,
       "w": 2,
       "h": 2,
-      "locked": false
+      "locked": false,
+      "locationId": "S-30"
     },
     {
       "id": "C-fcad76dd1f82652e4dd0dfb40e6c41e4",
@@ -2966,7 +3014,8 @@
       "y": 9,
       "w": 2,
       "h": 4,
-      "locked": false
+      "locked": false,
+      "locationId": "S-31"
     },
     {
       "id": "S-a782b8fc257f20ac56d70086f130eda8",
@@ -2981,7 +3030,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-32"
     },
     {
       "id": "S-e32f3de8083441d76899478a4a9dfdc0",
@@ -2996,7 +3046,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-33"
     },
     {
       "id": "S-fc3ee9cf8616a57e5478b482e4da097d",
@@ -3011,7 +3062,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-34"
     },
     {
       "id": "S-178dec0952fc3d6c1683826f7c5853ca",
@@ -3026,7 +3078,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-35"
     },
     {
       "id": "S-08e3727e1a3e6b46108b4859c44ecbb6",
@@ -3041,7 +3094,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-36"
     },
     {
       "id": "S-8eaa81d33140b23df5a0d9b8b8381abd",
@@ -3056,7 +3110,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-37"
     },
     {
       "id": "S-9d14e9de2f08cacb934e3695eacd10f4",
@@ -3071,7 +3126,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-38"
     },
     {
       "id": "S-2628318864092eba2ab764f9e8ee9857",
@@ -3086,7 +3142,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-39"
     },
     {
       "id": "S-5eb34aead64eda785df0ded16e364382",
@@ -3101,7 +3158,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-40"
     },
     {
       "id": "S-b665bdabe25c9537d3ad54198c2c9e5f",
@@ -3116,7 +3174,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-41"
     },
     {
       "id": "S-54cd44084185414b906b7c0800fa617b",
@@ -3131,7 +3190,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-42"
     },
     {
       "id": "S-a351db6446d4311bb07a67f19f4c742f",
@@ -3146,7 +3206,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-43"
     },
     {
       "id": "S-2445da65ac7da6aac8e37e0f334cf9fc",
@@ -3161,7 +3222,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-44"
     },
     {
       "id": "S-9646b1d383d2596cc38d7b152e92b369",
@@ -3176,7 +3238,8 @@
       "fontSize": 12,
       "fontFamily": "system-ui",
       "bold": true,
-      "locked": false
+      "locked": false,
+      "locationId": "S-45"
     }
   ],
   "outline": [
@@ -3387,7 +3450,7 @@
       ]
     ]
   ],
-  "versionName": "Draft Shelf L4",
+  "versionName": "Draft FII",
   "walls": [
     {
       "id": "W-21525660ec8114c1058502af8c2ef505",

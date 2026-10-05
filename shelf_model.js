@@ -96,6 +96,25 @@ function renderShelfDecor(grid, data, editing = null) {
   }
 }
 
+function binDisplayName(bin, shelfId, shelfData = {}) {
+  const name = bin.name || '';
+  if (name.trim().toLowerCase() !== 'new bin') return name || 'Unnamed bin';
+  const meaningful =
+    [bin.contents, bin.keywords, bin.notes, bin.description].some((text) =>
+      text?.trim(),
+    ) ||
+    bin.hasLegacyDescription ||
+    (shelfData.legacyBinText?.[bin.id] || []).some(
+      (source) =>
+        source.keywords?.trim() ||
+        (!source.converted && source.contents?.trim()),
+    );
+  const populated = Object.values(inventoryState?.stocks || {}).some(
+    (stock) =>
+      !stock.archived && stock.shelfId === shelfId && stock.binId === bin.id,
+  );
+  return meaningful || populated ? name : 'empty';
+}
 function shelfBins(data) {
   const result = [];
   data.matrix.forEach((row, r) =>
@@ -118,11 +137,18 @@ function configureShelfGrid(grid, data, size = 22) {
 function positionShelfBin(el, bin, r, c) {
   gridPosition(el, { x: c * 2 + 1, y: r * 2 + 1, w: bin.w * 2, h: bin.h * 2 });
 }
-function readOnlyShelfGrid(host, data, targetBin = null) {
+function readOnlyShelfGrid(
+  host,
+  data,
+  targetBin = null,
+  onSelect = null,
+  matchingBins = [],
+) {
   const viewport = document.createElement('div');
   viewport.className = 'viewport readonly-shelf-viewport';
   const grid = document.createElement('div');
   grid.className = 'shelf-grid readonly-grid';
+  grid.dataset.shelfId = data.id || '';
   grid.setAttribute('aria-label', 'Read-only shelf inventory matrix');
   configureShelfGrid(grid, data);
   grid.classList.toggle('decor-only', data.mode === 'simple');
@@ -140,32 +166,32 @@ function readOnlyShelfGrid(host, data, targetBin = null) {
     el.className = 'grid-item shelf-bin readonly-bin';
     el.dataset.binId = bin.id;
     el.classList.toggle('inventory-target', bin.id === targetBin);
+    el.type = 'button';
+    el.classList.toggle('inventory-match', matchingBins.includes(bin.id));
+    el.setAttribute('aria-pressed', String(bin.id === targetBin));
     el.addEventListener('click', () => {
-      const card = Array.from(host.querySelectorAll('.bin-card')).find(
-        (card) => card.dataset.binId === bin.id,
-      );
-      if (card) {
-        host
-          .querySelectorAll('.bin-card')
-          .forEach((card) => card.classList.remove('inventory-target'));
-        card.classList.add('inventory-target');
-        card.scrollIntoView({ block: 'nearest' });
-        card.focus({ preventScroll: true });
-      }
+      grid.querySelectorAll('.readonly-bin').forEach((node) => {
+        const selected = node.dataset.binId === bin.id;
+        node.classList.toggle('inventory-target', selected);
+        node.setAttribute('aria-pressed', String(selected));
+      });
+      onSelect?.(bin);
     });
     positionShelfBin(el, bin, r, c);
     el.style.backgroundColor = bin.background;
     el.style.setProperty('--bg', bin.background);
-    el.append(labelFor(bin));
+    el.append(labelFor({ ...bin, name: binDisplayName(bin, data.id, data) }));
     el.setAttribute(
       'aria-label',
-      `${bin.name || 'Unnamed bin'}, row ${r + 1}, column ${c + 1}`,
+      `${binDisplayName(bin, data.id, data)}, row ${r + 1}, column ${c + 1}`,
     );
     el.setAttribute('aria-describedby', tooltip.id);
     const show = () => {
       tooltip.replaceChildren(
-        infoField(bin.name || 'Unnamed bin', bin.contents),
-        infoField('Keywords', bin.keywords),
+        infoField(
+          binDisplayName(bin, data.id, data),
+          'Select to view inventory',
+        ),
       );
       tooltip.hidden = false;
       const rect = el.getBoundingClientRect();
@@ -192,6 +218,23 @@ function readOnlyShelfGrid(host, data, targetBin = null) {
     });
     grid.append(el);
   });
+  const updateLabels = () => {
+    grid.querySelectorAll('.readonly-bin').forEach((node) => {
+      const position = shelfBins(data).find(
+        ({ bin }) => bin.id === node.dataset.binId,
+      );
+      if (position) {
+        const label = binDisplayName(position.bin, data.id, data);
+        node.querySelector('.fit-label').textContent = label;
+        node.setAttribute(
+          'aria-label',
+          `${label}, row ${position.r + 1}, column ${position.c + 1}`,
+        );
+      }
+    });
+    fitLabels(grid);
+  };
+  document.addEventListener('inventory-updated', updateLabels);
   viewport.addEventListener('scroll', () => {
     const hovered = grid.querySelector('.readonly-bin:hover');
     if (hovered) hovered.dispatchEvent(new Event('mouseenter'));
@@ -256,6 +299,7 @@ function readOnlyShelfGrid(host, data, targetBin = null) {
   observer.observe(viewport);
   host._disposeShelfGrid = () => {
     observer.disconnect();
+    document.removeEventListener('inventory-updated', updateLabels);
     hide();
   };
   requestAnimationFrame(() => {
@@ -298,4 +342,15 @@ function shelfBinFits(data, bin, r, c, ignore = null) {
         { x: p.c, y: p.r, w: p.bin.w, h: p.bin.h },
       ),
   );
+}
+
+function infoField(title, value) {
+  const block = document.createElement('div');
+  block.className = 'info-field';
+  const heading = document.createElement('h3');
+  heading.textContent = title;
+  const text = document.createElement('p');
+  text.textContent = value || 'Not recorded';
+  block.append(heading, text);
+  return block;
 }

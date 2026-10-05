@@ -107,3 +107,103 @@ def estimated_value(item, stock):
     with localcontext() as context:
         context.prec = 50
         return dict(amount=format((Decimal(stock['quantity']) * Decimal(item['unitPrice'])).quantize(quantum, rounding=ROUND_HALF_UP), 'f'), currency=item['currency'])
+
+
+def retire_bin_fields(doc):
+    """Keep imported/restored prose recoverable without reviving editable bin fields."""
+    result = copy.deepcopy(doc)
+    legacy = result.setdefault('legacyBinText', {})
+    if not isinstance(legacy, dict):
+        raise ValueError('Invalid preserved bin text.')
+    for row in result.get('matrix', []):
+        for cell in row:
+            if not cell:
+                continue
+            contents, keywords = cell.pop('contents', ''), cell.pop('keywords', '')
+            clean_text(contents, 'Legacy bin contents', 10000)
+            clean_text(keywords, 'Legacy bin keywords', 2000)
+            if contents.strip() or keywords.strip():
+                source = dict(contents=contents, keywords=keywords, converted=False)
+                records = legacy.setdefault(cell['id'], [])
+                if not isinstance(records, list):
+                    raise ValueError('Invalid preserved bin text.')
+                if source not in records:
+                    records.append(source)
+            if keywords.strip():
+                cell['hasLegacyDescription'] = True
+    if not legacy:
+        result.pop('legacyBinText')
+    return result
+
+
+def convert_bin_contents(inventory, shelves):
+    """Pure one-time conversion of current files, never historical snapshots."""
+    doc = copy.deepcopy(inventory)
+    converted_shelves = {}
+    report = dict(schemaVersion=1, completed=True, converted=0, skippedDuplicates=0, needsReview=0, sources=[])
+    for sid, original in sorted(shelves.items()):
+        shelf = identify_bins(original)
+        for row in shelf.get('matrix', []):
+            for cell in row:
+                if not cell:
+                    continue
+                contents, keywords = cell.get('contents', ''), cell.get('keywords', '')
+                if not contents.strip() and not keywords.strip():
+                    continue
+                record = dict(shelfId=sid, binId=cell['id'], binName=cell['name'], contents=contents,
+                              keywords=keywords, entries=[])
+                for name in (part.strip() for part in contents.split(',')):
+                    if not name:
+                        continue
+                    candidates = [(stock_id, stock) for stock_id, stock in doc['stocks'].items()
+                                  if not stock.get('archived') and stock.get('shelfId') == sid
+                                  and stock.get('binId') == cell['id']
+                                  and doc['items'][stock['itemId']]['name'].strip().casefold() == name.casefold()]
+                    if len(candidates) > 1 or len(name) > 500:
+                        record['entries'].append(dict(name=name, status='review', candidates=[stock_id for stock_id, _ in candidates]))
+                        report['needsReview'] += 1
+                    elif candidates:
+                        report['skippedDuplicates'] += 1
+                        record['entries'].append(dict(name=name, status='duplicate', stockId=candidates[0][0]))
+                    else:
+                        fingerprint = hashlib.sha256(json.dumps([sid,cell['id'],name],ensure_ascii=False).encode()).hexdigest()[:32]
+                        item_id, stock_id = 'MI-'+fingerprint, 'MS-'+fingerprint
+                        if item_id in doc.get('deletedItems', {}):
+                            record['entries'].append(dict(name=name, status='deleted', candidates=[]))
+                            continue
+                        if item_id in doc['items'] or stock_id in doc['stocks']:
+                            report['needsReview'] += 1
+                            record['entries'].append(dict(name=name, status='review', candidates=[]))
+                            continue
+                        doc['items'][item_id] = validate_item(dict(name=name))
+                        doc['stocks'][stock_id] = dict(itemId=item_id,shelfId=sid,binId=cell['id'],tracking='presence',
+                            quantity=None,availability=None,unit='each',notes='',archived=False,
+                            locationLabel=(shelf.get('name') or sid)+' / '+cell['name'])
+                        report['converted'] += 1
+                        record['entries'].append(dict(name=name, status='converted',stockId=stock_id))
+                report['sources'].append(record)
+        retired = retire_bin_fields(shelf)
+        outcomes = {(source['binId'], source['contents'], source['keywords']):
+                    not any(entry['status'] == 'review' for entry in source['entries'])
+                    for source in report['sources'] if source['shelfId'] == sid}
+        for bin_id, records in retired.get('legacyBinText', {}).items():
+            for record in records:
+                source_key = (bin_id, record['contents'], record['keywords'])
+                if source_key in outcomes:
+                    record['converted'] = outcomes[source_key]
+        converted_shelves[sid] = retired
+    return doc, converted_shelves, report
+
+
+def bin_display_name(bin, shelf_id, inventory, shelf=None):
+    name = bin.get('name', '')
+    if name.strip().casefold() != 'new bin':
+        return name or 'Unnamed bin'
+    meaningful = bool(bin.get('contents', '').strip() or bin.get('keywords', '').strip() or
+                      bin.get('notes', '').strip() or bin.get('description', '').strip() or bin.get('hasLegacyDescription'))
+    sources = (shelf or {}).get('legacyBinText', {}).get(bin.get('id'), [])
+    meaningful = meaningful or any(source.get('keywords', '').strip() or
+        (not source.get('converted') and source.get('contents', '').strip()) for source in sources)
+    populated = any(not stock.get('archived') and stock.get('shelfId') == shelf_id and stock.get('binId') == bin.get('id')
+                    for stock in inventory.get('stocks', {}).values())
+    return name if meaningful or populated else 'empty'

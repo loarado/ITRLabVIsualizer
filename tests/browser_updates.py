@@ -15,10 +15,10 @@ class Updates(Features):
         for key,val in [('shelfName','Workflow inventory'),('shelfContents','Assembly parts'),('shelfKeywords','robotics')]:p.locator('#'+key).fill(val);p.locator('#'+key).press('Tab')
         for col,w,h,name in [(0,'2','2','Whole bin'),(3,'1.5','2','Half bin')]:
             p.evaluate('(c)=>choose(0,c)',col);p.locator('#addBin').click()
-            for key,val in [('w',w),('h',h),('name',name),('contents','Metal parts'),('keywords','hardware')]:p.locator('#'+key).fill(val);p.locator('#'+key).press('Tab')
-        p.locator('#y').fill('1.5');p.locator('#y').press('Tab');p.locator('.shelf-bin.selected').focus();p.keyboard.press('Control+c');p.keyboard.press('Control+v');p.wait_for_function('bins().length===3');p.locator('#contents').fill('Copied fasteners');p.locator('#contents').press('Tab');matrix=p.evaluate('JSON.stringify(shelf.data.matrix)');self.save('Shelf workflow')
+            for key,val in [('w',w),('h',h),('name',name)]:p.locator('#'+key).fill(val);p.locator('#'+key).press('Tab')
+        p.locator('#y').fill('1.5');p.locator('#y').press('Tab');p.locator('.shelf-bin.selected').focus();p.keyboard.press('Control+c');p.keyboard.press('Control+v');p.wait_for_function('bins().length===3');p.locator('#name').fill('Copied fasteners');p.locator('#name').press('Tab');matrix=p.evaluate('JSON.stringify(shelf.data.matrix)');self.save('Shelf workflow')
         p.reload();p.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null');self.assertEqual(p.evaluate('JSON.stringify(shelf.data.matrix)'),matrix);p.locator('#back').click();p.wait_for_function('typeof lab!=="undefined" && lab.data!==null');self.save('Lab workflow');p.locator('#auth').click();p.wait_for_function('!isAdmin');p.locator('[data-id="R01"]').click();expect(p.locator('.readonly-bin')).to_have_count(3)
-        for el in p.locator('.readonly-bin').all():el.hover();expect(p.locator('.bin-tooltip')).to_be_visible();expect(p.locator('.bin-tooltip')).to_contain_text('hardware')
+        for el in p.locator('.readonly-bin').all():el.hover();expect(p.locator('.bin-tooltip')).to_be_visible();expect(p.locator('.bin-tooltip')).to_contain_text('Select to view inventory')
         p.locator('#closeExplorer').click();expect(p.locator('#explorerPanel')).not_to_be_visible();self.login();p.locator('[data-id="R01"]').click();p.locator('#openShelf').click();p.wait_for_function('typeof shelf!=="undefined" && shelf.data!==null');self.assertEqual(p.evaluate('JSON.stringify(shelf.data.matrix)'),matrix);p.locator('#shelfName').fill('Later inventory');p.locator('#shelfName').press('Tab');self.save('Later inventory');p.locator('#back').click();p.wait_for_function('typeof lab!=="undefined" && lab.data!==null')
         p.locator('#versionHistory').click();p.locator('#historyVersions').select_option('2');p.locator('#restoreVersion').click();expect(p.locator('#historyDialog')).not_to_be_visible();p.wait_for_function('shelfIndex.R01.name==="Workflow inventory"')
         p.locator('#versionHistory').focus();p.keyboard.press('Control+z');p.evaluate('cacheDraft()');p.wait_for_function('shelfIndex.R01.name==="Later inventory"');p.keyboard.press('Control+Shift+z');p.evaluate('cacheDraft()');p.wait_for_function('shelfIndex.R01.name==="Workflow inventory"');self.save('Restored inventory');self.assertNotIn('_inventoryState',json.loads((self.data/'lab.json').read_text()))
@@ -141,7 +141,7 @@ class Updates(Features):
         self.assertEqual(p.evaluate('bins().map(p=>p.c)'),[0,1.5,3,4.5]);self.assertEqual(p.evaluate('bins().map(p=>p.bin.w)'),[1.5]*4)
         self.assertFalse(p.evaluate('fits(binAt(),0,1.25)'));p.locator('#w').fill('.5');p.locator('#w').press('Tab');expect(p.locator('#w')).to_have_value('1.5')
         self.assertTrue(p.evaluate('fits({...binAt(),w:2,h:1.5},2,0,null)'));self.assertTrue(p.evaluate('fits({...binAt(),w:1.5,h:2},2,0,null)'))
-        el=p.locator('.shelf-bin').last;box=el.bounding_box();p.mouse.move(box['x']+10,box['y']+10);p.mouse.down();p.mouse.move(box['x']+10,box['y']+21.5);p.mouse.up();self.assertEqual(p.evaluate('selection.r'),.5)
+        el=p.locator('.shelf-bin').last;el.scroll_into_view_if_needed();box=el.bounding_box();p.mouse.move(box['x']+10,box['y']+10);p.mouse.down();p.mouse.move(box['x']+10,box['y']+21.5);p.mouse.up();self.assertEqual(p.evaluate('selection.r'),.5)
         p.locator('#back').click();p.wait_for_function('typeof lab!=="undefined" && lab.data!==null');self.save('Half-grid inventory');p.locator('#auth').click();p.wait_for_function('!isAdmin');p.locator('[data-id="R01"]').click();expect(p.locator('.readonly-bin')).to_have_count(4)
         widths=p.locator('.readonly-bin').evaluate_all('(els)=>els.map(e=>e.getBoundingClientRect().width)');self.assertTrue(all(abs(w-widths[0])<.1 for w in widths));self.assertAlmostEqual(widths[0],33.5,delta=.1)
         saved=json.loads((self.data/'shelves/R01.json').read_text());self.assertEqual(saved['matrix'][0][4]['offsetX'],.5);self.assertEqual(saved['matrix'][0][4]['offsetY'],.5)
@@ -156,7 +156,7 @@ class Updates(Features):
             p=self.page;p.goto(self.url+'/shelf_editor.html?id=R01');expect(p.locator('.readonly-grid')).to_be_visible();expect(p.locator('.readonly-bin')).to_have_count(count)
             before=p.evaluate('JSON.stringify(shelf.data)')
             for c in range(count):
-                el=p.locator('.readonly-bin').nth(c);el.hover();expect(p.locator('.bin-tooltip')).to_contain_text(f'Contents {c}');expect(p.locator('.bin-tooltip')).to_be_visible();el.focus();p.keyboard.press('Delete');p.keyboard.press('ArrowRight')
+                el=p.locator('.readonly-bin').nth(c);el.hover();expect(p.locator('.bin-tooltip')).to_contain_text('Select to view inventory');expect(p.locator('.bin-tooltip')).to_be_visible();el.focus();p.keyboard.press('Delete');p.keyboard.press('ArrowRight')
                 self.assertEqual(el.evaluate('(e)=>getComputedStyle(e).gridColumnEnd'),f'span {(c+1)*2}')
             p.locator('h1').hover();p.locator('#back').focus();expect(p.locator('.bin-tooltip')).to_be_hidden();self.assertEqual(p.evaluate('JSON.stringify(shelf.data)'),before);expect(p.locator('.readonly-grid input')).to_have_count(0)
 
@@ -171,7 +171,7 @@ class Updates(Features):
                 if sid=='R02':
                     p.locator('#shelfMode').select_option('complex');p.locator('#applyShelfMode').click()
                     p.evaluate("()=>{if(!shelf.data.matrix[1][2]){choose(1,2);$('#addBin').click();}else choose(1,2);}")
-                    for key,value in [('name',label+' bin'),('contents','Bolts'),('keywords','metric'),('w','3'),('h','2')]:
+                    for key,value in [('name',label+' bin'),('w','3'),('h','2')]:
                         p.locator('#'+key).fill(value);p.locator('#'+key).press('Tab')
                 p.evaluate('cacheDraft()');p.reload();p.wait_for_function('typeof shelf!=="undefined" && shelf.data?.name.startsWith("Inventory")');expect(p.locator('#shelfName')).to_have_value(label)
                 p.locator('#back').click();p.wait_for_function('typeof lab!=="undefined" && lab.data!==null')

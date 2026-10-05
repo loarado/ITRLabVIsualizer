@@ -17,7 +17,9 @@ import secrets
 import threading
 import time
 import tarfile
-from inventory import identify_bins, empty_inventory, location_key, validate_item, validate_stock, decimal_value, estimated_value
+from inventory import identify_bins, empty_inventory, location_key, validate_item, validate_stock, decimal_value, estimated_value, retire_bin_fields, convert_bin_contents, bin_display_name
+from reports import empty_reports, prepare_report
+from location_labels import assign_labels, empty_labels, GENERATED
 from decimal import Decimal
 from urllib.parse import urlsplit, unquote
 
@@ -25,6 +27,7 @@ ROOT = Path(__file__).resolve().parent
 ID = re.compile(r'^[A-Za-z0-9_-]{1,64}$')
 HEX = re.compile(r'^#[0-9a-fA-F]{6}$')
 KINDS = {'section', 'shelf', 'table', 'cart', 'machine', 'wall', 'text', 'misc'}
+INVENTORY_KINDS = {'shelf', 'table', 'cart', 'machine'}
 FONTS = {'system-ui', 'Arial', 'Georgia', 'monospace'}
 MAX_BODY = 4_000_000
 
@@ -124,6 +127,16 @@ def validate_shelf(doc, shelf_id):
     for field, limit in [('name', 500), ('contents', 10000), ('keywords', 2000)]:
         if not text(doc.get(field, ''), limit):
             raise ValueError('Invalid shelf metadata.')
+    legacy = doc.get('legacyBinText', {})
+    if not isinstance(legacy,dict) or len(legacy) > 3600:
+        raise ValueError('Invalid preserved bin text.')
+    for bid, records in legacy.items():
+        if not ID.fullmatch(str(bid)) or not isinstance(records,list) or len(records) > 100:
+            raise ValueError('Invalid preserved bin text.')
+        for record in records:
+            if (not isinstance(record,dict) or not text(record.get('contents',''),10000) or
+                    not text(record.get('keywords',''),2000) or type(record.get('converted')) is not bool):
+                raise ValueError('Invalid preserved bin text.')
     rows, cols = doc.get('rows'), doc.get('cols')
     if not integer(rows, 1, 60) or not integer(cols, 1, 60):
         raise ValueError('Shelf dimensions must be integers from 1 to 60.')
@@ -157,7 +170,7 @@ def validate_shelf(doc, shelf_id):
             if cell is None:
                 continue
             if (not isinstance(cell, dict) or not style(cell) or not text(cell.get('name')) or
-                    not text(cell.get('contents'), 10000) or not text(cell.get('keywords'), 2000)):
+                    not text(cell.get('contents', ''), 10000) or not text(cell.get('keywords', ''), 2000)):
                 raise ValueError('Invalid bin text or style.')
             if 'id' in cell:
                 if not isinstance(cell['id'],str) or not ID.fullmatch(cell['id']) or cell['id'] in bin_ids:
@@ -183,7 +196,7 @@ def normalize_shelf(doc, name=''):
     result.setdefault('name', name)
     result.setdefault('contents', '')
     result.setdefault('keywords', '')
-    return result
+    return retire_bin_fields(result)
 
 
 def blank_shelf(shelf_id, name=''):
@@ -219,6 +232,7 @@ class LabServer(ThreadingHTTPServer):
         self.password_hash = hashlib.sha256(password.encode()).digest()
         self.sessions = {}
         self.attempts = {}
+        self.report_attempts = {}
         self.lock = threading.RLock()
         self.drafts = {}
         self.draft_epochs = {}
@@ -226,6 +240,64 @@ class LabServer(ThreadingHTTPServer):
         # Roll forward a fully validated, explicitly saved transaction after interruption.
         self.finish_transaction()
         self.migrate_locations()
+        self.migrate_bin_contents()
+        self.migrate_location_labels()
+
+    def label_registry(self):
+        path = self.data_dir / 'location-labels.json'
+        return json.loads(path.read_text()) if path.exists() else empty_labels()
+
+    def migrate_location_labels(self):
+        """Reserve retained labels and backfill only current location presentation."""
+        path = self.data_dir / 'lab.json'
+        original = json.loads(path.read_text())
+        registry = self.label_registry()
+        previous = copy.deepcopy(registry)
+        layouts = [original]
+        for file in sorted((self.data_dir/'history/lab').glob('*.json')):
+            layouts.append(json.loads(file.read_text())['layout'])
+        identities = {item['id'] for layout in layouts for item in layout['items'] if item['kind']=='shelf'}
+        # Preserve readable labels before allocating any generated ones.
+        for layout in layouts:
+            for item in layout['items']:
+                if item['kind'] != 'shelf':
+                    continue
+                sid = item['id']
+                label = (item.get('locationId') or sid).strip()
+                if GENERATED.fullmatch(label):
+                    continue
+                if registry['reserved'].get(label.casefold(),sid) == sid:
+                    registry['reserved'][label.casefold()] = sid
+                    registry['labels'].setdefault(sid,label)
+        for file in sorted((self.data_dir/'shelves').glob('*.json')):
+            sid = file.stem
+            identities.add(sid)
+            if not GENERATED.fullmatch(sid):
+                registry['reserved'].setdefault(sid.casefold(),sid)
+                registry['labels'].setdefault(sid,sid)
+        layout = copy.deepcopy(original)
+        registry = assign_labels(layout, registry, repair=True)
+        for sid in sorted(identities - set(registry['labels'])):
+            registry = assign_labels({'items':[dict(id=sid,kind='shelf')]},registry,repair=True)
+        writes = {}
+        if layout != original: writes['lab.json'] = layout
+        if registry != previous or not (self.data_dir/'location-labels.json').exists(): writes['location-labels.json'] = registry
+        if not writes: return
+        backup_dir = self.data_dir.parent / '.itr-backups'
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup = backup_dir / ('before-location-labels-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
+        with tarfile.open(backup,'w:gz') as archive:
+            archive.add(self.data_dir,arcname='data'); archive.add(self.defaults_dir,arcname='defaults')
+        write_json(self.data_dir/'pending-save.json',writes)
+        self.finish_transaction()
+
+    def reserve_labels(self, layout, repair=False):
+        previous = self.label_registry()
+        registry = assign_labels(layout, previous, repair=repair)
+        if registry != previous:
+            write_json(self.data_dir/'pending-save.json',{'location-labels.json':registry})
+            self.finish_transaction()
+        return {item['id']:item['locationId'] for item in layout['items'] if item['kind']=='shelf'}
 
     def migrate_locations(self):
         """Checkpoint first; migrate current files only, including unplaced shelves."""
@@ -247,6 +319,35 @@ class LabServer(ThreadingHTTPServer):
             archive.add(self.data_dir, arcname="data")
             archive.add(self.defaults_dir, arcname="defaults")
         write_json(self.data_dir / "pending-save.json", writes)
+        self.finish_transaction()
+
+    def migrate_bin_contents(self):
+        marker = self.data_dir / 'bin-contents-migration.json'
+        if marker.exists():
+            return
+        current = self.stock_document()
+        sources = {p.stem: json.loads(p.read_text()) for p in sorted((self.data_dir/'shelves').glob('*.json'))}
+        doc, shelves, report = convert_bin_contents(current, sources)
+        for sid, shelf in shelves.items():
+            validate_shelf(shelf, sid)
+        backup_dir = self.data_dir.parent / '.itr-backups'
+        backup_dir.mkdir(exist_ok=True)
+        backup = backup_dir / ('before-bin-contents-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
+        with tarfile.open(backup, 'w:gz') as archive:
+            archive.add(self.data_dir, arcname='data')
+            archive.add(self.defaults_dir, arcname='defaults')
+        report.update(savedAt=datetime.now(timezone.utc).isoformat(), backup=backup.name)
+        writes = {'bin-contents-migration.json': report}
+        for sid, shelf in shelves.items():
+            if shelf != sources[sid]:
+                writes['shelves/'+sid+'.json'] = shelf
+        if report['converted']:
+            doc['revision'] += 1
+            doc['lastChange'] = dict(savedAt=report['savedAt'], action='migration', reason='Legacy bin contents converted to presence inventory')
+            writes.update({'inventory.json':doc, f"history/inventory/{doc['revision']}.json":doc})
+            if not (self.data_dir/f"history/inventory/{current['revision']}.json").exists():
+                writes[f"history/inventory/{current['revision']}.json"] = current
+        write_json(self.data_dir/'pending-save.json', writes)
         self.finish_transaction()
 
     def finish_transaction(self):
@@ -275,13 +376,35 @@ class LabServer(ThreadingHTTPServer):
         if not isinstance(operation, str) or not ID.fullmatch(operation):
             raise ValueError('A unique operation ID is required.')
         if operation in current.get('operations', {}):
-            return current['operations'][operation]
+            result = current['operations'][operation]
+            if result.get('itemId') in current.get('deletedItems', {}):
+                raise ValueError('This item was permanently deleted. Refresh inventory.')
+            if result.get('stockId') and result['stockId'] not in current['stocks']:
+                raise ValueError('This location assignment was removed. Refresh inventory.')
+            return result
         if type(body.get('revision')) is not int or body['revision'] != current['revision']:
             raise RevisionConflict('Inventory changed in another editor. Your entry is kept open; reload inventory and reconcile before saving.')
         doc = copy.deepcopy(current)
         locations = self.stock_locations()
         result = {}
         action = body.get('action')
+        quick_entry = action == 'quick'
+        if action == 'quick':
+            item = validate_item(body.get('item'))
+            destination = body.get('stock', {})
+            if not isinstance(destination,dict):
+                raise ValueError('Invalid inventory destination.')
+            matches = [(sid, stock) for sid, stock in doc['stocks'].items()
+                       if not stock.get('archived') and stock.get('shelfId') == destination.get('shelfId')
+                       and stock.get('binId') == destination.get('binId')
+                       and doc['items'][stock['itemId']]['name'] == item['name']]
+            if len(matches) > 1:
+                raise ValueError('Several distinct items here have this name. Open their details to choose the correct identity.')
+            if matches:
+                sid, stock = matches[0]
+                return dict(itemId=stock['itemId'], stockId=sid, revision=current['revision'], existing=True)
+            body = dict(body, item=item, stock=dict(destination, tracking='presence', quantity=None), action='save')
+            action = 'save'
         if action == 'save':
             item_id = body.get('itemId')
             if item_id and item_id not in doc['items']:
@@ -305,6 +428,24 @@ class LabServer(ThreadingHTTPServer):
                         raise ValueError('This item already has stock at that location in that unit. Edit its existing entry instead.')
                 doc['stocks'][stock_id] = stock
                 result['stockId'] = stock_id
+                if quick_entry:
+                    result.update(item=doc['items'][item_id],stock=stock)
+        elif action == 'delete-item':
+            item_id = body.get('itemId')
+            if item_id not in doc['items']:
+                raise ValueError('Item no longer exists.')
+            doc.setdefault('deletedItems', {})[item_id] = dict(name=doc['items'][item_id]['name'],
+                deletedAt=datetime.now(timezone.utc).isoformat(), revision=current['revision']+1)
+            del doc['items'][item_id]
+            doc['stocks'] = {sid: stock for sid, stock in doc['stocks'].items() if stock['itemId'] != item_id}
+            result['deletedItemId'] = item_id
+        elif action == 'remove-location':
+            source = doc['stocks'].get(body.get('stockId'))
+            if not source:
+                raise ValueError('Stock entry no longer exists.')
+            doc['stocks'] = {sid: stock for sid, stock in doc['stocks'].items()
+                if any(stock.get(k) != source.get(k) for k in ('itemId','shelfId','binId'))}
+            result['removedLocation'] = location_key(source['shelfId'],source.get('binId')) if source.get('shelfId') else ''
         elif action in ('archive', 'reactivate'):
             stock = doc['stocks'].get(body.get('stockId'))
             if not stock:
@@ -339,6 +480,13 @@ class LabServer(ThreadingHTTPServer):
                                 reason=body.get('reason', 'Inventory ' + action), operationId=operation)
         if not text(doc['lastChange']['reason'], 500):
             raise ValueError('Correction note is limited to 500 characters.')
+        if action in ('delete-item', 'remove-location'):
+            backup_dir = self.data_dir.parent / '.itr-backups'
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            backup = backup_dir / ('before-inventory-delete-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
+            with tarfile.open(backup, 'w:gz') as archive:
+                archive.add(self.data_dir, arcname='data')
+                archive.add(self.defaults_dir, arcname='defaults')
         writes = {'inventory.json':doc}
         # Audit snapshots are independent of map versions and include before/after.
         for state in (current, doc):
@@ -358,6 +506,13 @@ class LabServer(ThreadingHTTPServer):
         mapped = {i['id']: i for i in lab['items'] if i['kind'] == 'shelf'}
         ids = {p.stem for p in (self.data_dir / 'shelves').glob('*.json')} | set(mapped)
         locations = {}
+        inventory = self.stock_document()
+        saved_objects = {i['id'] for i in json.loads((self.data_dir / 'lab.json').read_text())['items'] if i['kind'] in INVENTORY_KINDS}
+        for item in lab['items']:
+            if item['kind'] in INVENTORY_KINDS - {'shelf'}:
+                locations[item['id']] = dict(shelfId=item['id'], binId=None, mapped=True,
+                    saved=item['id'] in saved_objects, hidden=False, kind=item['kind'],
+                    label=item['name'] + ' · ' + (item.get('locationId') or item['id']))
         for sid in sorted(ids):
             path = self.data_dir / 'shelves' / (sid + '.json')
             persisted = normalize_shelf(json.loads(path.read_text())) if path.exists() else blank_shelf(sid)
@@ -365,15 +520,16 @@ class LabServer(ThreadingHTTPServer):
             cached = self.drafts.get((*prefix, 'shelves/' + sid)) if prefix else None
             shelf = normalize_shelf(cached['state']['data']) if cached else persisted
             item = mapped.get(sid, {})
-            label = item.get('locationId') or sid
+            location_label = item.get('locationId') or self.label_registry()['labels'].get(sid) or sid
+            label = location_label
             label = (shelf['name'] or item.get('name', sid)) + ' · ' + label
-            common = dict(shelfId=sid, mapped=sid in mapped, saved=sid in saved_shelves, shelfMode=shelf['mode'])
+            common = dict(shelfId=sid, mapped=sid in mapped, saved=sid in saved_shelves, shelfMode=shelf['mode'], locationId=location_label)
             locations[sid] = dict(common, binId=None, label=label, hidden=False)
             for row in shelf['matrix']:
                 for bin in row:
                     if bin:
                         key = location_key(sid, bin['id'])
-                        locations[key] = dict(common, binId=bin['id'], label=label + ' / ' + (bin['name'] or 'Unnamed bin'),
+                        locations[key] = dict(common, binId=bin['id'], label=label + ' / ' + bin_display_name(bin,sid,inventory,shelf),
                                               hidden=shelf['mode'] == 'simple', saved=sid in saved_shelves and bin['id'] in saved_bins)
         return locations
 
@@ -416,11 +572,13 @@ class LabServer(ThreadingHTTPServer):
             'savedAt': datetime.now(timezone.utc).isoformat(), 'reason': reason,
             'layout': doc, 'shelves': shelves}
         writes['lab.json'] = doc
+        writes['location-labels.json'] = assign_labels(doc, self.label_registry())
         write_json(self.data_dir / 'pending-save.json', writes)
         self.finish_transaction()
 
     def commit_version(self, doc, prefix, overrides=None):
         self.prune_drafts()
+        assign_labels(doc, self.label_registry())
         shelves = self.shelf_snapshot(doc)
         overrides = overrides or {}
         updated = []
@@ -562,6 +720,7 @@ class Handler(BaseHTTPRequestHandler):
                             doc.update(normalize_shelf(doc))
                     if key not in self.server.drafts and len(self.server.drafts) >= 100:
                         raise ValueError('Draft cache is full. Close unused sessions and try again.')
+                    location_labels = self.server.reserve_labels(body['data']) if key[2] == 'lab' else {}
                     inventory_changed = False
                     if key[2] == 'lab':
                         reference = body['data'].get('_inventoryState')
@@ -589,7 +748,7 @@ class Handler(BaseHTTPRequestHandler):
                                     self.server.drafts[shelf_key] = dict(expires=time.time()+8*3600, state=state)
                                     inventory_changed = True
                     self.server.drafts[key] = {'expires': time.time()+8*3600, 'state': body}
-                    return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed}, headers=response_headers)
+                    return self.json_response(200, {'cached': True, 'inventoryChanged': inventory_changed, 'locationLabels':location_labels}, headers=response_headers)
                 cached = self.server.drafts.get(key)
                 return self.json_response(200, cached['state'] if cached else None, headers=response_headers)
             except (ValueError, UnicodeDecodeError) as error:
@@ -648,6 +807,21 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json_response(404, {'error':'Audit snapshot not found.'})
                 except (OSError, ValueError, KeyError):
                     return self.json_response(500, {'error':'Could not read backup or audit history.'})
+        if path == '/api/reports':
+            if not self.admin():
+                return self.json_response(403, {'error':'Admin login required to review reports.'})
+            file = self.server.data_dir/'reports.json'
+            doc = json.loads(file.read_text()) if file.exists() else empty_reports()
+            locations = self.server.stock_locations()
+            for report in doc['reports'].values():
+                location = locations.get(report['shelfId'])
+                report['currentLocation'] = location['label'] if location else report['shelfLabel']
+                report['mapped'] = bool(location and location['mapped'])
+            return self.json_response(200,doc)
+        if path == '/api/inventory/migration':
+            if not self.admin():
+                return self.json_response(403, {'error':'Admin login required.'})
+            return self.json_response(200, json.loads((self.server.data_dir/'bin-contents-migration.json').read_text()))
         if path == '/api/inventory':
             with self.server.lock:
                 try:
@@ -702,10 +876,27 @@ class Handler(BaseHTTPRequestHandler):
                             for row in doc['matrix']:
                                 for bin in row:
                                     if bin:
-                                        terms.extend([bin['name'], bin['contents'], bin['keywords']])
+                                        terms.append(bin['name'])
                         structured = [inventory['items'][stock['itemId']] for stock in inventory['stocks'].values() if stock.get('shelfId') == item['id'] and not stock.get('archived')]
                         terms.extend(' '.join(str(record.get(k, '')) for k in ('name','category','keywords','description','vendor','notes')) for record in structured)
                         index[item['id']] = {key: doc[key] for key in ('name', 'mode', 'contents', 'keywords')}
+                        destinations = {None: dict(binId=None, name=doc['name'], searchText=' '.join([item['name'], item.get('locationId',''), doc['name'], doc['contents'], doc['keywords']]).lower())}
+                        for row in doc['matrix']:
+                            for bin in row:
+                                if bin and doc['mode'] == 'complex':
+                                    destinations[bin['id']] = dict(binId=bin['id'], name=bin_display_name(bin,item['id'],inventory,doc), searchText=bin['name'].lower())
+                        for stock in inventory['stocks'].values():
+                            if stock.get('shelfId') != item['id'] or stock.get('archived'):
+                                continue
+                            bid = stock.get('binId')
+                            if bid not in destinations:
+                                bin = next((cell for row in doc['matrix'] for cell in row if cell and cell['id'] == bid), None)
+                                if not bin:
+                                    continue
+                                destinations[bid] = dict(binId=bid,name=bin_display_name(bin,item['id'],inventory,doc),searchText=bin['name'].lower())
+                            record = inventory['items'][stock['itemId']]
+                            destinations[bid]['searchText'] += ' ' + ' '.join(str(record.get(k) or '') for k in ('name','category','keywords','description','vendor','notes','productLink')).lower() + ' ' + stock.get('notes','').lower()
+                        index[item['id']]['destinations'] = list(destinations.values())
                         index[item['id']]['structuredItems'] = list({record['name'] for record in structured})
                         index[item['id']]['searchText'] = ' '.join(terms).lower()
                         index[item['id']]['draftDirty'] = bool(cached and cached['state']['dirty'])
@@ -768,6 +959,53 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_response(403, {'error': 'Cross-origin requests are not allowed.'})
         path = urlsplit(self.path).path
         with self.server.lock:
+            if path == '/api/reports' or path.startswith('/api/reports/'):
+                resolving = path != '/api/reports'
+                if resolving and not self.admin():
+                    return self.json_response(403, {'error':'Admin login required to resolve reports.'})
+                try:
+                    file = self.server.data_dir/'reports.json'
+                    current = json.loads(file.read_text()) if file.exists() else empty_reports()
+                    body = self.read_body()
+                    if resolving:
+                        if not isinstance(body,dict) or body.get('status') not in ('resolved','dismissed','pending'):
+                            raise ValueError('Choose resolved, dismissed or pending.')
+                        rid = path.rsplit('/',1)[1]
+                        if rid not in current['reports']:
+                            return self.json_response(404, {'error':'Report not found.'})
+                        if body.get('revision') != current['revision']:
+                            raise RevisionConflict('Reports changed. Refresh the review list and try again.')
+                        doc = copy.deepcopy(current)
+                        doc['reports'][rid].update(status=body['status'],updatedAt=datetime.now(timezone.utc).isoformat())
+                        doc['revision'] += 1
+                        result = dict(saved=True,revision=doc['revision'])
+                    else:
+                        doc,result = prepare_report(body,current,self.server.stock_locations(),self.server.stock_document(),
+                                                    self.server.report_attempts,self.client_address[0])
+                    if doc is not None:
+                        write_json(self.server.data_dir/'pending-save.json', {'reports.json':doc})
+                        self.server.finish_transaction()
+                    return self.json_response(200,result)
+                except RevisionConflict as error:
+                    return self.json_response(409, {'error':str(error)})
+                except OverflowError as error:
+                    return self.json_response(429, {'error':str(error)})
+                except (ValueError,KeyError,TypeError,UnicodeDecodeError) as error:
+                    return self.json_response(400, {'error':str(error)})
+                except OSError:
+                    return self.json_response(500, {'error':'Could not save report. Your text is retained; retry the same submission.'})
+            if path == '/api/location-labels':
+                if not self.admin():
+                    return self.json_response(403, {'error':'Admin login required to allocate location labels.'})
+                try:
+                    body = self.read_body()
+                    sid = body.get('shelfId')
+                    if not isinstance(sid,str) or not ID.fullmatch(sid):
+                        raise ValueError('Invalid shelf ID.')
+                    labels = self.server.reserve_labels({'items':[dict(id=sid,kind='shelf')]})
+                    return self.json_response(200, {'locationId':labels[sid]})
+                except (ValueError,TypeError,KeyError) as error:
+                    return self.json_response(400, {'error':str(error)})
             if path == '/api/inventory':
                 if not self.admin():
                     return self.json_response(403, {'error':'Admin login required to edit inventory.'})
@@ -808,6 +1046,7 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         raise ValueError('Invalid saved version.')
                     validate_lab(doc)
+                    self.server.reserve_labels(doc, repair=True)
                     instance = self.headers.get('X-Editor-Instance', '')
                     if restored_shelves is not None and ID.fullmatch(instance):
                         prefix = (self.token(), instance)
@@ -890,6 +1129,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(doc, dict) or not text(doc.get('versionName'), 120) or not doc['versionName'].strip():
                     raise ValueError('Enter a version name (1–120 characters) before saving.')
                 doc['versionName'] = doc['versionName'].strip()
+                requested_labels = {i['id']:i.get('locationId') for i in doc.get('items',[]) if i.get('kind')=='shelf'}
                 if shelf_id:
                     doc = normalize_shelf(doc, self.shelf_name(shelf_id))
                     validate_shelf(doc, shelf_id)
@@ -915,7 +1155,11 @@ class Handler(BaseHTTPRequestHandler):
                     if cached_lab:
                         cached_lab['state']['data'] = lab_doc
                         cached_lab['state']['dirty'] = False
-                return self.json_response(200, {'revision': doc['revision']}, headers={'X-Lab-Revision': lab_doc['revision'] if shelf_id else doc['revision']})
+                result = {'revision':doc['revision']}
+                if not shelf_id:
+                    changed_labels = {i['id']:i['locationId'] for i in doc['items'] if i['kind']=='shelf' and i['locationId'] != requested_labels.get(i['id'])}
+                    if changed_labels: result['locationLabels'] = changed_labels
+                return self.json_response(200, result, headers={'X-Lab-Revision': lab_doc['revision'] if shelf_id else doc['revision']})
             except RevisionConflict as error:
                 return self.json_response(409, {'error': str(error)})
             except (ValueError, UnicodeDecodeError) as error:

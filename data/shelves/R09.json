@@ -24,22 +24,45 @@
       "textColor": "#ffffff"
     }
   ],
+  "legacyBinText": {
+    "B-6e4ce24aec1e9acf8bc0147ca0e6804d": [
+      {
+        "contents": "shirts, clothing, drone kit",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-52bb5dc83569506936ace1bd21ddf8d9": [
+      {
+        "contents": "easter eggs",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-2e31d3bca66de33d272ce68e04f6e541": [
+      {
+        "contents": "yellow bag red bag, kauf outlet plug",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "misc shirts and clothing", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-6e4ce24aec1e9acf8bc0147ca0e6804d", "contents": "shirts, clothing, drone kit", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "misc shirts and clothing", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-6e4ce24aec1e9acf8bc0147ca0e6804d", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "empty", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-e8d094315776e8555dcb8815d63f6442", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "empty", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-e8d094315776e8555dcb8815d63f6442", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "empty", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8dcb97453767d1b02ed55ecb5d2008fd", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "empty", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8dcb97453767d1b02ed55ecb5d2008fd", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "random stuff", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-52bb5dc83569506936ace1bd21ddf8d9", "contents": "easter eggs", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "random stuff", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-52bb5dc83569506936ace1bd21ddf8d9", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "misc", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-2e31d3bca66de33d272ce68e04f6e541", "contents": "yellow bag red bag, kauf outlet plug", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "misc", "background": "#5c5c5c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-2e31d3bca66de33d272ce68e04f6e541", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null]

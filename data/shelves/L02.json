@@ -24,22 +24,52 @@
       "textColor": "#ffffff"
     }
   ],
+  "legacyBinText": {
+    "B-503c9fff607ae67bef2222e0ba6ec22e": [
+      {
+        "contents": "postal service bin, plastic bin, tape, cables, controller, bag",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-f0a9769270c492377ac8ac490db2c3f7": [
+      {
+        "contents": "small plates large plates, forks, spoons, knives, napkins, ",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-9d9f2f0550377c4f30520996f0812ffc": [
+      {
+        "contents": "Medkits, first aid kits, bandages, instructions, keyboard",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-d2cc0ebd90ee2bf0e41cc84c080576da": [
+      {
+        "contents": "cups, straws, random junk",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "misc", "background": "#88867c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-503c9fff607ae67bef2222e0ba6ec22e", "contents": "postal service bin, plastic bin, tape, cables, controller, bag", "keywords": "", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
+    [{"name": "misc", "background": "#88867c", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-503c9fff607ae67bef2222e0ba6ec22e", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
-    [{"name": "plates, cups, napkins", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-f0a9769270c492377ac8ac490db2c3f7", "contents": "small plates large plates, forks, spoons, knives, napkins, ", "keywords": "", "w": 9, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null, null, null],
+    [{"name": "plates, cups, napkins", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-f0a9769270c492377ac8ac490db2c3f7", "w": 9, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
-    [{"name": "FIRST AID", "background": "#f9d7d7", "color": "#ff0000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-9d9f2f0550377c4f30520996f0812ffc", "contents": "Medkits, first aid kits, bandages, instructions, keyboard", "keywords": "", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
+    [{"name": "FIRST AID", "background": "#f9d7d7", "color": "#ff0000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-9d9f2f0550377c4f30520996f0812ffc", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
-    [{"name": "misc utensils", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d2cc0ebd90ee2bf0e41cc84c080576da", "contents": "cups, straws, random junk", "keywords": "", "w": 9, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null, null, null],
+    [{"name": "misc utensils", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-d2cc0ebd90ee2bf0e41cc84c080576da", "w": 9, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
-    [{"name": "empty", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-c786f4bfca3ff6f5cb8d17239aa94665", "contents": "", "keywords": "", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
+    [{"name": "empty", "background": "#f9f2d7", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-c786f4bfca3ff6f5cb8d17239aa94665", "w": 9, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null]

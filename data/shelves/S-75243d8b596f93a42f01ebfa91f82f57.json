@@ -10,8 +10,17 @@
   "keywords": "",
   "versionName": "Draft Shelf Lounge",
   "decor": [],
+  "legacyBinText": {
+    "B-02e4e98daeb096c956a0290956a0f084": [
+      {
+        "contents": "Unknown",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "Locked Locker", "background": "#66787f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-02e4e98daeb096c956a0290956a0f084", "contents": "Unknown", "keywords": "", "w": 4, "h": 18}, null, null, null],
+    [{"name": "Locked Locker", "background": "#66787f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-02e4e98daeb096c956a0290956a0f084", "w": 4, "h": 18}, null, null, null],
     [null, null, null, null],
     [null, null, null, null],
     [null, null, null, null],

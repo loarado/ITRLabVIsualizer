@@ -7,6 +7,8 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
+from reports import validate_reports
+from location_labels import validate_labels
 from inventory import SAFE_ID, validate_item, validate_stock
 from server import validate_lab, validate_shelf, write_json
 
@@ -24,6 +26,11 @@ def validate_inventory(doc):
             raise ValueError('Invalid stock ID or archived flag.')
         # Missing locations remain legitimate records; restore never infers geometry.
         validate_stock(stock, doc['items'], {}, previous=stock)
+    if not isinstance(doc.get('deletedItems', {}), dict):
+        raise ValueError('Invalid deleted-item markers.')
+    for iid, marker in doc.get('deletedItems', {}).items():
+        if not SAFE_ID.fullmatch(iid) or iid in doc['items'] or not isinstance(marker, dict) or not isinstance(marker.get('name'), str):
+            raise ValueError('Invalid deleted-item marker.')
     if not isinstance(doc.get('operations', {}), dict):
         raise ValueError('Invalid inventory operation history.')
     for op, result in doc.get('operations', {}).items():
@@ -42,6 +49,13 @@ def validate_backup(backup):
             validate_lab(doc)
         elif name == 'inventory.json' or re.fullmatch(r'history/inventory/\d{1,12}\.json', name):
             validate_inventory(doc)
+        elif name == 'location-labels.json':
+            validate_labels(doc)
+        elif name == 'reports.json':
+            validate_reports(doc)
+        elif name == 'bin-contents-migration.json':
+            if not isinstance(doc, dict) or doc.get('schemaVersion') != 1 or doc.get('completed') is not True or not isinstance(doc.get('sources'), list):
+                raise ValueError('Invalid bin contents migration record.')
         elif re.fullmatch(r'shelves/[A-Za-z0-9_-]{1,64}\.json', name):
             validate_shelf(doc, Path(name).stem)
         elif re.fullmatch(r'history/lab/\d{1,12}\.json', name):

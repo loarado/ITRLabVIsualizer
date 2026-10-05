@@ -69,7 +69,15 @@ function renderGrid() {
       (selection?.r === r && selection?.c === c ? ' selected' : '');
     if (
       query &&
-      !`${bin.name} ${bin.contents} ${bin.keywords}`
+      !`${bin.name} ${Object.values(inventoryState?.stocks || {})
+        .filter(
+          (stock) =>
+            stock.shelfId === shelfId &&
+            stock.binId === bin.id &&
+            !stock.archived,
+        )
+        .map((stock) => inventoryState.items[stock.itemId].name)
+        .join(' ')}`
         .toLowerCase()
         .includes(query)
     )
@@ -77,15 +85,21 @@ function renderGrid() {
     positionShelfBin(el, bin, r, c);
     el.style.backgroundColor = bin.background;
     el.style.setProperty('--bg', bin.background);
-    el.title = `${bin.name}\n${bin.contents}`;
+    el.title = binDisplayName(bin, shelfId, shelf.data);
     el.setAttribute(
       'aria-label',
-      `${bin.name || 'Unnamed bin'}, row ${r + 1}, column ${c + 1}`,
+      `${binDisplayName(bin, shelfId, shelf.data)}, row ${r + 1}, column ${c + 1}`,
     );
-    el.append(labelFor(bin));
-    el.addEventListener('click', () => choose(r, c));
+    el.append(
+      labelFor({ ...bin, name: binDisplayName(bin, shelfId, shelf.data) }),
+    );
+    el.dataset.binId = bin.id;
+    el.addEventListener('click', () => {
+      if (!el._completedDrag) choose(r, c);
+    });
     el.addEventListener('pointerdown', (event) => {
       if (!isAdmin || event.button !== 0) return;
+      el._completedDrag = false;
       const startX = event.clientX,
         startY = event.clientY;
       let target = { r, c },
@@ -109,6 +123,8 @@ function renderGrid() {
       };
       const end = () => {
         cleanup();
+        el._completedDrag = moved;
+        if (!moved) return;
         selectedDecor = null;
         selection = { r, c };
         if (moved && fits(bin, target.r, target.c, { r, c })) {
@@ -135,8 +151,6 @@ function renderGrid() {
 }
 const fields = [
   'name',
-  'contents',
-  'keywords',
   'x',
   'y',
   'w',
@@ -154,7 +168,9 @@ function renderDetails() {
   if (!selection) return;
   $('#selectionId').textContent =
     `Row ${selection.r + 1} · Column ${selection.c + 1}`;
-  $('#selectionTitle').textContent = bin?.name || 'Empty cell';
+  $('#selectionTitle').textContent = bin
+    ? binDisplayName(bin, shelfId, shelf.data)
+    : 'Empty cell';
   $('#emptyCell').hidden = !!bin;
   $('#binFields').hidden = !bin;
   if (bin)
@@ -178,6 +194,13 @@ function render() {
   $('#shelfReadOnly').hidden =
     isAdmin && !(shelfTargetBin && shelf.data.mode === 'simple');
   $('#shelfStockPanel').hidden = !isAdmin;
+  let report = $('#shelfEditorReport');
+  if (!report) {
+    report = shelfReportAction(shelfId, () => binAt()?.id || null);
+    report.id = 'shelfEditorReport';
+    $('#shelfStockPanel').after(report);
+  }
+  report.hidden = !isAdmin;
   if (!isAdmin) {
     renderShelfInformation(
       $('#shelfReadOnly'),
@@ -223,7 +246,7 @@ function render() {
     $('#shelfStockPanel'),
     shelfId,
     binAt()?.id || null,
-    !binAt(),
+    false,
   );
   $('#rows').value = shelf.data.rows;
   $('#cols').value = shelf.data.cols;
@@ -237,8 +260,6 @@ $('#addBin').addEventListener('click', () => {
     ...defaults(),
     id: 'B-' + uniqueId(),
     name: 'New bin',
-    contents: '',
-    keywords: '',
     w: 2,
     h: 2,
   };
@@ -386,12 +407,13 @@ function validateImport(data) {
       }
       if (
         typeof bin !== 'object' ||
-        !['name', 'contents', 'keywords'].every(
-          (k) => typeof bin[k] === 'string',
+        typeof bin.name !== 'string' ||
+        !['contents', 'keywords'].every(
+          (k) => bin[k] === undefined || typeof bin[k] === 'string',
         ) ||
         bin.name.length > 500 ||
-        bin.contents.length > 10000 ||
-        bin.keywords.length > 2000 ||
+        (bin.contents || '').length > 10000 ||
+        (bin.keywords || '').length > 2000 ||
         !halfStep(bin.w) ||
         !halfStep(bin.h) ||
         bin.w < 1 ||
@@ -542,7 +564,7 @@ if (!shelfId || !/^[A-Za-z0-9_-]{1,64}$/.test(shelfId)) {
       const item = data.items.find((i) => i.id === shelfId);
       if (item)
         $('#subtitle').textContent =
-          `${item.name} · ${shelfId} · ${itemArea(item, data)}`;
+          `${item.name} · ${item.locationId || shelfId} · ${itemArea(item, data)}`;
     })
     .catch(() => {});
 }
@@ -633,3 +655,18 @@ shelf.getRecoveryUI = () => ({ cellSize });
 shelf.restoreRecoveryUI = (ui) => {
   if (Number.isFinite(ui.cellSize)) zoom(ui.cellSize);
 };
+
+document.addEventListener('inventory-updated', () => {
+  if (!shelf.data || !isAdmin) return;
+  grid.querySelectorAll('.shelf-bin').forEach((node) => {
+    const position = bins().find(({ bin }) => bin.id === node.dataset.binId);
+    if (!position) return;
+    const label = binDisplayName(position.bin, shelfId, shelf.data);
+    node.querySelector('.fit-label').textContent = label;
+    node.setAttribute(
+      'aria-label',
+      `${label}, row ${position.r + 1}, column ${position.c + 1}`,
+    );
+  });
+  fitLabels(grid);
+});

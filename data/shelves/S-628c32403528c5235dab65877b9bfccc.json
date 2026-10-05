@@ -24,22 +24,31 @@
       "textColor": "#ffffff"
     }
   ],
+  "legacyBinText": {
+    "B-66e55e9c146e54215fcaf0f40bb68b0e": [
+      {
+        "contents": "xbox 360, random cables, random papers",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8568b6dcdb1cbe53e9211123cfd1c218", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8568b6dcdb1cbe53e9211123cfd1c218", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-76b079d675ab2b432bd83130307ac690", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-76b079d675ab2b432bd83130307ac690", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-3119c4bc272e33500f0b21ca74173a2d", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-3119c4bc272e33500f0b21ca74173a2d", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-27448864cd88dd8f0b874dcaf39431db", "contents": "", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "Trophy Display", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-27448864cd88dd8f0b874dcaf39431db", "w": 7, "h": 3, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "misc", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-66e55e9c146e54215fcaf0f40bb68b0e", "contents": "xbox 360, random cables, random papers", "keywords": "", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "misc", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-66e55e9c146e54215fcaf0f40bb68b0e", "w": 7, "h": 3, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null]

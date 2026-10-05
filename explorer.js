@@ -1,101 +1,201 @@
 'use strict';
 let explorerRequest = 0,
   explorerCloseTimer;
-function infoField(title, value) {
-  const block = document.createElement('div');
-  block.className = 'info-field';
-  const heading = document.createElement('h3');
-  heading.textContent = title;
-  const text = document.createElement('p');
-  text.textContent = value || 'Not recorded';
-  block.append(heading, text);
-  return block;
-}
 function renderShelfInformation(
   host,
   data,
   fallbackName = 'Shelf',
   targetBin = null,
+  matchingBins = [],
 ) {
   host._disposeShelfGrid?.();
   host._disposeShelfGrid = null;
   const shelf = normalizeShelf(data, fallbackName);
-  host.replaceChildren();
-  const label = document.createElement('p');
-  label.className = 'eyebrow';
-  label.textContent =
-    shelf.mode === 'simple' ? 'Simple shelf' : 'Complex shelf';
-  const title = document.createElement('h2');
-  title.textContent = shelf.name || fallbackName;
-  host.append(
-    label,
-    title,
-    infoField('Descriptive notes', shelf.contents),
-    infoField('Keywords', shelf.keywords),
-  );
-  const stockPanel = document.createElement('section');
-  inventoryLocationPanel(stockPanel, shelf.id, null, true);
-  host.append(stockPanel);
-  if (targetBin && shelf.mode === 'simple')
-    host.append(
-      infoField(
-        'Retained bin',
-        'Simple mode hides bins on the shelf canvas. This navigation preview exposes the retained bin and its inventory.',
-      ),
+  delete host.dataset.reportBin;
+  host.replaceChildren(inventoryNode('h2', shelf.name || fallbackName));
+  const stockPanel = inventoryNode('section', '', 'selected-bin-panel');
+  let selectedBin = null;
+  const markBins = (ids, selected = null) => {
+    host.querySelectorAll('.readonly-bin').forEach((node) => {
+      node.classList.toggle(
+        'inventory-match',
+        ids.includes(node.dataset.binId),
+      );
+      node.classList.toggle(
+        'inventory-target',
+        selected === node.dataset.binId,
+      );
+      node.setAttribute(
+        'aria-pressed',
+        String(selected === node.dataset.binId),
+      );
+    });
+  };
+  const displayInventory = (expandItem = null) => {
+    inventoryLocationPanel(
+      stockPanel,
+      shelf.id,
+      selectedBin?.id || null,
+      !selectedBin,
+      {
+        binName: selectedBin
+          ? binDisplayName(selectedBin, shelf.id, shelf)
+          : null,
+        onClear: () => {
+          selectedBin = null;
+          delete host.dataset.reportBin;
+          markBins(matchingBins);
+          displayInventory();
+        },
+        expandItem,
+        onName: (itemId, entries, meaningful) => {
+          if (selectedBin) {
+            const row = Array.from(
+              stockPanel.querySelectorAll('.compact-entry'),
+            ).find((node) => node.dataset.inventoryItem === itemId);
+            const details = row?.querySelector('details');
+            if (details) details.open = !details.open;
+            return;
+          }
+          const destinations = [
+            ...new Set(entries.map(([, stock]) => stock.binId || '')),
+          ];
+          markBins(destinations.filter(Boolean));
+          if (destinations.length === 1) {
+            if (destinations[0]) {
+              const bin = shelfBins(shelf).find(
+                ({ bin }) => bin.id === destinations[0],
+              )?.bin;
+              if (bin) selectBin(bin, meaningful ? itemId : null);
+              else
+                message(
+                  'This bin is unavailable on the current shelf map. Its inventory remains recorded.',
+                  true,
+                );
+            } else {
+              const row = Array.from(
+                stockPanel.querySelectorAll('.compact-entry'),
+              ).find((node) => node.dataset.inventoryItem === itemId);
+              const details = row?.querySelector('details');
+              if (details) details.open = !details.open;
+            }
+          } else {
+            stockPanel.querySelector('.inventory-choice')?.remove();
+            const choices = inventoryNode('div', '', 'inventory-choice');
+            choices.append(inventoryNode('span', 'Choose location:'));
+            for (const bid of destinations) {
+              const bin = shelfBins(shelf).find(
+                ({ bin }) => bin.id === bid,
+              )?.bin;
+              choices.append(
+                inventoryButton(
+                  bin
+                    ? binDisplayName(bin, shelf.id, shelf)
+                    : bid
+                      ? 'Unavailable bin'
+                      : 'Shelf',
+                  () => {
+                    if (bin) selectBin(bin, meaningful ? itemId : null);
+                    else if (bid)
+                      message(
+                        'This bin is unavailable on the current shelf map. Its inventory remains recorded.',
+                        true,
+                      );
+                    else {
+                      choices.remove();
+                      displayInventory(meaningful ? itemId : null);
+                    }
+                  },
+                ),
+              );
+            }
+            stockPanel.append(choices);
+          }
+        },
+      },
     );
+  };
+  const selectBin = (bin, expandItem = null) => {
+    if (!bin) return;
+    selectedBin = bin;
+    host.dataset.reportBin = bin.id;
+    markBins(matchingBins, bin.id);
+    displayInventory(expandItem);
+  };
   if (shelf.mode === 'complex' || shelf.decor.length || targetBin)
     readOnlyShelfGrid(
       host,
       targetBin ? { ...shelf, mode: 'complex' } : shelf,
       targetBin,
+      selectBin,
+      matchingBins,
     );
-  if (shelf.mode === 'complex' || targetBin) {
-    const list = document.createElement('div');
-    list.className = 'bin-information';
-    let count = 0;
-    shelfBins(shelf).forEach(({ bin, r, c }) => {
-      count++;
-      const card = document.createElement('article');
-      card.className = 'bin-card';
-      const name = document.createElement('h3');
-      name.textContent = bin.name || 'Unnamed bin';
-      const location = document.createElement('p');
-      location.className = 'muted';
-      location.textContent = `Row ${r + 1} · Column ${c + 1} · ${bin.w} × ${bin.h} cells`;
-      card.append(
-        name,
-        location,
-        infoField('Descriptive notes', bin.contents),
-        infoField('Keywords', bin.keywords),
+  if (shelf.mode === 'complex' || targetBin)
+    host.append(inventoryNode('p', 'Select a bin to view contents.', 'hint'));
+  host.append(stockPanel);
+  displayInventory();
+  const bin = shelfBins(shelf).find(({ bin }) => bin.id === targetBin)?.bin;
+  if (bin) selectBin(bin);
+  else if (targetBin)
+    host.append(
+      inventoryNode(
+        'p',
+        'This bin is unavailable on the current shelf map. Its inventory remains recorded.',
+        'hint',
+      ),
+    );
+  const notes = [shelf.contents, shelf.keywords]
+    .filter((value) => value?.trim())
+    .join(' · ');
+  if (notes) host.append(infoField('Keywords / Notes', notes));
+  host.append(
+    shelfReportAction(shelf.id, () => host.dataset.reportBin || null),
+  );
+}
+let mapPreviewTicket = 0;
+async function renderMapInventoryPreview(item) {
+  const host = $('#mapStockPanel');
+  if (host.dataset.previewId === item.id) return;
+  const ticket = ++mapPreviewTicket;
+  host._disposeShelfGrid?.();
+  host.replaceChildren(inventoryNode('p', 'Loading inventory…'));
+  host.dataset.previewId = item.id;
+  try {
+    if (item.kind === 'shelf') {
+      if (isAdmin && !inventoryState?.locations[item.id]?.saved) {
+        await Promise.resolve();
+        if (!(await cacheDraft()))
+          throw new Error(
+            'Save or recover the lab draft before previewing this shelf.',
+          );
+      }
+      const draft = isAdmin
+        ? await api('/api/drafts/shelves/' + encodeURIComponent(item.id))
+        : null;
+      const data =
+        draft?.data ||
+        (await api('/api/shelves/' + encodeURIComponent(item.id)));
+      if (ticket !== mapPreviewTicket || host.dataset.previewId !== item.id)
+        return;
+      const matches = app?.inventoryMatches?.(item.id) || [];
+      renderShelfInformation(
+        host,
+        data,
+        item.name,
+        matches.length === 1 ? matches[0] : null,
+        matches,
       );
-      card.dataset.binId = bin.id;
-      card.classList.toggle('inventory-target', bin.id === targetBin);
-      card.tabIndex = -1;
-      const stockPanel = document.createElement('section');
-      inventoryLocationPanel(stockPanel, shelf.id, bin.id);
-      card.append(stockPanel);
-      list.append(card);
-    });
-    const heading = document.createElement('h3');
-    heading.textContent = `Bins (${count})`;
-    host.append(heading, list);
-    if (!count) host.append(infoField('Inventory', 'No bins recorded.'));
-    if (targetBin) {
-      const target = Array.from(list.children).find(
-        (card) => card.dataset.binId === targetBin,
-      );
-      if (target)
-        requestAnimationFrame(() => {
-          target.scrollIntoView({ block: 'nearest' });
-          target.focus({ preventScroll: true });
-        });
-      else
-        host.append(
-          infoField(
-            'Location unavailable',
-            'The requested bin is absent from this shelf. Its stock remains in LAB INVENTORY for relocation.',
-          ),
-        );
+    } else {
+      host.replaceChildren(inventoryNode('h2', item.name));
+      const inventory = inventoryNode('section', '');
+      inventoryLocationPanel(inventory, item.id);
+      host.append(inventory);
+    }
+    host.append(infoField('Location ID', item.locationId || item.id));
+  } catch (error) {
+    if (ticket === mapPreviewTicket) {
+      delete host.dataset.previewId;
+      host.textContent = error.message;
     }
   }
 }
@@ -103,6 +203,13 @@ function closeExplorer(immediate = false) {
   const panel = $('#explorerPanel');
   if (!panel) return;
   explorerRequest++;
+  document.body.classList.remove('map-panel-open');
+  const mapViewport = $('#viewport');
+  if (mapViewport) {
+    mapViewport.style.height = '';
+    mapViewport.style.maxHeight = '';
+    mapViewport.style.minHeight = '';
+  }
   clearTimeout(explorerCloseTimer);
   $('#explorerContent')._disposeShelfGrid?.();
   if (immediate) {
@@ -120,7 +227,8 @@ function openExplorer() {
   const panel = $('#explorerPanel');
   clearTimeout(explorerCloseTimer);
   panel.classList.remove('closing');
-  if (!panel.open) panel.showModal();
+  document.body.classList.add('map-panel-open');
+  if (!panel.open) panel.show();
 }
 async function inspectShelf(item, targetBin = null, allowEditor = false) {
   if (isAdmin && !allowEditor) return;
@@ -136,7 +244,13 @@ async function inspectShelf(item, targetBin = null, allowEditor = false) {
       cached?.data ||
       (await api(`/api/shelves/${encodeURIComponent(item.id)}`));
     if (ticket !== explorerRequest || isAdmin !== admin) return;
-    renderShelfInformation($('#explorerContent'), data, item.name, targetBin);
+    renderShelfInformation(
+      $('#explorerContent'),
+      data,
+      item.name,
+      targetBin,
+      app?.inventoryMatches?.(item.id) || [],
+    );
     $('#explorerContent').append(
       infoField('Location ID', item.locationId || item.id),
     );
@@ -156,6 +270,14 @@ async function inspectShelf(item, targetBin = null, allowEditor = false) {
   }
 }
 if ($('#explorerPanel')) {
+  document.addEventListener('keydown', (event) => {
+    if (
+      event.key === 'Escape' &&
+      $('#explorerPanel').open &&
+      !document.querySelector('dialog:modal')
+    )
+      closeExplorer();
+  });
   $('#closeExplorer').addEventListener('click', () => closeExplorer());
   $('#explorerPanel').addEventListener('cancel', (event) => {
     event.preventDefault();
@@ -200,8 +322,8 @@ function inspectSection(section) {
   );
   openExplorer();
 }
-function inspectItem(item) {
-  if (isAdmin) return;
+function inspectItem(item, allowEditor = false) {
+  if (isAdmin && !allowEditor) return;
   explorerRequest++;
   const host = $('#explorerContent');
   host.replaceChildren();
@@ -213,6 +335,11 @@ function inspectItem(item) {
     infoField('Area', itemArea(item, lab.data)),
     infoField('Location ID', item.locationId || item.id),
   );
+  if (['table', 'cart', 'machine'].includes(item.kind)) {
+    const stock = inventoryNode('section', '');
+    inventoryLocationPanel(stock, item.id);
+    host.append(stock);
+  }
   openExplorer();
 }
 function renderExplorerResults(items, query) {
@@ -225,13 +352,46 @@ function renderExplorerResults(items, query) {
     return;
   }
   items.forEach((item) => {
-    const button = document.createElement('button');
-    button.textContent = `${shelfIndex[item.id]?.name || item.name} · ${item.locationId || item.id}`;
-    if (shelfIndex[item.id]?.structuredItems?.length)
-      button.textContent +=
-        ' · Structured inventory: ' +
-        shelfIndex[item.id].structuredItems.join(', ');
-    button.addEventListener('click', () => choose(item.id));
-    host.append(button);
+    for (const destination of searchDestinations(item, query)) {
+      const button = inventoryButton(destination.label, () => {
+        if (
+          item.kind === 'shelf' ||
+          ['table', 'cart', 'machine'].includes(item.kind)
+        )
+          lab.showInventoryLocation(item.id, destination.binId);
+        else choose(item.id);
+      });
+      host.append(button);
+    }
   });
+}
+function searchDestinations(item, query) {
+  const shelf = shelfIndex[item.id];
+  if (shelf?.destinations) {
+    return shelf.destinations
+      .filter((destination) => destination.searchText.includes(query))
+      .map((destination) => ({
+        binId: destination.binId,
+        label: destination.binId
+          ? (shelf.name || item.name) + ' · ' + destination.name
+          : shelf.name || item.name,
+      }));
+  }
+  const terms = [item.name, item.locationId, item.id, itemArea(item, lab.data)];
+  for (const stock of Object.values(inventoryState?.stocks || {})) {
+    if (stock.shelfId === item.id && !stock.archived) {
+      const record = inventoryState.items[stock.itemId];
+      terms.push(
+        record.name,
+        record.description,
+        record.keywords,
+        record.vendor,
+        record.notes,
+        stock.notes,
+      );
+    }
+  }
+  return terms.join(' ').toLowerCase().includes(query)
+    ? [{ binId: null, label: item.name }]
+    : [];
 }

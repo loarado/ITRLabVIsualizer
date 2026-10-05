@@ -102,24 +102,33 @@
     }
   ],
   "versionName": "Draft Shelf L4",
+  "legacyBinText": {
+    "B-3951f5fad12343e9b512613ba8efbff5": [
+      {
+        "contents": "Vent Pipes, rope",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "Tubes and things", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-3951f5fad12343e9b512613ba8efbff5", "contents": "Vent Pipes, rope", "keywords": "", "w": 13, "h": 2.5, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [{"name": "Tubes and things", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-3951f5fad12343e9b512613ba8efbff5", "w": 13, "h": 2.5, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, {"name": "Mechanical Storage", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-96269c48010f384da991279fb704e7ce", "contents": "", "keywords": "", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, {"name": "Random McMaster Stuff", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-428e52b65c15dd02f8e437a4835b03fe", "contents": "", "keywords": "", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, {"name": "Mechanical Storage", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-96269c48010f384da991279fb704e7ce", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [null, {"name": "Storage", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-509503550e8f92c84b1213cb42da96d0", "contents": "", "keywords": "", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, {"name": "Random McMaster Stuff", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-428e52b65c15dd02f8e437a4835b03fe", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [null, {"name": "Storage", "background": "#ecf3fe", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-509503550e8f92c84b1213cb42da96d0", "w": 12, "h": 4.5, "offsetY": 0.5}, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null, null, null, null, null, null],

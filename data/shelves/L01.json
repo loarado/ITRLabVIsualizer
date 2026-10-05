@@ -37,6 +37,29 @@
       "textColor": "#000000"
     }
   ],
+  "legacyBinText": {
+    "B-8a6ed91daf1045a51d5e8bdbe1c520b1": [
+      {
+        "contents": "spider robot, mcmaster volume, fire alarm, misc books",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-c08c221ddd67caf496cf37a6837e0e18": [
+      {
+        "contents": "briefcase, boxes",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-f771ad3ec3db7399a024daa3b7eccfd0": [
+      {
+        "contents": "3d printed mini bots, buttons, gloves",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
@@ -44,16 +67,16 @@
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "Display Items", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8a6ed91daf1045a51d5e8bdbe1c520b1", "contents": "spider robot, mcmaster volume, fire alarm, misc books", "keywords": "", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "Display Items", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8a6ed91daf1045a51d5e8bdbe1c520b1", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "misc", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-c08c221ddd67caf496cf37a6837e0e18", "contents": "briefcase, boxes", "keywords": "", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "misc", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-c08c221ddd67caf496cf37a6837e0e18", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "itr goodies", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-f771ad3ec3db7399a024daa3b7eccfd0", "contents": "3d printed mini bots, buttons, gloves", "keywords": "", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "itr goodies", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-f771ad3ec3db7399a024daa3b7eccfd0", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    [{"name": "misc", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-61b25629cea21ae3433adaba5415eaa0", "contents": "", "keywords": "", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
+    [{"name": "misc", "background": "#3e616f", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-61b25629cea21ae3433adaba5415eaa0", "w": 7, "h": 2.5, "offsetX": 0.5}, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null]
   ]

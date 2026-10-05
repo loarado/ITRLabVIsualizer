@@ -1,5 +1,7 @@
 'use strict';
-let inventoryMapFocusId = null;
+let inventoryMapFocusId = null,
+  inventoryMapHighlight = null,
+  inventoryNavigationTicket = 0;
 let selectedId = null,
   zoom = 1,
   shelfIndex = {},
@@ -118,6 +120,11 @@ const colors = {
   misc: '#dc4545',
 };
 function itemVisible(item) {
+  if (
+    inventoryMapHighlight?.objects.has(item.id) ||
+    inventoryMapFocusId === item.id
+  )
+    return true;
   return item.kind === 'section'
     ? $('#sectionsVisible').checked
     : $('#' + item.kind + 'Visible')?.checked !== false;
@@ -161,11 +168,23 @@ function validPosition(item) {
   );
 }
 function choose(id) {
-  inventoryMapFocusId = null;
-  plan
-    .querySelectorAll('.inventory-target')
-    .forEach((el) => el.classList.remove('inventory-target'));
   const target = lab.data.items.find((i) => i.id === id);
+  if (inventoryMapHighlight?.objects.has(id)) {
+    if (target.kind === 'shelf') {
+      const bins = lab.inventoryMatches(id);
+      const destinations = new Set(
+        inventoryMapHighlight.stocks
+          .filter((stock) => stock.shelfId === id)
+          .map((stock) => stock.binId || ''),
+      );
+      inspectShelf(
+        target,
+        destinations.size === 1 && bins.length === 1 ? bins[0] : null,
+        true,
+      );
+    } else inspectItem(target, true);
+    return;
+  }
   if (!isAdmin && target?.kind === 'shelf') {
     inspectShelf(target);
     return;
@@ -265,6 +284,10 @@ function renderPlan() {
         'grid-item section' +
         (item.restricted ? ' restricted' : '') +
         (item.id === selectedId ? ' selected' : '');
+      if (inventoryMapHighlight)
+        el.style.opacity = inventoryMapHighlight.objects.has(item.id)
+          ? '1'
+          : '.2';
       el.style.backgroundColor = item.background;
       el.dataset.sectionId = item.id;
       gridPosition(el, item);
@@ -320,7 +343,12 @@ function renderPlan() {
         (item.id === selectedId ? ' selected' : '') +
         (canEditItem(item) && !item.locked ? ' editable' : '');
       el.dataset.id = item.id;
-      el.classList.toggle('inventory-target', item.id === inventoryMapFocusId);
+      el.classList.toggle(
+        'inventory-target',
+        inventoryMapHighlight
+          ? inventoryMapHighlight.objects.has(item.id)
+          : item.id === inventoryMapFocusId,
+      );
       el.style.backgroundColor = item.background;
       el.style.setProperty('--bg', item.background);
       el.title = `${item.name} · ${item.locationId || item.id}`;
@@ -329,7 +357,9 @@ function renderPlan() {
       gridPosition(el, item);
       if (item.kind === 'misc') renderMisc(el, item);
       else el.append(labelFor(item));
-      el.addEventListener('click', () => choose(item.id));
+      el.addEventListener('click', () => {
+        if (!el._completedDrag) choose(item.id);
+      });
       bindDrag(el, item);
       plan.append(el);
     });
@@ -343,6 +373,7 @@ function bindDrag(element, item) {
       startY = event.clientY;
     let candidate = { ...item },
       moved = false;
+    element._completedDrag = false;
     element.setPointerCapture(event.pointerId);
     const move = (e) => {
       const dx = Math.round(
@@ -356,9 +387,11 @@ function bindDrag(element, item) {
       element.classList.toggle('invalid-drop', !validPosition(candidate));
     };
     const end = (e) => {
+      element._completedDrag = moved;
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerup', end);
       element.removeEventListener('pointercancel', cancel);
+      if (!moved) return;
       if (moved && validPosition(candidate)) {
         checkpoint();
         Object.assign(item, candidate);
@@ -414,7 +447,11 @@ function renderDetails() {
     ? 'Select an outline point, section, or arrow to edit the map.'
     : 'Choose an item on the plan or in the directory.';
   if (mapEditing && selectedVertex !== null) $('#empty').hidden = true;
-  if (!item) return;
+  if (!item) {
+    delete $('#mapStockPanel').dataset.previewId;
+    $('#mapStockPanel').hidden = true;
+    return;
+  }
   $('#area').value = itemArea(item, lab.data);
   $('#locationIdField').hidden = item.kind !== 'shelf';
   $('#selectionId').textContent = `${item.id} / ${item.kind}`;
@@ -441,9 +478,11 @@ function renderDetails() {
   $('#sectionFields').hidden = item.kind !== 'section';
   $('#openShelf').hidden = item.kind !== 'shelf';
   $('#shelfFile').hidden = item.kind !== 'shelf';
-  $('#mapStockPanel').hidden = item.kind !== 'shelf';
-  if (item.kind === 'shelf')
-    inventoryLocationPanel($('#mapStockPanel'), item.id, null, true);
+  const inventoryObject = ['shelf', 'table', 'cart', 'machine'].includes(
+    item.kind,
+  );
+  $('#mapStockPanel').hidden = !inventoryObject;
+  if (inventoryObject) renderMapInventoryPreview(item);
   $('#openShelf').href = `shelf_editor.html?id=${encodeURIComponent(item.id)}`;
   $('#shelfFile').textContent = `File: data/shelves/${item.id}.json`;
   $('#delete').disabled = !isAdmin || item.locked;
@@ -455,9 +494,7 @@ function renderDirectory() {
     (i) =>
       i.kind !== 'section' &&
       (!kind || i.kind === kind) &&
-      `${i.id} ${i.locationId || ''} ${i.name} ${itemArea(i, lab.data)} ${shelfIndex[i.id]?.searchText ?? ''}`
-        .toLowerCase()
-        .includes(query),
+      searchDestinations(i, query).length > 0,
   );
   $('#directory').replaceChildren();
   const categories = {
@@ -484,13 +521,6 @@ function renderDirectory() {
       const sub = document.createElement('small');
       sub.textContent = `${item.locationId || item.id}${item.locked ? ' · locked' : ''}`;
       b.append(sub);
-      if (query && shelfIndex[item.id]?.structuredItems?.length) {
-        const matches = document.createElement('small');
-        matches.textContent =
-          'Structured inventory: ' +
-          shelfIndex[item.id].structuredItems.join(', ');
-        b.append(matches);
-      }
       b.addEventListener('click', () => {
         choose(item.id);
         plan
@@ -524,7 +554,11 @@ function renderDirectory() {
     .querySelectorAll('[data-id]')
     .forEach(
       (el) =>
-        (el.style.opacity = items.some((i) => i.id === el.dataset.id)
+        (el.style.opacity = (
+          inventoryMapHighlight
+            ? inventoryMapHighlight.objects.has(el.dataset.id)
+            : items.some((i) => i.id === el.dataset.id)
+        )
           ? '1'
           : '.2'),
     );
@@ -610,7 +644,10 @@ $('#openShelf').addEventListener('click', async (event) => {
 $('#delete').addEventListener('click', async () => {
   const item = selected();
   if (!canEditItem(item) || item.locked) return;
-  if (item.kind === 'shelf' && !(await confirmInventoryRemoval(item.id)))
+  if (
+    ['shelf', 'table', 'cart', 'machine'].includes(item.kind) &&
+    !(await confirmInventoryRemoval(item.id))
+  )
     return;
   if (!canEditItem(item) || item.locked) return;
   checkpoint();
@@ -619,7 +656,7 @@ $('#delete').addEventListener('click', async () => {
   render();
   changed();
 });
-function addLabItem(kind) {
+async function addLabItem(kind) {
   if (kind === 'section' ? !canEditMap() : !isAdmin || mapEditing) return;
   if (lab.data.items.length >= 1000) {
     message('The lab supports up to 1,000 items.', true);
@@ -683,6 +720,18 @@ function addLabItem(kind) {
   selectedId = item.id;
   render();
   changed();
+  if (item.kind === 'shelf') {
+    try {
+      item.locationId = (
+        await api('/api/location-labels', 'POST', { shelfId: item.id })
+      ).locationId;
+    } catch (error) {
+      message(error.message, true);
+      return;
+    }
+    if (!isAdmin || mapEditing) return;
+  }
+  renderDetails();
 }
 $('#add').addEventListener('click', () => addLabItem($('#newKind').value));
 $('#addSection').addEventListener('click', () => addLabItem('section'));
@@ -724,10 +773,14 @@ $('#search').addEventListener('input', () => lab.data && renderDirectory());
 $('#filter').addEventListener('change', () => lab.data && renderDirectory());
 $('#routes').addEventListener('change', renderPlan);
 function setZoom(value) {
-  zoom = Math.min(3, Math.max(0.75, value));
-  plan.style.minWidth = `${1000 * Math.min(1, zoom)}px`;
+  const minimum = inventoryMapHighlight || inventoryMapFocusId ? 0.1 : 0.75;
+  zoom = Math.min(3, Math.max(minimum, value));
+  plan.style.minWidth =
+    inventoryMapHighlight || inventoryMapFocusId
+      ? '0'
+      : `${1000 * Math.min(1, zoom)}px`;
   plan.style.width = `${zoom * 100}%`;
-  $('#zoomOut').disabled = zoom === 0.75;
+  $('#zoomOut').disabled = zoom === minimum;
   $('#zoomIn').disabled = zoom === 3;
   requestAnimationFrame(() => fitLabels(plan));
 }
@@ -780,18 +833,23 @@ document.addEventListener('keydown', (event) => {
   ['outlinePanel', 'Outline & grid'],
   ['mapPanel', 'Lab Map Editor'],
 ].forEach(([id, title]) => mountEditorGroup(id, title));
+// Keep inventory immediately accessible above structural editing controls.
+$('aside').prepend($('#mapStockPanel'));
+$('#openShelf').textContent = 'Open Shelf Editor';
 new ResizeObserver(() => fitLabels(plan)).observe(plan);
 setZoom(1);
 startApp(lab).then(() => {
   const query = new URLSearchParams(location.search);
-  if (query.get('shelf'))
+  if (query.get('item')) lab.highlightInventoryItem(query.get('item'));
+  else if (query.get('shelf'))
     lab.showInventoryLocation(query.get('shelf'), query.get('bin'));
 });
 
 $('#sectionsVisible').addEventListener('change', renderPlan);
 
 async function refreshShelfIndex(closePanel = true) {
-  if (closePanel) closeExplorer(true);
+  if (closePanel && !inventoryMapHighlight && !inventoryMapFocusId)
+    closeExplorer(true);
   const ticket = ++indexRequest,
     admin = isAdmin;
   try {
@@ -868,6 +926,17 @@ lab.pasteSelection = async () => {
       dirty: true,
     });
     if (!isAdmin || mapEditing || !validPosition(item)) return;
+  }
+  if (item.kind === 'shelf') {
+    try {
+      item.locationId = (
+        await api('/api/location-labels', 'POST', { shelfId: item.id })
+      ).locationId;
+    } catch (error) {
+      message(error.message, true);
+      return;
+    }
+    if (!isAdmin || mapEditing) return;
   }
   checkpoint();
   lab.data.items.push(item);
@@ -970,40 +1039,243 @@ lab.restoreRecoveryUI = (ui) => {
   if (Number.isFinite(ui.zoom)) setZoom(ui.zoom);
 };
 
-lab.showInventoryLocation = async (shelfId, binId = null) => {
+lab.inventoryMatches = (objectId) =>
+  inventoryMapHighlight
+    ? [
+        ...new Set(
+          inventoryMapHighlight.stocks
+            .filter((stock) => stock.shelfId === objectId && stock.binId)
+            .map((stock) => stock.binId),
+        ),
+      ]
+    : [];
+function rememberInventoryView() {
+  return {
+    previousZoom: zoom,
+    previousScroll: [$('#viewport').scrollLeft, $('#viewport').scrollTop],
+    previousVisibility: Array.from(
+      document.querySelectorAll('.visibility-controls input'),
+    ).map((input) => [input.id, input.checked]),
+  };
+}
+function clearInventoryFocus() {
+  inventoryNavigationTicket++;
+  const previous = inventoryMapHighlight;
+  inventoryMapHighlight = null;
+  inventoryMapFocusId = null;
+  $('#inventoryHighlightBar')?.remove();
+  closeExplorer(true);
+  if (previous)
+    previous.previousVisibility.forEach(([id, checked]) => {
+      $('#' + id).checked = checked;
+    });
+  render();
+  setZoom(previous?.previousZoom || 1);
+  if (previous)
+    requestAnimationFrame(() =>
+      $('#viewport').scrollTo(...previous.previousScroll),
+    );
+}
+async function focusInventoryObjects(objects, ticket) {
+  await new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(resolve)),
+  );
+  if (ticket !== inventoryNavigationTicket || !objects.length) return;
+  const viewport = $('#viewport');
+  if (innerWidth <= 900 && $('#explorerPanel').open) {
+    window.scrollTo(
+      0,
+      window.scrollY + viewport.getBoundingClientRect().top - 120,
+    );
+    const available =
+      $('#explorerPanel').getBoundingClientRect().top -
+      viewport.getBoundingClientRect().top -
+      24;
+    viewport.style.height = viewport.style.maxHeight =
+      Math.max(80, available) + 'px';
+    viewport.style.minHeight = '80px';
+  }
+  const left = Math.min(...objects.map((item) => item.x - 1));
+  const top = Math.min(...objects.map((item) => item.y - 1));
+  const right = Math.max(...objects.map((item) => item.x - 1 + item.w));
+  const bottom = Math.max(...objects.map((item) => item.y - 1 + item.h));
+  const base = viewport.clientWidth - 36;
+  const fit = Math.min(
+    (viewport.clientWidth - 64) / (((right - left) * base) / lab.data.cols),
+    (viewport.clientHeight - 64) / (((bottom - top) * base) / lab.data.cols),
+  );
+  setZoom(
+    objects.length === 1
+      ? Math.min(3, fit * 0.85, Math.max(1.5, fit * 0.55))
+      : Math.min(3, fit * 0.85),
+  );
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  if (ticket !== inventoryNavigationTicket) return;
+  const rect = plan.getBoundingClientRect(),
+    view = viewport.getBoundingClientRect();
+  viewport.scrollTo({
+    left:
+      viewport.scrollLeft +
+      rect.left -
+      view.left +
+      (((left + right) / 2) * rect.width) / lab.data.cols -
+      viewport.clientWidth / 2,
+    top:
+      viewport.scrollTop +
+      rect.top -
+      view.top +
+      (((top + bottom) / 2) * rect.height) / lab.data.rows -
+      viewport.clientHeight / 2,
+  });
+}
+function inventoryFocusBar(itemId, locations, unavailable = 0) {
+  let bar = $('#inventoryHighlightBar');
+  if (!bar) {
+    bar = inventoryNode('div', '', 'toolbar');
+    bar.id = 'inventoryHighlightBar';
+    $('#viewport').before(bar);
+  }
+  bar.replaceChildren(
+    inventoryNode(
+      'strong',
+      (inventoryState.items[itemId]?.name ||
+        (locations[0] ? inventoryLocation(locations[0]).label : 'Location')) +
+        ' · ' +
+        locations.length +
+        ' mapped locations',
+    ),
+    inventoryButton('Clear highlighting', clearInventoryFocus),
+  );
+  if (unavailable)
+    bar.append(
+      inventoryNode(
+        'small',
+        unavailable + ' location(s) unavailable on the current map.',
+      ),
+    );
+  if (locations.length > 1 || unavailable > 0)
+    for (const stock of locations) {
+      const button = inventoryButton(inventoryLocation(stock).label, () =>
+        openInventoryDestination(stock.shelfId, stock.binId),
+      );
+      button.className = 'inventory-destination';
+      bar.append(button);
+    }
+}
+async function openInventoryDestination(shelfId, binId = null) {
+  const ticket = ++inventoryNavigationTicket;
+  closeExplorer(true);
   const item = lab.data?.items.find(
-    (item) => item.kind === 'shelf' && item.id === shelfId,
+    (item) =>
+      item.id === shelfId &&
+      ['shelf', 'table', 'machine', 'cart'].includes(item.kind),
   );
   if (!item) {
     message(
-      'This shelf is unavailable on the current map. Its stock remains in LAB INVENTORY.',
+      'This location is absent from the map. Its inventory remains recorded.',
       true,
     );
     return;
   }
-  if (inventoryEntryDirty || inventoryTransferDirty) {
-    message(
-      'Review or close the recovered inventory entry before opening its map location.',
-      true,
-    );
-    return;
-  }
-  if (isAdmin && !(await cacheDraft())) return;
-  setMapEditing(false);
-  $('#shelfVisible').checked = true;
-  $('#search').value = '';
-  $('#filter').value = '';
-  inventoryMapFocusId = item.id;
-  selectedId = isAdmin ? item.id : null;
-  selectedRoute = null;
-  selectedGeometry = null;
-  selectedVertex = null;
+  inventoryMapFocusId = shelfId;
   render();
-  const element = plan.querySelector(`[data-id="${item.id}"]`);
-  element?.classList.add('inventory-target');
-  element?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  await inspectShelf(item, binId, true);
+  if (item.kind === 'shelf') await inspectShelf(item, binId, true);
+  else inspectItem(item, true);
+  if (ticket === inventoryNavigationTicket)
+    await focusInventoryObjects([item], ticket);
+}
+lab.highlightInventoryItem = async (itemId) => {
+  const ticket = ++inventoryNavigationTicket;
+  closeExplorer(true);
+  if (!inventoryState) await refreshInventory();
+  if (ticket !== inventoryNavigationTicket) return;
+  const associations = new Map();
+  for (const stock of Object.values(inventoryState?.stocks || {}))
+    if (stock.itemId === itemId && !stock.archived)
+      associations.set(inventoryLocation(stock).key, stock);
+  const stocks = [...associations.values()].filter(
+    (stock) => inventoryLocation(stock).mapped,
+  );
+  const ids = new Set(stocks.map((stock) => stock.shelfId));
+  const objects = lab.data.items.filter((item) => ids.has(item.id));
+  if (!objects.length) {
+    clearInventoryFocus();
+    message(
+      'This item has no location on the current map. Its inventory remains recorded.',
+      true,
+    );
+    return;
+  }
+  const previous = inventoryMapHighlight || rememberInventoryView();
+  inventoryMapHighlight = { ...previous, itemId, stocks, objects: ids };
+  inventoryMapFocusId = null;
+  selectedId = null;
+  inventoryFocusBar(itemId, stocks, associations.size - stocks.length);
+  render();
+  if (
+    associations.size === 1 ||
+    (objects.length === 1 && associations.size === stocks.length)
+  ) {
+    const item = objects[0];
+    // Multiple associations on one object open its overview without choosing a bin.
+    if (item.kind === 'shelf')
+      await inspectShelf(
+        item,
+        associations.size === 1 ? stocks[0].binId : null,
+        true,
+      );
+    else inspectItem(item, true);
+  }
+  if (ticket === inventoryNavigationTicket)
+    await focusInventoryObjects(objects, ticket);
+};
+lab.showInventoryLocation = async (shelfId, binId = null) => {
+  if (!inventoryMapHighlight)
+    inventoryMapHighlight = {
+      ...rememberInventoryView(),
+      stocks: [],
+      objects: new Set(),
+    };
+  inventoryMapHighlight.stocks = [{ shelfId, binId }];
+  inventoryMapHighlight.objects = new Set([shelfId]);
+  inventoryFocusBar(null, [{ shelfId, binId }]);
+  await openInventoryDestination(shelfId, binId);
 };
 document.addEventListener('inventory-updated', () => {
+  if (inventoryMapHighlight?.itemId && lab.data) {
+    const stocks = Object.values(inventoryState.stocks).filter(
+      (stock) =>
+        stock.itemId === inventoryMapHighlight.itemId &&
+        !stock.archived &&
+        inventoryLocation(stock).mapped,
+    );
+    if (!stocks.length) {
+      clearInventoryFocus();
+      return;
+    }
+    inventoryMapHighlight.stocks = stocks;
+    inventoryMapHighlight.objects = new Set(
+      stocks.map((stock) => stock.shelfId),
+    );
+    const associations = [
+      ...new Map(
+        stocks.map((stock) => [inventoryLocation(stock).key, stock]),
+      ).values(),
+    ];
+    inventoryFocusBar(inventoryMapHighlight.itemId, associations);
+    renderPlan();
+    renderDirectory();
+    document.querySelectorAll('.readonly-grid').forEach((grid) => {
+      const matches = lab.inventoryMatches(grid.dataset.shelfId);
+      grid
+        .querySelectorAll('.readonly-bin')
+        .forEach((bin) =>
+          bin.classList.toggle(
+            'inventory-match',
+            matches.includes(bin.dataset.binId),
+          ),
+        );
+    });
+  }
   if (lab.data) refreshShelfIndex(false);
 });

@@ -5,7 +5,7 @@ import threading
 import unittest
 import test_server
 from server import LabServer, write_json
-from inventory import identify_bins, validate_item, validate_stock, estimated_value
+from inventory import identify_bins, validate_item, validate_stock, estimated_value, retire_bin_fields
 
 
 def bin_data():
@@ -55,7 +55,7 @@ class InventoryTests(unittest.TestCase):
         # Reads resolve IDs without modifying even a subsequently introduced legacy file.
         legacy = copy.deepcopy(shelf); legacy['id']='old-import';write_json(self.data/'shelves/old-import.json',legacy)
         raw=(self.data/'shelves/old-import.json').read_bytes()
-        self.assertEqual(self.request('GET','/api/shelves/old-import')[1]['matrix'],identify_bins(legacy)['matrix'])
+        self.assertEqual(self.request('GET','/api/shelves/old-import')[1]['matrix'],retire_bin_fields(identify_bins(legacy))['matrix'])
         self.assertEqual((self.data/'shelves/old-import.json').read_bytes(),raw)
 
     def test_stock_survives_location_removal_modes_and_layout_restore(self):

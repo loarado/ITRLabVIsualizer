@@ -8,6 +8,11 @@ const inventoryController = {
 };
 function renderInventoryList() {
   const host = $('#inventoryList');
+  const expanded = new Set(
+    Array.from(host.querySelectorAll('.stock-row'))
+      .filter((row) => row.querySelector('details')?.open)
+      .map((row) => row.dataset.inventoryItem),
+  );
   ['inventoryAdd', 'inventoryAudit', 'inventoryBackup'].forEach((id) => {
     $('#' + id).hidden = !isAdmin;
   });
@@ -58,64 +63,20 @@ function renderInventoryList() {
         'p',
         Object.keys(inventoryState.items).length
           ? 'No matching inventory. Try another search or location filter.'
-          : 'No structured inventory recorded yet. Existing shelf and bin descriptions are preserved as notes. Sign in and add your first item here or open a shelf/bin on LAB MAP.',
+          : 'No inventory recorded yet. Sign in and add an item here or from a location on LAB MAP.',
         'inventory-empty',
       ),
     );
   }
-  for (const [itemId, item] of entries) {
-    const card = inventoryNode('article', '', 'inventory-card');
-    card.dataset.inventoryItem = itemId;
-    const heading = inventoryNode('h2', '');
-    heading.append(
-      inventoryButton(item.name, () => showInventoryDetails(itemId)),
+  for (const [itemId] of entries) {
+    const stocks = Object.entries(inventoryState.stocks).filter(
+      ([, stock]) => stock.itemId === itemId,
     );
-    card.append(heading);
-    if (item.category || item.vendor)
-      card.append(
-        inventoryNode(
-          'p',
-          [item.category, item.vendor].filter(Boolean).join(' · '),
-          'muted',
-        ),
-      );
-    if (item.description) card.append(inventoryNode('p', item.description));
-    const stocks = Object.values(inventoryState.stocks).filter(
-      (stock) => stock.itemId === itemId,
-    );
-    if (!stocks.length)
-      card.append(inventoryNode('p', 'No stock locations recorded.'));
-    for (const stock of stocks) {
-      const place = inventoryLocation(stock);
-      const row = inventoryNode('div', '', 'inventory-location-row');
-      row.append(
-        inventoryNode('strong', place.label),
-        inventoryNode('span', inventoryStockText(stock)),
-      );
-      if (stock.archived)
-        row.append(inventoryNode('small', 'Archived · stock preserved'));
-      if (!place.mapped)
-        row.append(
-          inventoryNode(
-            'small',
-            stock.shelfId ? 'Unmapped · stock preserved' : 'Unassigned',
-          ),
-        );
-      if (place.hidden)
-        row.append(inventoryNode('small', 'Bin hidden by Simple mode'));
-      if (place.mapped)
-        row.append(
-          inventoryButton('Show on map', () =>
-            navigateInventoryLocation(stock),
-          ),
-        );
-      card.append(row);
-    }
-    card.append(
-      inventoryButton('Item details / all locations', () =>
-        showInventoryDetails(itemId),
-      ),
-    );
+    const card = compactInventoryEntry(itemId, stocks, {
+      onName: () => navigateInventoryLocation(itemId),
+    });
+    const details = card.querySelector('details');
+    if (details) details.open = expanded.has(itemId);
     host.append(card);
   }
 }
@@ -136,8 +97,18 @@ $('#inventoryBackup').addEventListener('click', async () => {
 $('#inventoryAudit').addEventListener('click', async () => {
   try {
     const entries = await api('/api/inventory/history');
+    const migration = await api('/api/inventory/migration');
     const host = $('#inventoryAuditList');
     host.replaceChildren();
+    host.append(
+      inventoryNode(
+        'p',
+        `Bin migration: ${migration.converted} converted · ${migration.skippedDuplicates} duplicates skipped · ${migration.needsReview} needing review`,
+      ),
+      inventoryButton('Download migration sources / review cases', () =>
+        download(migration, 'bin-contents-migration.json'),
+      ),
+    );
     if (!entries.length)
       host.append(inventoryNode('p', 'No inventory changes yet.'));
     for (const entry of entries) {

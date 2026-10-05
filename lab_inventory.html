@@ -11,7 +11,8 @@
     ><script src="draft_manager.js" defer></script>
     <script src="editor_recovery.js" defer></script
     ><script src="common.js" defer></script>
-    <script src="inventory_ui.js" defer></script
+    <script src="shelf_model.js" defer></script
+    ><script src="inventory_ui.js" defer></script
     ><script src="inventory_list.js" defer></script>
   </head>
   <body class="is-explorer inventory-page">
@@ -28,8 +29,8 @@
     <main>
       <div id="fatal" class="fatal" role="alert" hidden></div>
       <p
-        >Find supplies and equipment, inspect every recorded location, or use
-        <strong>Show on map</strong> to find a shelf and bin.</p
+        >Click an inventory name to find its location on LAB MAP. Expand Details
+        for recorded quantities, notes and all locations.</p
       >
       <div class="toolbar"
         ><input
@@ -55,9 +56,9 @@
         ></div
       >
       <p class="hint"
-        >Shelf and bin descriptions are descriptive notes, kept separately from
-        these structured records. Blank counts and prices mean unknown. Stock
-        and layout have independent save histories.</p
+        >Enter a name and choose a location on the map. Expand optional details
+        when you need counts, prices or notes. Blank counts and prices stay
+        unknown.</p
       >
       <p id="inventoryCount" role="status"></p
       ><div id="inventoryList" class="inventory-list"></div>

@@ -19,7 +19,7 @@ class ShelfZoom(Features):
             expect(p.get_by_role('button',name='Zoom shelf out',exact=True)).to_be_disabled()
             for _ in range(7):p.get_by_role('button',name='Zoom shelf in',exact=True).click()
             self.assertGreater(int(p.locator('[aria-label="Shelf zoom level"]').inner_text()[:-1]),int(initial[:-1]));self.assertTrue(p.locator('.readonly-shelf-viewport').evaluate('(v)=>v.scrollHeight>v.clientHeight||v.scrollWidth>v.clientWidth'))
-            p.locator('.readonly-bin').last.hover();expect(p.locator('.bin-tooltip')).to_contain_text('Visible inventory');expect(p.locator('.bin-tooltip')).to_be_visible()
+            p.locator('.readonly-bin').last.hover();expect(p.locator('.bin-tooltip')).to_contain_text('Select to view inventory');expect(p.locator('.bin-tooltip')).to_be_visible()
             p.get_by_role('button',name='Fit shelf',exact=True).click();fits();p.set_viewport_size({'width':390,'height':844});fits();p.locator('.readonly-bin').last.focus();expect(p.locator('.bin-tooltip')).to_be_visible()
             self.assertEqual((self.data/'shelves/R01.json').read_bytes(),before)
             p.set_viewport_size({'width':1440,'height':1000})

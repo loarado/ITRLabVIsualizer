@@ -1,0 +1,742 @@
+{
+  "schemaVersion": 1,
+  "completed": true,
+  "converted": 94,
+  "skippedDuplicates": 0,
+  "needsReview": 0,
+  "sources": [
+    {
+      "shelfId": "L01",
+      "binId": "B-8a6ed91daf1045a51d5e8bdbe1c520b1",
+      "binName": "Display Items",
+      "contents": "spider robot, mcmaster volume, fire alarm, misc books",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "spider robot",
+          "status": "converted",
+          "stockId": "MS-120731cda1303cb29287f88b873a6e8d"
+        },
+        {
+          "name": "mcmaster volume",
+          "status": "converted",
+          "stockId": "MS-9db27f457cbb8ef34ea34b51899108a1"
+        },
+        {
+          "name": "fire alarm",
+          "status": "converted",
+          "stockId": "MS-13ec1a6fee3a1946213f5a4bcc7c49c4"
+        },
+        {
+          "name": "misc books",
+          "status": "converted",
+          "stockId": "MS-22f9fe77a9a8d6368d3dbc3d8545deab"
+        }
+      ]
+    },
+    {
+      "shelfId": "L01",
+      "binId": "B-c08c221ddd67caf496cf37a6837e0e18",
+      "binName": "misc",
+      "contents": "briefcase, boxes",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "briefcase",
+          "status": "converted",
+          "stockId": "MS-2dc0575208773c3ddaffd1b4ae2af322"
+        },
+        {
+          "name": "boxes",
+          "status": "converted",
+          "stockId": "MS-f9af7e03ad20ea4d5e05411c968b7c24"
+        }
+      ]
+    },
+    {
+      "shelfId": "L01",
+      "binId": "B-f771ad3ec3db7399a024daa3b7eccfd0",
+      "binName": "itr goodies",
+      "contents": "3d printed mini bots, buttons, gloves",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "3d printed mini bots",
+          "status": "converted",
+          "stockId": "MS-06d753c07b6b6ce74f91b1ddaeea453d"
+        },
+        {
+          "name": "buttons",
+          "status": "converted",
+          "stockId": "MS-ef442231bd470bb9e3c438ff747fb99e"
+        },
+        {
+          "name": "gloves",
+          "status": "converted",
+          "stockId": "MS-2d977e157d4a7957ae48164ffd9f8880"
+        }
+      ]
+    },
+    {
+      "shelfId": "L02",
+      "binId": "B-503c9fff607ae67bef2222e0ba6ec22e",
+      "binName": "misc",
+      "contents": "postal service bin, plastic bin, tape, cables, controller, bag",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "postal service bin",
+          "status": "converted",
+          "stockId": "MS-cb0cd2c901b916e37da4136a3a7ffaaa"
+        },
+        {
+          "name": "plastic bin",
+          "status": "converted",
+          "stockId": "MS-b5e3a57e5a1c12c4a3126c6b5e2d01bb"
+        },
+        {
+          "name": "tape",
+          "status": "converted",
+          "stockId": "MS-9beba32f6ba6e79f1fb9e1690eff8908"
+        },
+        {
+          "name": "cables",
+          "status": "converted",
+          "stockId": "MS-480c1eb5fa36b41473a781389552f0f8"
+        },
+        {
+          "name": "controller",
+          "status": "converted",
+          "stockId": "MS-2f4e18d525e00691e33bd3c9c22cb72a"
+        },
+        {
+          "name": "bag",
+          "status": "converted",
+          "stockId": "MS-541bfb6a2d1c871634423f8247040441"
+        }
+      ]
+    },
+    {
+      "shelfId": "L02",
+      "binId": "B-f0a9769270c492377ac8ac490db2c3f7",
+      "binName": "plates, cups, napkins",
+      "contents": "small plates large plates, forks, spoons, knives, napkins, ",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "small plates large plates",
+          "status": "converted",
+          "stockId": "MS-66d919813b709f2fcd51d26a889bd55c"
+        },
+        {
+          "name": "forks",
+          "status": "converted",
+          "stockId": "MS-804b23b92ffeab3c1e840a7ecfbc062e"
+        },
+        {
+          "name": "spoons",
+          "status": "converted",
+          "stockId": "MS-88a45c3e034659064beb3f6c0e2c4325"
+        },
+        {
+          "name": "knives",
+          "status": "converted",
+          "stockId": "MS-e7cd5dfc7e9ed00cac6f351438b30b68"
+        },
+        {
+          "name": "napkins",
+          "status": "converted",
+          "stockId": "MS-934052cb66f3e636792b83ca2ebb1cc4"
+        }
+      ]
+    },
+    {
+      "shelfId": "L02",
+      "binId": "B-9d9f2f0550377c4f30520996f0812ffc",
+      "binName": "FIRST AID",
+      "contents": "Medkits, first aid kits, bandages, instructions, keyboard",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Medkits",
+          "status": "converted",
+          "stockId": "MS-292bded202b03f656413f7c0acc006e0"
+        },
+        {
+          "name": "first aid kits",
+          "status": "converted",
+          "stockId": "MS-127636d95d4521710dc5cef8cbfd780c"
+        },
+        {
+          "name": "bandages",
+          "status": "converted",
+          "stockId": "MS-dc1ac9da8bbb61069bba0ff5af366384"
+        },
+        {
+          "name": "instructions",
+          "status": "converted",
+          "stockId": "MS-87a2c8a1ab16fe72b09404018a9c7d2f"
+        },
+        {
+          "name": "keyboard",
+          "status": "converted",
+          "stockId": "MS-5b682001faf594438052ded52491a34b"
+        }
+      ]
+    },
+    {
+      "shelfId": "L02",
+      "binId": "B-d2cc0ebd90ee2bf0e41cc84c080576da",
+      "binName": "misc utensils",
+      "contents": "cups, straws, random junk",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "cups",
+          "status": "converted",
+          "stockId": "MS-bbcb1dfa86734c0231f6745e0b75a86c"
+        },
+        {
+          "name": "straws",
+          "status": "converted",
+          "stockId": "MS-c06c4df0e51c7ae82e83e4afa2b3f75e"
+        },
+        {
+          "name": "random junk",
+          "status": "converted",
+          "stockId": "MS-b731fa2db6d748ae6c1df25382727882"
+        }
+      ]
+    },
+    {
+      "shelfId": "R07",
+      "binId": "B-3951f5fad12343e9b512613ba8efbff5",
+      "binName": "Wires Storage",
+      "contents": "Color Wires",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Color Wires",
+          "status": "converted",
+          "stockId": "MS-d570fe0ca48c836ba6799daf1f53a0a2"
+        }
+      ]
+    },
+    {
+      "shelfId": "R07",
+      "binId": "B-96269c48010f384da991279fb704e7ce",
+      "binName": "Wires Gauge Sorted",
+      "contents": "Color Wires",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Color Wires",
+          "status": "converted",
+          "stockId": "MS-16acfee5f220c9e81841436d31c60de8"
+        }
+      ]
+    },
+    {
+      "shelfId": "R07",
+      "binId": "B-428e52b65c15dd02f8e437a4835b03fe",
+      "binName": "Power Cables",
+      "contents": "Barrel Connectors, Power transfer",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Barrel Connectors",
+          "status": "converted",
+          "stockId": "MS-53402410141db12a3355d8852a087351"
+        },
+        {
+          "name": "Power transfer",
+          "status": "converted",
+          "stockId": "MS-edb260f75143a85181ba6f6f2924f16f"
+        }
+      ]
+    },
+    {
+      "shelfId": "R07",
+      "binId": "B-509503550e8f92c84b1213cb42da96d0",
+      "binName": "EXTENSION CORDS",
+      "contents": "Extension cables, power strips, power extension. Long cable, large cable",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Extension cables",
+          "status": "converted",
+          "stockId": "MS-6bbe3d4c7ea8475198d9bce48cf64654"
+        },
+        {
+          "name": "power strips",
+          "status": "converted",
+          "stockId": "MS-8169888f0e7e298c4414dbad85f57dec"
+        },
+        {
+          "name": "power extension. Long cable",
+          "status": "converted",
+          "stockId": "MS-a2949d3331a9306bc52cd31fb03ea232"
+        },
+        {
+          "name": "large cable",
+          "status": "converted",
+          "stockId": "MS-094a62199df8b6fc7f7ce4cbf6e90410"
+        }
+      ]
+    },
+    {
+      "shelfId": "R08",
+      "binId": "legacy-904d307249b57225047a714136833a0e",
+      "binName": "Aluminum Channels",
+      "contents": "GoBilda Channels, Tetrix Channels",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "GoBilda Channels",
+          "status": "converted",
+          "stockId": "MS-d41941f902abe3ff9053fbad1d8828dc"
+        },
+        {
+          "name": "Tetrix Channels",
+          "status": "converted",
+          "stockId": "MS-8911249bbf1cdff642818bb413ea4e34"
+        }
+      ]
+    },
+    {
+      "shelfId": "R09",
+      "binId": "B-6e4ce24aec1e9acf8bc0147ca0e6804d",
+      "binName": "misc shirts and clothing",
+      "contents": "shirts, clothing, drone kit",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "shirts",
+          "status": "converted",
+          "stockId": "MS-cd51a44093e017fd7b518bd83bd9ae0f"
+        },
+        {
+          "name": "clothing",
+          "status": "converted",
+          "stockId": "MS-cf9d2987f672f0f167b231c5854d1991"
+        },
+        {
+          "name": "drone kit",
+          "status": "converted",
+          "stockId": "MS-231fff3ca3fe48c17ad8b457db424215"
+        }
+      ]
+    },
+    {
+      "shelfId": "R09",
+      "binId": "B-52bb5dc83569506936ace1bd21ddf8d9",
+      "binName": "random stuff",
+      "contents": "easter eggs",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "easter eggs",
+          "status": "converted",
+          "stockId": "MS-08989da2412f8f8901095a114292c889"
+        }
+      ]
+    },
+    {
+      "shelfId": "R09",
+      "binId": "B-2e31d3bca66de33d272ce68e04f6e541",
+      "binName": "misc",
+      "contents": "yellow bag red bag, kauf outlet plug",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "yellow bag red bag",
+          "status": "converted",
+          "stockId": "MS-f40016802d40886d0efd00759af980c1"
+        },
+        {
+          "name": "kauf outlet plug",
+          "status": "converted",
+          "stockId": "MS-82e9d6eae62bb23b52dad5f3fc6798cc"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-35fc87b69acc48237949dd0cf7b4c109",
+      "binId": "B-513ea49662e4f15b024d6155073334e8",
+      "binName": "IGDA ",
+      "contents": "display items",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "display items",
+          "status": "converted",
+          "stockId": "MS-1a913064fb5ff2376058137a6d6e374b"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-35fc87b69acc48237949dd0cf7b4c109",
+      "binId": "B-2737e7e18d490b41cb98e60f8e845dd7",
+      "binName": "board games",
+      "contents": "MOST LIKELY TO GAME, Jenga, sorry!, connect 4, playing cards, uno, ",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "MOST LIKELY TO GAME",
+          "status": "converted",
+          "stockId": "MS-a73517a998c73de26a4475ab9597ef56"
+        },
+        {
+          "name": "Jenga",
+          "status": "converted",
+          "stockId": "MS-2b5bd047ad40b4038a8477363ae53dcc"
+        },
+        {
+          "name": "sorry!",
+          "status": "converted",
+          "stockId": "MS-6906a9aa94825811b800f03e0b61696a"
+        },
+        {
+          "name": "connect 4",
+          "status": "converted",
+          "stockId": "MS-b2e3b848840b47d33d643d284fe7e58c"
+        },
+        {
+          "name": "playing cards",
+          "status": "converted",
+          "stockId": "MS-a5873796fcd22c16577269eef658c551"
+        },
+        {
+          "name": "uno",
+          "status": "converted",
+          "stockId": "MS-a41b64f28f679c0b6c89f600ccce8c35"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-35fc87b69acc48237949dd0cf7b4c109",
+      "binId": "B-a7255b855825edd3b6f17dcf578282a7",
+      "binName": "misc",
+      "contents": "Deco, controller, button maker materials, cards, Meta Quest 3S",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Deco",
+          "status": "converted",
+          "stockId": "MS-42b09b4c9805e58f2a2c04fe64a16624"
+        },
+        {
+          "name": "controller",
+          "status": "converted",
+          "stockId": "MS-62460cba09c042a655bc706ae9909bdc"
+        },
+        {
+          "name": "button maker materials",
+          "status": "converted",
+          "stockId": "MS-e8fe812b0287d5c2c80863fd46192112"
+        },
+        {
+          "name": "cards",
+          "status": "converted",
+          "stockId": "MS-232e573718c58865ce13c98feeb5fa54"
+        },
+        {
+          "name": "Meta Quest 3S",
+          "status": "converted",
+          "stockId": "MS-4051df7321787eb68200f0e541c793b0"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-35fc87b69acc48237949dd0cf7b4c109",
+      "binId": "B-b73b857b0a740dc64a2a3f131e97ded7",
+      "binName": "art stuff",
+      "contents": "paint, markers",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "paint",
+          "status": "converted",
+          "stockId": "MS-8f1ae5cbeb9c53776f0e16572bd4b242"
+        },
+        {
+          "name": "markers",
+          "status": "converted",
+          "stockId": "MS-e8c4629c0e13e155242bb87386437c73"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-38167ec7d92e360ac937d724f806c63a",
+      "binName": "writing",
+      "contents": "marker, sharpie",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "marker",
+          "status": "converted",
+          "stockId": "MS-dd63824cb7fd27eedf27c95a63d4ebbf"
+        },
+        {
+          "name": "sharpie",
+          "status": "converted",
+          "stockId": "MS-e8a0635052ca5cfce7f43dc3bbf77406"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-b974cc09b16015aac632145b74c0a26b",
+      "binName": "tools",
+      "contents": "blade, exacto knife, pliers, files, multimeter, small battery",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "blade",
+          "status": "converted",
+          "stockId": "MS-1aa746f9b1d5e339d2d6c884245cc01d"
+        },
+        {
+          "name": "exacto knife",
+          "status": "converted",
+          "stockId": "MS-9b76377945ee328f4376841fb7b5b8d5"
+        },
+        {
+          "name": "pliers",
+          "status": "converted",
+          "stockId": "MS-19e95790d0ca213f12bf15db29aec2fc"
+        },
+        {
+          "name": "files",
+          "status": "converted",
+          "stockId": "MS-8208af5dbcaaf2367f710805a79da16a"
+        },
+        {
+          "name": "multimeter",
+          "status": "converted",
+          "stockId": "MS-664ed349ec31bb06f18ab356e8f2dbe4"
+        },
+        {
+          "name": "small battery",
+          "status": "converted",
+          "stockId": "MS-8c3bbd2092418410a0ff1a4c273d3bcb"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-0d88504e4ac068b0d2c5d7a475f9d1ba",
+      "binName": "office",
+      "contents": "pins, stapler, post it notes, sticky notes, painters tape",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "pins",
+          "status": "converted",
+          "stockId": "MS-1374a5160ff5fb3b92e581c62360de2d"
+        },
+        {
+          "name": "stapler",
+          "status": "converted",
+          "stockId": "MS-61a72059835b119adbecf31d980ac728"
+        },
+        {
+          "name": "post it notes",
+          "status": "converted",
+          "stockId": "MS-7633555d577e583070add3a1b86b1b00"
+        },
+        {
+          "name": "sticky notes",
+          "status": "converted",
+          "stockId": "MS-b39fcf2f06680314902af5c6fa3997ac"
+        },
+        {
+          "name": "painters tape",
+          "status": "converted",
+          "stockId": "MS-81781e2566d5a9bfdd03ff88dbbfc1dc"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-8880ca335ef9b2ad1ae26fea24c92eda",
+      "binName": "snacks",
+      "contents": "chips, ketchup, salt, parmesan, mustard, mayo",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "chips",
+          "status": "converted",
+          "stockId": "MS-358050796719239a5f76738eb6108827"
+        },
+        {
+          "name": "ketchup",
+          "status": "converted",
+          "stockId": "MS-6b171aa7d25114d67d97d9847dec4563"
+        },
+        {
+          "name": "salt",
+          "status": "converted",
+          "stockId": "MS-314bc88e70a9e13b928f0ef4ae4a99e5"
+        },
+        {
+          "name": "parmesan",
+          "status": "converted",
+          "stockId": "MS-bd527ceb24189f9acd0eb7481016bb4a"
+        },
+        {
+          "name": "mustard",
+          "status": "converted",
+          "stockId": "MS-ca55d1430973b888e19fccc69143ff8c"
+        },
+        {
+          "name": "mayo",
+          "status": "converted",
+          "stockId": "MS-dcc28fd1badd48d4602380f1711f6c00"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-97c99e0a18cd3a2956766d3159618627",
+      "binName": "equipment",
+      "contents": "hot glue gun, drill bits, wire crimps, multimeter",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "hot glue gun",
+          "status": "converted",
+          "stockId": "MS-cb76551eb5a29c9a023c123612638a35"
+        },
+        {
+          "name": "drill bits",
+          "status": "converted",
+          "stockId": "MS-bdf1854c9dfec507f1c2d835f0db6051"
+        },
+        {
+          "name": "wire crimps",
+          "status": "converted",
+          "stockId": "MS-4c41aa895d4c46dde2bc8c46c67ba460"
+        },
+        {
+          "name": "multimeter",
+          "status": "converted",
+          "stockId": "MS-19f0758645e8bae51f8973d52e7fb681"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-5218f76837b8c3684f3a60a5202f9fc8",
+      "binId": "B-098fc1693eef5d32b006edf064028e94",
+      "binName": "cleaning supplies",
+      "contents": "shop wipes, wet wipes, wet cloths, cleaning spray",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "shop wipes",
+          "status": "converted",
+          "stockId": "MS-ca4e9661efcd8dc817eb0a74e9787062"
+        },
+        {
+          "name": "wet wipes",
+          "status": "converted",
+          "stockId": "MS-09bc892b613144ab1a46aea126f1aca4"
+        },
+        {
+          "name": "wet cloths",
+          "status": "converted",
+          "stockId": "MS-9fe3acb4eb0667fb0401a202e99f98e7"
+        },
+        {
+          "name": "cleaning spray",
+          "status": "converted",
+          "stockId": "MS-8f9cef70a7a82bff9308b16ff0883889"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-628c32403528c5235dab65877b9bfccc",
+      "binId": "B-66e55e9c146e54215fcaf0f40bb68b0e",
+      "binName": "misc",
+      "contents": "xbox 360, random cables, random papers",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "xbox 360",
+          "status": "converted",
+          "stockId": "MS-cd430ab5e8b89540169087091c5ea97b"
+        },
+        {
+          "name": "random cables",
+          "status": "converted",
+          "stockId": "MS-2c69700bdebee36d36899d214bbae9c4"
+        },
+        {
+          "name": "random papers",
+          "status": "converted",
+          "stockId": "MS-62a9bc6a7545571cc41492b6df96c644"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-75243d8b596f93a42f01ebfa91f82f57",
+      "binId": "B-02e4e98daeb096c956a0290956a0f084",
+      "binName": "Locked Locker",
+      "contents": "Unknown",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Unknown",
+          "status": "converted",
+          "stockId": "MS-0ad792d6f5b995b2970451bc32848e0b"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-9d9d4ef7d21cb09922aa418b293271dc",
+      "binId": "B-fca69825520942742128b0b5e3abdaa5",
+      "binName": "SAFE",
+      "contents": "important keys, locks, random stuff",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "important keys",
+          "status": "converted",
+          "stockId": "MS-cec28c36af44b55ba8d25265c3f8e2ad"
+        },
+        {
+          "name": "locks",
+          "status": "converted",
+          "stockId": "MS-7d31d4bbd1411d391d2f80777b29adf6"
+        },
+        {
+          "name": "random stuff",
+          "status": "converted",
+          "stockId": "MS-846847a6e8f28a7bdd50818e68bcd452"
+        }
+      ]
+    },
+    {
+      "shelfId": "S-fc3ee9cf8616a57e5478b482e4da097d",
+      "binId": "B-3951f5fad12343e9b512613ba8efbff5",
+      "binName": "Tubes and things",
+      "contents": "Vent Pipes, rope",
+      "keywords": "",
+      "entries": [
+        {
+          "name": "Vent Pipes",
+          "status": "converted",
+          "stockId": "MS-a5f6a8ee5a5fc7910abe131e8a96a3e7"
+        },
+        {
+          "name": "rope",
+          "status": "converted",
+          "stockId": "MS-4ff20d2da4d26ac3dcd15f7dc86ed421"
+        }
+      ]
+    }
+  ],
+  "savedAt": "2026-10-04T07:38:57.788076+00:00",
+  "backup": "before-bin-contents-20261004T073857-4499bd54.tar.gz"
+}

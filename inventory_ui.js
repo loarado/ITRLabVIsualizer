@@ -57,7 +57,7 @@ function inventoryStockText(stock) {
     ? `${stock.quantity === null ? 'Quantity unknown' : stock.quantity} ${stock.unit}`
     : stock.tracking === 'availability'
       ? `${stock.availability.replaceAll('-', ' ')} · ${stock.unit}`
-      : `Present · counts not tracked · ${stock.unit}`;
+      : 'Present';
 }
 async function refreshInventory() {
   const ticket = ++inventoryTicket;
@@ -73,31 +73,267 @@ async function refreshInventory() {
         host.dataset.stockAll === 'true',
       );
     });
-    if (inventoryDetailId && $('#inventoryDetails').open)
-      showInventoryDetails(inventoryDetailId);
+    if (inventoryDetailId && $('#inventoryDetails').open) {
+      if (inventoryState.items[inventoryDetailId])
+        showInventoryDetails(inventoryDetailId);
+      else {
+        $('#inventoryDetails').close();
+        inventoryDetailId = null;
+      }
+    }
     document.dispatchEvent(new Event('inventory-updated'));
+    return true;
   } catch (error) {
     message('Inventory could not load: ' + error.message, true);
+    return false;
   }
+}
+function quickInventoryEntry(shelfId, binId = null) {
+  const form = inventoryNode('form', '', 'inventory-quick');
+  const input = document.createElement('input');
+  input.placeholder = 'Add inventory…';
+  input.setAttribute('aria-label', 'Add inventory at this location');
+  input.maxLength = 500;
+  const add = inventoryNode('button', 'Add');
+  add.type = 'submit';
+  const feedback = inventoryNode('small', '');
+  feedback.setAttribute('role', 'status');
+  form.append(input, add, feedback);
+  let pending = false,
+    operation = null,
+    lastName = null,
+    revision = null,
+    composing = false;
+  input.addEventListener('compositionstart', () => {
+    composing = true;
+  });
+  input.addEventListener('compositionend', () => {
+    composing = false;
+  });
+  input.addEventListener('keydown', (event) => {
+    if (
+      event.key === 'Enter' &&
+      (event.isComposing || composing || event.keyCode === 229)
+    )
+      event.preventDefault();
+  });
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const name = input.value.trim();
+    if (pending || composing || !name || !isAdmin) return;
+    if (name !== lastName) {
+      operation = 'op-' + uniqueId();
+      revision = inventoryState.revision;
+      lastName = name;
+    }
+    pending = true;
+    input.disabled = add.disabled = true;
+    feedback.textContent = 'Saving…';
+    try {
+      const result = await api('/api/inventory', 'POST', {
+        action: 'quick',
+        item: { name },
+        stock: { shelfId, binId, unit: 'each' },
+        operationId: operation,
+        revision,
+      });
+      if (result.item && result.stock) {
+        inventoryState.items[result.itemId] ??= result.item;
+        inventoryState.stocks[result.stockId] ??= result.stock;
+        inventoryState.revision = Math.max(
+          inventoryState.revision,
+          result.revision,
+        );
+        const host = form.closest('.stock-panel');
+        if (host) inventoryLocationPanel(host, shelfId, binId);
+        document.dispatchEvent(new Event('inventory-updated'));
+      }
+      input.value = '';
+      lastName = null;
+      feedback.textContent = result.existing
+        ? 'Already recorded here · details unchanged.'
+        : 'Added';
+      await refreshInventory();
+      try {
+        localStorage.setItem('itr-inventory-changed', String(Date.now()));
+      } catch {}
+    } catch (error) {
+      feedback.textContent = error.message;
+      if (error.status === 409) {
+        const refreshed = await refreshInventory();
+        if (!refreshed) return;
+        revision = inventoryState.revision;
+        operation = 'op-' + uniqueId();
+        feedback.textContent +=
+          ' Inventory refreshed; press Add again to retry your retained name.';
+      }
+    } finally {
+      pending = false;
+      input.disabled = add.disabled = !isAdmin;
+      if (isAdmin && input.isConnected) input.focus();
+    }
+  });
+  return form;
+}
+function meaningfulInventoryValue(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === 'object') return Object.keys(value).length > 0;
+  return (
+    value !== null &&
+    value !== undefined &&
+    (typeof value !== 'string' ||
+      (!!value.trim() && !/^no details[.!]?$/i.test(value.trim())))
+  );
+}
+function hasInventoryDetails(item, stocks = []) {
+  return (
+    [
+      'category',
+      'keywords',
+      'description',
+      'vendor',
+      'productLink',
+      'unitPrice',
+      'notes',
+    ].some((key) => meaningfulInventoryValue(item[key])) ||
+    stocks.some(
+      (stock) =>
+        meaningfulInventoryValue(stock.quantity) ||
+        meaningfulInventoryValue(stock.notes) ||
+        (!!stock.unit && stock.unit !== 'each') ||
+        (stock.tracking === 'availability' &&
+          meaningfulInventoryValue(stock.availability)),
+    )
+  );
+}
+function inventoryDetailsContent(itemId, stocks) {
+  const item = inventoryState.items[itemId];
+  const content = inventoryNode('div', '', 'stock-detail-content');
+  for (const [key, title] of [
+    ['category', 'Category'],
+    ['vendor', 'Vendor'],
+    ['description', 'Description'],
+    ['keywords', 'Keywords'],
+    ['notes', 'Notes'],
+  ])
+    if (meaningfulInventoryValue(item[key]))
+      content.append(inventoryNode('p', title + ': ' + item[key]));
+  if (meaningfulInventoryValue(item.unitPrice))
+    content.append(
+      inventoryNode(
+        'p',
+        `${item.currency} ${item.unitPrice} / ${item.priceUnit}`,
+      ),
+    );
+  if (meaningfulInventoryValue(item.productLink)) {
+    const link = inventoryNode('a', 'Product link');
+    link.href = item.productLink;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    content.append(link);
+  }
+  for (const stock of stocks) {
+    content.append(inventoryNode('strong', inventoryLocation(stock).label));
+    const place = inventoryLocation(stock);
+    if (stock.archived) content.append(inventoryNode('small', 'Archived'));
+    if (!place.mapped)
+      content.append(
+        inventoryNode(
+          'small',
+          stock.shelfId ? 'Unmapped location' : 'Unassigned',
+        ),
+      );
+    if (place.hidden)
+      content.append(inventoryNode('small', 'Bin hidden by Simple mode'));
+    if (stock.tracking !== 'presence')
+      content.append(inventoryNode('p', inventoryStockText(stock)));
+    else if (stock.unit && stock.unit !== 'each')
+      content.append(inventoryNode('p', 'Unit: ' + stock.unit));
+    if (meaningfulInventoryValue(stock.notes))
+      content.append(inventoryNode('p', stock.notes));
+  }
+  content.append(
+    inventoryButton('All locations', () => showInventoryDetails(itemId)),
+  );
+  return content;
+}
+function compactInventoryEntry(itemId, entries, options = {}) {
+  const item = inventoryState.items[itemId];
+  const row = inventoryNode('article', '', 'stock-row compact-entry');
+  row.dataset.inventoryItem = itemId;
+  row.dataset.stockId = entries[0]?.[0] || '';
+  const stocks = entries.map(([, stock]) => stock);
+  const meaningful = hasInventoryDetails(item, stocks);
+  let details;
+  const name = inventoryButton(item.name, () => {
+    if (options.onName) options.onName(itemId, entries, meaningful);
+    else if (details) details.open = !details.open;
+  });
+  name.className = 'inventory-name';
+  row.append(name);
+  if (isAdmin) {
+    const edit = inventoryButton('✎', () =>
+      openInventoryEditor(
+        options.editStock
+          ? { itemId, stockId: entries[0]?.[0] }
+          : { itemId, itemOnly: true },
+      ),
+    );
+    edit.className = 'inventory-pencil';
+    edit.setAttribute('aria-label', 'Edit ' + item.name);
+    row.append(edit);
+  }
+  if (meaningful) {
+    details = inventoryNode('details', '', 'stock-details');
+    const summary = inventoryNode('summary', 'Details');
+    summary.setAttribute('aria-label', 'Details for ' + item.name);
+    details.append(summary, inventoryDetailsContent(itemId, stocks));
+    row.append(details);
+  }
+  return row;
+}
+function compactInventoryRow(stockId, stock, includeName = true) {
+  const row = compactInventoryEntry(stock.itemId, [[stockId, stock]], {
+    editStock: true,
+  });
+  if (!includeName) row.querySelector('.inventory-name').remove();
+  return row;
 }
 function inventoryLocationPanel(
   host,
   shelfId,
   binId = null,
   includeBins = false,
+  options = null,
 ) {
-  host.dataset.stockShelf = shelfId;
-  host.dataset.stockBin = binId || '';
-  host.dataset.stockAll = String(includeBins);
-  host.classList.add('stock-panel');
-  host.replaceChildren(inventoryNode('h3', 'Structured inventory'));
-  host.append(
-    inventoryNode(
-      'p',
-      'Shelf/bin contents and keywords are descriptive notes. Only the entries below record actual inventory.',
-      'hint',
-    ),
+  if (options) host._inventoryOptions = options;
+  options = host._inventoryOptions || {};
+  const quick = host.querySelector('.inventory-quick');
+  const expanded = new Set(
+    Array.from(host.querySelectorAll('.stock-row'))
+      .filter((row) => row.querySelector('details')?.open)
+      .map((row) => row.dataset.inventoryItem),
   );
+  const same =
+    host.dataset.stockShelf === shelfId &&
+    host.dataset.stockBin === (binId || '');
+  Object.assign(host.dataset, {
+    stockShelf: shelfId,
+    stockBin: binId || '',
+    stockAll: String(includeBins),
+  });
+  host.classList.add('stock-panel');
+  host.replaceChildren(
+    inventoryNode('h3', binId ? 'Selected Inventory' : 'Inventory'),
+  );
+  if (binId && options.binName) {
+    const context = inventoryNode('div', '', 'inventory-bin-context');
+    context.append(
+      inventoryNode('span', options.binName),
+      inventoryButton('Clear bin', options.onClear),
+    );
+    host.append(context);
+  }
   if (!inventoryState) {
     host.append(inventoryNode('p', 'Loading inventory…'));
     return;
@@ -106,52 +342,38 @@ function inventoryLocationPanel(
     ([, stock]) =>
       !stock.archived &&
       stock.shelfId === shelfId &&
-      (includeBins || stock.binId === binId),
+      (includeBins || (stock.binId || null) === binId),
   );
-  if (!entries.length)
-    host.append(
-      inventoryNode(
-        'p',
-        'No inventory entries here yet. Descriptive notes have been kept as notes.',
-        'muted',
-      ),
-    );
-  for (const [, stock] of entries) {
-    const row = inventoryNode('div', '', 'stock-row');
-    const item = inventoryState.items[stock.itemId];
-    row.append(
-      inventoryButton(item.name, () => showInventoryDetails(stock.itemId)),
-      inventoryNode('span', inventoryStockText(stock)),
-    );
-    if (includeBins && stock.binId)
-      row.append(inventoryNode('small', inventoryLocation(stock).label));
-    if (!inventoryLocation(stock).mapped)
-      row.append(
-        inventoryNode('small', 'Unmapped stock · preserved for relocation'),
-      );
-    if (inventoryLocation(stock).hidden)
-      row.append(
-        inventoryNode(
-          'small',
-          'Bin hidden by Simple mode · view or relocate in item details',
-        ),
-      );
-    host.append(row);
+  const groups = new Map();
+  for (const entry of entries) {
+    const id = entry[1].itemId;
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(entry);
   }
+  const grid = inventoryNode('div', '', 'compact-inventory');
+  for (const [itemId, stocks] of groups) {
+    const row = compactInventoryEntry(itemId, stocks, {
+      onName: options.onName,
+      editStock: stocks.length === 1,
+    });
+    const details = row.querySelector('details');
+    if (details)
+      details.open = expanded.has(itemId) || options.expandItem === itemId;
+    grid.append(row);
+  }
+  host.append(grid);
+  if (!entries.length)
+    host.append(inventoryNode('p', 'No inventory recorded here.', 'hint'));
   if (isAdmin) {
-    const key = shelfId + (binId ? '/' + binId : '');
-    const location = inventoryState.locations[key];
-    const add = inventoryButton(
-      binId ? 'Add inventory to this bin' : 'Add inventory to this shelf',
-      () => openInventoryEditor({ shelfId, binId }),
-    );
-    add.disabled = !location?.saved || !location?.mapped;
-    host.append(add);
-    if (add.disabled)
+    const location =
+      inventoryState.locations[shelfId + (binId ? '/' + binId : '')];
+    if (location?.saved && location?.mapped)
+      host.append(same && quick ? quick : quickInventoryEntry(shelfId, binId));
+    else
       host.append(
         inventoryNode(
           'p',
-          'Save this location in a named layout before recording stock.',
+          'Save this location in a named layout before recording inventory.',
           'hint',
         ),
       );
@@ -282,19 +504,24 @@ function showInventoryDetails(itemId) {
   if (!$('#inventoryDetails').open) $('#inventoryDetails').showModal();
 }
 async function navigateInventoryLocation(stock) {
-  const place = inventoryLocation(stock);
-  if (!place.mapped) {
+  const itemId = typeof stock === 'string' ? stock : stock.itemId;
+  const mapped = Object.values(inventoryState.stocks).some(
+    (entry) =>
+      entry.itemId === itemId &&
+      !entry.archived &&
+      inventoryLocation(entry).mapped,
+  );
+  if (!mapped) {
     message(
-      'This location is unavailable on the current map. Its stock remains recorded.',
+      'This item has no location on the current map. Its inventory remains recorded.',
       true,
     );
     return;
   }
   $('#inventoryDetails').close();
-  const target = `lab_overview.html?shelf=${encodeURIComponent(stock.shelfId)}${stock.binId ? '&bin=' + encodeURIComponent(stock.binId) : ''}`;
-  if (app?.showInventoryLocation)
-    await app.showInventoryLocation(stock.shelfId, stock.binId);
-  else await leaveEditor(target);
+  if (app?.highlightInventoryItem) await app.highlightInventoryItem(itemId);
+  else
+    await leaveEditor('lab_overview.html?item=' + encodeURIComponent(itemId));
 }
 function locationOptions(select, stock = {}) {
   select.replaceChildren(new Option('Unassigned', ''));
@@ -311,6 +538,151 @@ function locationOptions(select, stock = {}) {
   if (key && !Array.from(select.options).some((o) => o.value === key))
     select.add(new Option((stock.locationLabel || key) + ' (unmapped)', key));
   select.value = key;
+}
+let inventoryPickerTicket = 0;
+function inventoryDestinationChanged(key) {
+  $('#inv-location').value = key;
+  $('#inv-destination').textContent =
+    'Destination: ' +
+    ($('#inv-location').selectedOptions[0]?.textContent || 'Unassigned');
+  $('#inv-location').dispatchEvent(new Event('input', { bubbles: true }));
+}
+async function renderInventoryPicker() {
+  const host = $('#inv-map');
+  const ticket = ++inventoryPickerTicket;
+  host._disposeShelfGrid?.();
+  host.replaceChildren();
+  host.hidden = !!inventoryEntry?.itemOnly;
+  $('#inv-destination').hidden = !!inventoryEntry?.itemOnly;
+  if (host.hidden) return;
+  $('#inv-destination').textContent =
+    'Destination: ' +
+    ($('#inv-location').selectedOptions[0]?.textContent || 'Unassigned');
+  try {
+    const data = await api('/api/lab');
+    if (ticket !== inventoryPickerTicket) return;
+    const choose = async (item) => {
+      if (item.kind !== 'shelf') {
+        inventoryDestinationChanged(item.id);
+        mark();
+        return;
+      }
+      try {
+        const shelf = await api('/api/shelves/' + encodeURIComponent(item.id));
+        if (ticket !== inventoryPickerTicket) return;
+        if (shelf.mode === 'simple') {
+          inventoryDestinationChanged(item.id);
+          mark();
+          return;
+        }
+        host.replaceChildren(
+          inventoryNode('h3', shelf.name || item.name),
+          inventoryButton('Back to lab map', renderInventoryPicker),
+          inventoryButton('Use this shelf', () =>
+            inventoryDestinationChanged(item.id),
+          ),
+        );
+        readOnlyShelfGrid(host, shelf, null, (bin) =>
+          inventoryDestinationChanged(item.id + '/' + bin.id),
+        );
+      } catch (error) {
+        $('#inv-feedback').textContent = error.message;
+      }
+    };
+    const map = inventoryNode('div', '', 'inventory-location-map');
+    map.style.aspectRatio = data.cols + '/' + data.rows;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${data.cols} ${data.rows}`);
+    svg.setAttribute('aria-hidden', 'true');
+    const draw = (tag, attributes) => {
+      const node = document.createElementNS(svg.namespaceURI, tag);
+      Object.entries(attributes).forEach(([key, value]) =>
+        node.setAttribute(key, value),
+      );
+      svg.append(node);
+    };
+    draw('polygon', {
+      points: data.outline.map((p) => p.join(',')).join(' '),
+      fill: '#eef2f6',
+      stroke: '#546273',
+      'stroke-width': 0.3,
+    });
+    for (const wall of data.walls || [])
+      draw('line', {
+        x1: wall.a[0],
+        y1: wall.a[1],
+        x2: wall.b[0],
+        y2: wall.b[1],
+        stroke: '#344356',
+        'stroke-width': wall.thickness,
+      });
+    for (const route of data.routes || [])
+      draw('polyline', {
+        points: route.map((p) => p.join(',')).join(' '),
+        fill: 'none',
+        stroke: '#b1bec8',
+        'stroke-width': 0.2,
+      });
+    map.append(svg);
+    for (const item of data.items) {
+      const physical = ['shelf', 'table', 'cart', 'machine'].includes(
+        item.kind,
+      );
+      const node = physical
+        ? inventoryButton(item.name, () => choose(item))
+        : inventoryNode('span', item.name);
+      node.className =
+        'inventory-map-object ' +
+        (physical ? 'destination-object' : 'map-structure');
+      node.dataset.locationObject = item.id;
+      node.style.cssText = `left:${((item.x - 1) / data.cols) * 100}%;top:${((item.y - 1) / data.rows) * 100}%;width:${(item.w / data.cols) * 100}%;height:${(item.h / data.rows) * 100}%;background:${item.background};color:${item.color}`;
+      if (physical)
+        node.setAttribute('aria-label', item.name + ' · ' + item.kind);
+      map.append(node);
+    }
+    function mark() {
+      const id = $('#inv-location').value.split('/')[0];
+      map.querySelectorAll('.destination-object').forEach((node) => {
+        node.classList.toggle(
+          'inventory-target',
+          node.dataset.locationObject === id,
+        );
+        node.setAttribute(
+          'aria-pressed',
+          String(node.dataset.locationObject === id),
+        );
+      });
+    }
+    mark();
+    const viewport = inventoryNode('div', '', 'inventory-map-viewport');
+    viewport.append(map);
+    let scale = 1;
+    const zoom = (factor) => {
+      scale = Math.max(1, Math.min(6, scale * factor));
+      map.style.width = scale * 100 + '%';
+    };
+    const controls = inventoryNode('div', '', 'toolbar');
+    controls.append(
+      inventoryButton('Zoom location map out', () => zoom(1 / 1.5)),
+      inventoryButton('Zoom location map in', () => zoom(1.5)),
+      inventoryButton('Fit location map', () => {
+        scale = 1;
+        zoom(1);
+        viewport.scrollTo(0, 0);
+      }),
+    );
+    host.append(controls);
+    host.append(
+      inventoryNode(
+        'p',
+        'Choose a shelf, table, cart or machine on the map.',
+        'hint',
+      ),
+      viewport,
+    );
+  } catch (error) {
+    host.append(inventoryNode('p', 'Map could not load: ' + error.message));
+  }
 }
 function readInventoryForm() {
   const item = {},
@@ -346,7 +718,9 @@ function fillInventoryForm(entry) {
   locationOptions($('#inv-location'), entry.stock);
   $('#inv-reason').value = entry.reason || '';
   $('#inv-stock-fields').hidden = !!entry.itemOnly;
+  $('#inv-location').closest('label').hidden = !!entry.itemOnly;
   updateInventoryTracking();
+  renderInventoryPicker();
 }
 function updateInventoryTracking() {
   $('#inv-quantity-field').hidden = $('#inv-stock-tracking').value !== 'exact';
@@ -379,6 +753,9 @@ function clearInventoryEntry() {
   inventoryEntryDirty = false;
   inventoryEntry = null;
 }
+function dialogOptionalReset() {
+  $('#inventoryEditor .inventory-optional').open = false;
+}
 function openInventoryEditor(options = {}, recovered = null) {
   if (!isAdmin || !inventoryState) return;
   const stock = inventoryState.stocks[options.stockId];
@@ -391,6 +768,10 @@ function openInventoryEditor(options = {}, recovered = null) {
     stockId: options.stockId || null,
     itemOnly: !!options.itemOnly,
   };
+  $('#inv-delete').hidden = !inventoryEntry.itemId;
+  $('#inv-remove-location').hidden = !inventoryEntry.stockId;
+  $('#inv-archive').hidden = !inventoryEntry.stockId;
+  $('#inv-manage-locations').hidden = !inventoryEntry.itemId;
   const existing = $('#inv-existing');
   existing.replaceChildren(new Option('Create a new, distinct item', ''));
   Object.entries(inventoryState.items)
@@ -413,6 +794,7 @@ function openInventoryEditor(options = {}, recovered = null) {
     : '';
   $('#inv-conflict').hidden = true;
   if (!$('#inventoryEditor').open) $('#inventoryEditor').showModal();
+  dialogOptionalReset();
   $('#inv-item-name').focus();
 }
 async function inventoryMutation(body) {
@@ -456,8 +838,16 @@ async function inventoryAuthChanged(admin) {
     $('#inventoryEditor')?.close();
     $('#inventoryTransfer')?.close();
     $('#inventoryDetails')?.close();
+    $('#reportReviewDialog')?.close();
+    if ($('#reportReviewButton')) $('#reportReviewButton').hidden = true;
+    reportReviewState = null;
   }
   await refreshInventory();
+  await refreshReportIndicator();
+  if (!admin) {
+    reportReviewState = null;
+    $('#reportReviewDialog')?.close();
+  }
   if (admin && recoveryContext && !inventoryEntry) {
     try {
       const raw = localStorage.getItem(inventoryEntryKey());
@@ -541,7 +931,7 @@ function setupInventoryEditor() {
         `<label class="field">${labels[key]}<${['description', 'notes'].includes(key) ? 'textarea' : 'input'} id="inv-item-${key}" ${key === 'name' ? 'required maxlength="500"' : ''}${['unitPrice'].includes(key) ? ' inputmode="decimal"' : ''}>${['description', 'notes'].includes(key) ? '</textarea>' : ''}</label>`,
     )
     .join('');
-  dialog.innerHTML = `<form id="inventoryForm"><h2>Inventory entry</h2><p class="hint">Save inventory writes shared item and stock records immediately. It does not save or restore a map version. Blank quantity or price stays unknown.</p><label class="field">Item identity<select id="inv-existing"></select></label><p class="hint">Choose an existing item to keep the same identity across locations. Editing its details updates every location. Similar names are never merged automatically.</p><div class="inventory-form-grid">${fields}</div><fieldset id="inv-stock-fields"><legend>Stock at this location</legend><label class="field">Location<select id="inv-location"></select></label><label class="field">Tracking<select id="inv-stock-tracking"><option value="presence">Presence only (no counts)</option><option value="exact">Exact quantity (or unknown)</option><option value="availability">Approximate availability</option></select></label><label class="field" id="inv-quantity-field">Quantity (blank = unknown)<input id="inv-stock-quantity" inputmode="decimal"></label><label class="field" id="inv-availability-field">Availability<select id="inv-stock-availability"><option value="available">Available</option><option value="low">Low</option><option value="out-of-stock">Out of stock</option></select></label><label class="field">Unit of measure *<input id="inv-stock-unit" value="each"></label><p class="hint">Use “each” for individual pieces or “pack” for packages. A quantity of 3 packs is not 3 individual pieces. Estimated value is shown only when stock and priced units match.</p><label class="field">Stock notes<textarea id="inv-stock-notes"></textarea></label></fieldset><label class="field">Correction / movement note<input id="inv-reason" maxlength="500"></label><div id="inv-conflict" hidden><h3>Latest saved record</h3><pre id="inv-latest"></pre><button id="inv-reconcile" type="button">I reviewed the latest record; keep my correction</button><button id="inv-use-latest" type="button">Use latest saved values</button></div><p id="inv-feedback" role="alert"></p><div class="actions"><button class="primary" id="inv-save" type="submit">Save inventory</button><button id="inv-cancel" type="button">Cancel</button></div></form>`;
+  dialog.innerHTML = `<form id="inventoryForm"><h2>Inventory entry</h2><p class="hint">Save inventory writes shared item and stock records immediately. It does not save or restore a map version. Blank quantity or price stays unknown.</p><label class="field">Item identity<select id="inv-existing"></select></label><p class="hint">Choose an existing item to keep the same identity across locations. Editing its details updates every location. Similar names are never merged automatically.</p><div class="inventory-form-grid">${fields}</div><fieldset id="inv-stock-fields"><legend>Stock at this location</legend><label class="field">Location<select id="inv-location"></select></label><label class="field">Tracking<select id="inv-stock-tracking"><option value="presence">Presence only (no counts)</option><option value="exact">Exact quantity (or unknown)</option><option value="availability">Approximate availability</option></select></label><label class="field" id="inv-quantity-field">Quantity (blank = unknown)<input id="inv-stock-quantity" inputmode="decimal"></label><label class="field" id="inv-availability-field">Availability<select id="inv-stock-availability"><option value="available">Available</option><option value="low">Low</option><option value="out-of-stock">Out of stock</option></select></label><label class="field">Unit of measure *<input id="inv-stock-unit" value="each"></label><p class="hint">Use “each” for individual pieces or “pack” for packages. A quantity of 3 packs is not 3 individual pieces. Estimated value is shown only when stock and priced units match.</p><label class="field">Stock notes<textarea id="inv-stock-notes"></textarea></label></fieldset><label class="field">Correction / movement note<input id="inv-reason" maxlength="500"></label><div id="inv-conflict" hidden><h3>Latest saved record</h3><pre id="inv-latest"></pre><button id="inv-reconcile" type="button">I reviewed the latest record; keep my correction</button><button id="inv-use-latest" type="button">Use latest saved values</button></div><p id="inv-feedback" role="alert"></p><div class="actions"><button class="primary" id="inv-save" type="submit">Save inventory</button><button id="inv-cancel" type="button">Cancel</button><button id="inv-manage-locations" type="button" hidden>Manage locations</button><button id="inv-archive" type="button" hidden>Archive this entry</button><button id="inv-remove-location" type="button" hidden>Remove from this location</button><button id="inv-delete" class="danger" type="button" hidden>Delete permanently</button></div></form>`;
   const details = document.createElement('dialog');
   details.id = 'inventoryDetails';
   details.className = 'inventory-dialog';
@@ -552,6 +942,73 @@ function setupInventoryEditor() {
   transfer.innerHTML =
     '<form id="transferForm"><h2>Transfer quantity</h2><p class="hint">Moves stock in the same unit. The source decreases and destination increases together.</p><input id="transfer-stock" type="hidden"><input id="transfer-revision" type="hidden"><label class="field">Amount<input id="transfer-amount" inputmode="decimal" required></label><label class="field">Destination<select id="transfer-location"></select></label><p id="transfer-feedback" role="alert"></p><div class="actions"><button class="primary" type="submit">Transfer stock</button><button id="transfer-cancel" type="button">Cancel</button></div></form>';
   document.body.append(dialog, details, transfer);
+  $('#inv-manage-locations').addEventListener('click', () => {
+    dialog.close();
+    showInventoryDetails(inventoryEntry.itemId);
+  });
+  for (const [id, action] of [
+    ['inv-delete', 'delete-item'],
+    ['inv-remove-location', 'remove-location'],
+    ['inv-archive', 'archive'],
+  ]) {
+    $('#' + id).addEventListener('click', async () => {
+      if (!isAdmin || !inventoryEntry) return;
+      const entry = inventoryEntry;
+      const item = inventoryState.items[entry.itemId];
+      if (!item) return;
+      const stock = inventoryState.stocks[entry.stockId];
+      const locations = [
+        ...new Set(
+          Object.values(inventoryState.stocks)
+            .filter((stock) => stock.itemId === entry.itemId)
+            .map((stock) => inventoryLocation(stock).label),
+        ),
+      ];
+      const question =
+        action === 'delete-item'
+          ? `Delete “${item.name}” permanently and remove ALL its assignments at ${locations.length} location(s) (${locations.join('; ') || 'no locations'})? Audit history is retained.`
+          : action === 'remove-location'
+            ? `Remove “${item.name}” from ${inventoryLocation(stock).label}? Other locations and the item are kept.`
+            : `Archive “${item.name}” at ${inventoryLocation(stock).label}? Its stock and history are kept.`;
+      if (!confirm(question)) return;
+      const result = await inventoryMutation({
+        action,
+        itemId: entry.itemId,
+        stockId: entry.stockId,
+        revision: entry.revision,
+      });
+      if (result) {
+        clearInventoryEntry();
+        dialog.close();
+      } else
+        $('#inv-feedback').textContent =
+          'Action could not be saved. Your form is retained; refresh inventory and review the latest record before retrying.';
+    });
+  }
+  const optional = inventoryNode('details', '', 'inventory-optional');
+  optional.append(inventoryNode('summary', 'Optional details'));
+  const nameField = $('#inv-item-name').closest('label');
+  const fieldsGrid = dialog.querySelector('.inventory-form-grid');
+  fieldsGrid.before(nameField);
+  optional.append(fieldsGrid);
+  const identity = $('#inv-existing').closest('label');
+  identity.nextElementSibling?.remove();
+  optional.append(identity);
+  const stockFields = $('#inv-stock-fields');
+  const locationField = $('#inv-location').closest('label');
+  stockFields.before(locationField);
+  optional.append(stockFields, $('#inv-reason').closest('label'));
+  const map = inventoryNode('section', '');
+  map.id = 'inv-map';
+  const destination = inventoryNode('p', '');
+  destination.id = 'inv-destination';
+  destination.setAttribute('role', 'status');
+  locationField.after(map, destination, optional);
+  optional.append(locationField);
+  $('#inv-location').addEventListener('change', () =>
+    inventoryDestinationChanged($('#inv-location').value),
+  );
+  dialog.querySelector('h2 + p')?.remove();
   $('#inventoryDetailClose').addEventListener('click', () => {
     inventoryDetailId = null;
     details.close();
@@ -585,8 +1042,13 @@ function setupInventoryEditor() {
     inventoryEntryDirty = true;
     stashInventoryEntry();
   });
+  $('#inventoryForm').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229))
+      event.preventDefault();
+  });
   $('#inventoryForm').addEventListener('submit', async (event) => {
     event.preventDefault();
+    if ($('#inv-save').disabled) return;
     const body = readInventoryForm();
     inventoryEntryDirty = true;
     stashInventoryEntry();
@@ -731,3 +1193,176 @@ for (const [name, target] of [
   sectionNavigation.append(link);
 }
 $('header').after(sectionNavigation);
+
+let shelfReportDraft = null,
+  reportReviewState = null;
+function shelfReportAction(shelfId, binContext = () => null) {
+  const action = inventoryButton('Report incorrect information', () => {
+    const binId = binContext();
+    shelfReportDraft = { shelfId, binId, operationId: 'report-' + uniqueId() };
+    $('#report-submit').hidden = false;
+    $('#report-text').value = '';
+    $('#report-feedback').textContent = '';
+    $('#report-context').checked = !!binId;
+    $('#report-context').closest('label').hidden = !binId;
+    $('#report-destination').textContent =
+      inventoryState?.locations[shelfId]?.label || shelfId;
+    $('#shelfReportDialog').showModal();
+    $('#report-text').focus();
+  });
+  action.classList.add('shelf-report-action');
+  return action;
+}
+async function refreshReportIndicator() {
+  const button = $('#reportReviewButton');
+  button.hidden = !isAdmin;
+  if (!isAdmin) return;
+  try {
+    const state = await api('/api/reports');
+    if (!isAdmin) return;
+    reportReviewState = state;
+    const pending = Object.values(state.reports).filter(
+      (report) => report.status === 'pending',
+    ).length;
+    button.textContent = `Shelf reports · ${pending} pending`;
+    button.classList.toggle('primary', pending > 0);
+  } catch (error) {
+    button.textContent = 'Shelf reports · refresh needed';
+  }
+}
+async function openReportReview() {
+  await refreshReportIndicator();
+  if (!isAdmin || !reportReviewState) return;
+  const host = $('#reportReviewList');
+  host.replaceChildren();
+  const entries = Object.entries(reportReviewState.reports).sort(
+    (a, b) =>
+      (a[1].status !== 'pending') - (b[1].status !== 'pending') ||
+      b[1].submittedAt.localeCompare(a[1].submittedAt),
+  );
+  if (!entries.length) host.append(inventoryNode('p', 'No shelf reports.'));
+  for (const [rid, report] of entries) {
+    const row = inventoryNode('article', '', 'inventory-card');
+    row.append(
+      inventoryNode('h3', report.currentLocation || report.shelfLabel),
+      inventoryNode(
+        'small',
+        `${report.status} · ${new Date(report.submittedAt).toLocaleString()}`,
+      ),
+    );
+    if (report.binLabel || report.itemLabel)
+      row.append(
+        inventoryNode(
+          'p',
+          [report.binLabel, report.itemLabel].filter(Boolean).join(' · '),
+        ),
+      );
+    row.append(inventoryNode('p', report.text));
+    if (report.mapped)
+      row.append(
+        inventoryButton('Open location / editing controls', async () => {
+          $('#reportReviewDialog').close();
+          if (app?.showInventoryLocation)
+            await app.showInventoryLocation(report.shelfId, report.binId);
+          else
+            await leaveEditor(
+              'lab_overview.html?shelf=' +
+                encodeURIComponent(report.shelfId) +
+                (report.binId
+                  ? '&bin=' + encodeURIComponent(report.binId)
+                  : ''),
+            );
+        }),
+      );
+    else
+      row.append(
+        inventoryNode(
+          'p',
+          'Location removed or unmapped · original context preserved.',
+          'hint',
+        ),
+      );
+    for (const [label, status] of [
+      ['Resolve', 'resolved'],
+      ['Dismiss', 'dismissed'],
+    ]) {
+      if (report.status !== 'pending') continue;
+      row.append(
+        inventoryButton(label, async (event) => {
+          const button = event.currentTarget;
+          button.disabled = true;
+          try {
+            await api('/api/reports/' + rid, 'POST', {
+              status,
+              revision: reportReviewState.revision,
+            });
+            await openReportReview();
+          } catch (error) {
+            message(error.message, true);
+            await refreshReportIndicator();
+            button.disabled = false;
+          }
+        }),
+      );
+    }
+    host.append(row);
+  }
+  if (!$('#reportReviewDialog').open) $('#reportReviewDialog').showModal();
+}
+function setupShelfReports() {
+  const dialog = inventoryNode('dialog', '', 'inventory-dialog');
+  dialog.id = 'shelfReportDialog';
+  dialog.innerHTML =
+    '<form id="shelfReportForm"><h2>Report incorrect information</h2><p id="report-destination"></p><label class="field">What is incorrect?<textarea id="report-text" required maxlength="2000" rows="5"></textarea></label><label class="check"><input type="checkbox" id="report-context">Include selected bin as context</label><p id="report-feedback" role="status"></p><div class="actions"><button type="submit" id="report-submit" class="primary">Submit report</button><button type="button" id="report-close">Close</button></div></form>';
+  const review = inventoryNode('dialog', '', 'inventory-dialog');
+  review.id = 'reportReviewDialog';
+  review.innerHTML =
+    '<h2>Shelf reports</h2><div id="reportReviewList"></div><button id="reportReviewRefresh">Refresh reports</button><button id="reportReviewClose">Close review</button>';
+  document.body.append(dialog, review);
+  const button = inventoryButton('Shelf reports', openReportReview);
+  button.id = 'reportReviewButton';
+  button.hidden = true;
+  button.setAttribute('aria-live', 'polite');
+  $('header .actions')?.append(button);
+  $('#reportReviewClose').addEventListener('click', () => review.close());
+  $('#reportReviewRefresh').addEventListener('click', openReportReview);
+  $('#report-close').addEventListener('click', () => dialog.close());
+  $('#shelfReportForm').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229))
+      event.preventDefault();
+  });
+  $('#shelfReportForm').addEventListener('input', () => {
+    shelfReportDraft.operationId = 'report-' + uniqueId();
+    $('#report-submit').hidden = false;
+  });
+  $('#shelfReportForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submit = $('#report-submit');
+    if (submit.disabled || submit.hidden || !$('#report-text').value.trim())
+      return;
+    submit.disabled = true;
+    $('#shelfReportForm').inert = true;
+    try {
+      await api('/api/reports', 'POST', {
+        ...shelfReportDraft,
+        binId: $('#report-context').checked ? shelfReportDraft.binId : null,
+        text: $('#report-text').value,
+      });
+      $('#report-feedback').textContent =
+        'Report submitted. An admin will review it.';
+      submit.hidden = true;
+      await refreshReportIndicator();
+    } catch (error) {
+      $('#report-feedback').textContent =
+        error.message + ' Your text is retained.';
+    } finally {
+      submit.disabled = false;
+      $('#shelfReportForm').inert = false;
+    }
+  });
+  window.addEventListener('focus', refreshReportIndicator);
+  setInterval(() => {
+    if (isAdmin) refreshReportIndicator();
+  }, 30000);
+}
+setupShelfReports();

@@ -1,4 +1,4 @@
-from inventory import identify_bins
+from inventory import identify_bins, retire_bin_fields
 import copy
 import http.client
 import json
@@ -9,7 +9,7 @@ import tempfile
 import threading
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from server import blank_shelf, write_json, LabServer, ROOT, validate_lab, validate_shelf
+from server import blank_shelf, write_json, LabServer, ROOT, validate_lab, validate_shelf, normalize_shelf
 
 
 class ServerTests(unittest.TestCase):
@@ -140,7 +140,7 @@ class ServerTests(unittest.TestCase):
                         background='#ffffff', color='#000000', fontSize=12, fontFamily='Arial', bold=False)
                 state = dict(data=shelf, history=[], future=[], dirty=True)
                 self.assertEqual(self.request('PUT', '/api/drafts/shelves/'+sid, state, header)[0], 200)
-                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data'], identify_bins(shelf))
+                self.assertEqual(self.request('GET', '/api/drafts/shelves/'+sid, headers=header)[1]['data'], normalize_shelf(shelf))
             lab = self.request('GET', '/api/lab')[1]
             lab['versionName'] = label
             status, result = self.request('PUT', '/api/lab', lab, header)
@@ -216,6 +216,8 @@ class ServerTests(unittest.TestCase):
         original = copy.deepcopy(lab)
         state = lambda data: dict(data=data, history=[], future=[], dirty=True)
         self.assertEqual(self.request('PUT', '/api/drafts/lab', state(lab), header)[0], 200)
+        lab = self.request('GET', '/api/drafts/lab', headers=header)[1]['data']
+        original = copy.deepcopy(lab)
         for sid in ('new-shelf', 'copied-shelf'):
             shelf = self.request('GET', '/api/shelves/'+sid, headers=header)[1]
             shelf.update(contents='Keep these contents', keywords='tools')
@@ -331,7 +333,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request('PUT', '/api/shelves/R01', migrated)[0], 200)
         saved = self.request('GET', '/api/shelves/R01')[1]
         self.assertEqual(saved['mode'], 'simple')
-        self.assertEqual(saved['matrix'], identify_bins(legacy)['matrix'])
+        self.assertEqual(saved['matrix'],retire_bin_fields(identify_bins(legacy))['matrix'])
         saved['mode'] = 'complex'
         self.assertEqual(self.request('PUT', '/api/shelves/R01', saved)[0], 200)
         self.assertEqual(self.request('GET', '/api/shelves/R01')[1]['contents'], 'Screws')
@@ -344,7 +346,7 @@ class ServerTests(unittest.TestCase):
             background='#dc4545', color='#ffffff', fontSize=14, fontFamily='system-ui', bold=True)
         write_json(path, shelf)
         index = self.request('GET', '/api/shelf-index')[1]['R01']
-        for term in ['precision', 'assembly', 'robotics', 'm3 bolts', 'stainless', 'metric']:
+        for term in ['precision', 'assembly', 'robotics', 'm3 bolts']:
             self.assertIn(term, index['searchText'])
         self.login()
         shelf['contents'] = 'Private draft contents'

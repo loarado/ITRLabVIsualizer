@@ -63,21 +63,65 @@
       "textColor": "#ffffff"
     }
   ],
+  "legacyBinText": {
+    "B-38167ec7d92e360ac937d724f806c63a": [
+      {
+        "contents": "marker, sharpie",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-b974cc09b16015aac632145b74c0a26b": [
+      {
+        "contents": "blade, exacto knife, pliers, files, multimeter, small battery",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-0d88504e4ac068b0d2c5d7a475f9d1ba": [
+      {
+        "contents": "pins, stapler, post it notes, sticky notes, painters tape",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-8880ca335ef9b2ad1ae26fea24c92eda": [
+      {
+        "contents": "chips, ketchup, salt, parmesan, mustard, mayo",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-97c99e0a18cd3a2956766d3159618627": [
+      {
+        "contents": "hot glue gun, drill bits, wire crimps, multimeter",
+        "keywords": "",
+        "converted": true
+      }
+    ],
+    "B-098fc1693eef5d32b006edf064028e94": [
+      {
+        "contents": "shop wipes, wet wipes, wet cloths, cleaning spray",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "writing", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-38167ec7d92e360ac937d724f806c63a", "contents": "marker, sharpie", "keywords": "", "w": 3.5, "h": 1}, null, null, null, null, null],
-    [{"name": "tools", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-b974cc09b16015aac632145b74c0a26b", "contents": "blade, exacto knife, pliers, files, multimeter, small battery", "keywords": "", "w": 3.5, "h": 1, "offsetY": 0.5}, null, null, null, null, null],
+    [{"name": "writing", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-38167ec7d92e360ac937d724f806c63a", "w": 3.5, "h": 1}, null, null, null, null, null],
+    [{"name": "tools", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-b974cc09b16015aac632145b74c0a26b", "w": 3.5, "h": 1, "offsetY": 0.5}, null, null, null, null, null],
     [null, null, null, null, null, null],
-    [{"name": "office", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-0d88504e4ac068b0d2c5d7a475f9d1ba", "contents": "pins, stapler, post it notes, sticky notes, painters tape", "keywords": "", "w": 3.5, "h": 1}, null, null, null, null, null],
+    [{"name": "office", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-0d88504e4ac068b0d2c5d7a475f9d1ba", "w": 3.5, "h": 1}, null, null, null, null, null],
     [null, null, null, null, null, null],
-    [null, {"name": "snacks", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8880ca335ef9b2ad1ae26fea24c92eda", "contents": "chips, ketchup, salt, parmesan, mustard, mayo", "keywords": "", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, {"name": "equipment", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-97c99e0a18cd3a2956766d3159618627", "contents": "hot glue gun, drill bits, wire crimps, multimeter", "keywords": "", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
+    [null, {"name": "snacks", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-8880ca335ef9b2ad1ae26fea24c92eda", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
     [null, null, null, null, null, null],
     [null, null, null, null, null, null],
     [null, null, null, null, null, null],
-    [null, {"name": "cleaning supplies", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-098fc1693eef5d32b006edf064028e94", "contents": "shop wipes, wet wipes, wet cloths, cleaning spray", "keywords": "", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
+    [null, {"name": "equipment", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-97c99e0a18cd3a2956766d3159618627", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
+    [null, null, null, null, null, null],
+    [null, null, null, null, null, null],
+    [null, null, null, null, null, null],
+    [null, {"name": "cleaning supplies", "background": "#ffffff", "color": "#000000", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-098fc1693eef5d32b006edf064028e94", "w": 4, "h": 1, "offsetY": 0.5}, null, null, null, null],
     [null, null, null, null, null, null],
     [null, null, null, null, null, null]
   ]

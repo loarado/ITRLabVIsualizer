@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "revision": 2,
+  "reports": {
+    "RP-bd2edb6658c2f0aa4dff86dc0d5f54b6": {
+      "shelfId": "W03",
+      "binId": null,
+      "itemId": null,
+      "text": "no wrenches",
+      "status": "resolved",
+      "shelfLabel": "Red tools drawers / table · W03",
+      "binLabel": "",
+      "itemLabel": "",
+      "submittedAt": "2026-10-05T15:05:37.275311+00:00",
+      "updatedAt": "2026-10-05T15:06:11.073322+00:00",
+      "fingerprint": "fbf03e8773ce3a3f4231c4f4db557e1817ef1c3807d4bedfe5ac6dd133efee46"
+    }
+  },
+  "operations": {
+    "report-257972227337ceb678b9921e311f4b31": {
+      "reportId": "RP-bd2edb6658c2f0aa4dff86dc0d5f54b6",
+      "fingerprint": "fbf03e8773ce3a3f4231c4f4db557e1817ef1c3807d4bedfe5ac6dd133efee46"
+    }
+  }
+}

@@ -24,8 +24,17 @@
       "textColor": "#ffffff"
     }
   ],
+  "legacyBinText": {
+    "B-fca69825520942742128b0b5e3abdaa5": [
+      {
+        "contents": "important keys, locks, random stuff",
+        "keywords": "",
+        "converted": true
+      }
+    ]
+  },
   "matrix": [
-    [{"name": "SAFE", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-fca69825520942742128b0b5e3abdaa5", "contents": "important keys, locks, random stuff", "keywords": "", "w": 5, "h": 9, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null],
+    [{"name": "SAFE", "background": "#000000", "color": "#ffffff", "fontSize": 14, "fontFamily": "system-ui", "bold": true, "id": "B-fca69825520942742128b0b5e3abdaa5", "w": 5, "h": 9, "offsetX": 0.5, "offsetY": 0.5}, null, null, null, null, null],
     [null, null, null, null, null, null],
     [null, null, null, null, null, null],
     [null, null, null, null, null, null],

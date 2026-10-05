@@ -95,11 +95,11 @@ with tempfile.TemporaryDirectory() as temp:
             page.locator('#shelfMode').select_option('complex');page.locator('#applyShelfMode').click()
             page.get_by_role('button',name='Empty cell, row 1, column 1',exact=True).click();page.locator('#addBin').click()
             page.locator('#name').fill('M4 bolts');page.locator('#name').press('Tab')
-            page.locator('#contents').fill('Stainless steel');page.locator('#contents').press('Tab')
+            page.locator('#shelfContents').fill('Stainless steel');page.locator('#shelfContents').press('Tab')
             save_version(page);expect(page.locator('#status')).to_contain_text('Saved “')
             page.reload();expect(page.locator('#status')).to_have_text(re.compile('Loaded from server|Recovered editor instance|Recovered unsaved instance draft'))
             page.get_by_role('button',name='M4 bolts, row 1, column 1',exact=True).click()
-            expect(page.locator('#contents')).to_have_value('Stainless steel')
+            expect(page.locator('#shelfContents')).to_have_value('Stainless steel')
             # Resize cannot erase a bin; moving and a valid resize persist.
             page.locator('#rows').fill('1');page.locator('#resize').click()
             expect(page.locator('#status')).to_contain_text('Nothing was removed')
