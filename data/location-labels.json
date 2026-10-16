@@ -84,7 +84,11 @@
     "S-30f840a79a0c83bc98e5f49caff6e53e": "S-46",
     "S-4b0081d046c4a264e43244661f57d180": "S-47",
     "S-a8b231c48b2286229499e8ae72d29ba6": "S-48",
-    "S-ebf57dffb86d05c6f3ef64db545019f1": "S-49"
+    "S-ebf57dffb86d05c6f3ef64db545019f1": "S-49",
+    "S-98b914360eaee8f84ffab49a7f615965": "S-50",
+    "S-a4fdd027bbe3aa54d311aa1d3b841604": "S-51",
+    "S-bce756b4548db673870072f63b6ed443": "S-52",
+    "S-e458662ca3a0dcbeddd2fc0c17a6769e": "S-53"
   },
   "reserved": {
     "r02": "R02",
@@ -170,6 +174,10 @@
     "s-46": "S-30f840a79a0c83bc98e5f49caff6e53e",
     "s-47": "S-4b0081d046c4a264e43244661f57d180",
     "s-48": "S-a8b231c48b2286229499e8ae72d29ba6",
-    "s-49": "S-ebf57dffb86d05c6f3ef64db545019f1"
+    "s-49": "S-ebf57dffb86d05c6f3ef64db545019f1",
+    "s-50": "S-98b914360eaee8f84ffab49a7f615965",
+    "s-51": "S-a4fdd027bbe3aa54d311aa1d3b841604",
+    "s-52": "S-bce756b4548db673870072f63b6ed443",
+    "s-53": "S-e458662ca3a0dcbeddd2fc0c17a6769e"
   }
 }

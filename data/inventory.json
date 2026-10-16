@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 9,
+  "revision": 33,
   "items": {
     "MI-120731cda1303cb29287f88b873a6e8d": {
       "name": "spider robot",
@@ -411,7 +411,7 @@
       "currency": ""
     },
     "MI-a2949d3331a9306bc52cd31fb03ea232": {
-      "name": "power extension. Long cable",
+      "name": "power extension",
       "category": "",
       "keywords": "",
       "description": "",
@@ -1141,6 +1141,282 @@
       "priceUnit": "",
       "unitPrice": null,
       "currency": "USD"
+    },
+    "I-0dce05df68fc8ffd63aafd8dff617f59": {
+      "name": "Gorilla Tape",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-c5c9aed1e6a9cec94cc08e6ff268ab69": {
+      "name": "Electrical Tape",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-77e649ee0308342d69406ae3a8730da9": {
+      "name": "Color Tape",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-74b05fd2f4c2f2e4da1a785eb10b85fe": {
+      "name": "Signs",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-12947daf3204728138592a2b5c3666c8": {
+      "name": "Acrylic Markers",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-10a17bc07e4275a1a6dae18107d0a19b": {
+      "name": "Sharpies",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-9e3b07e9b28cc0967fb2d971ac99b33d": {
+      "name": "Paint Brushes",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-12156869676546363d0034d72b5ea53d": {
+      "name": "Hot Glue Gun",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-bfd08ed25d7ede5e9def8e5dd540ab54": {
+      "name": "Super Glue",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-697dcb092404226f24a68c0e3927789f": {
+      "name": "Poster Board",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-bcb9bdb386f358a63d0840c64e02afe1": {
+      "name": "Plastic Trash Bags",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-972b147c2507b5fbc2402c4b12b4eb98": {
+      "name": "Swivel Wheels",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-ce33f7cec2b43984349579106366050f": {
+      "name": "Soccer Balls",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-036d726af2d2f9c3534df7e3a69ab489": {
+      "name": "Large Omni Wheels",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-082f64b10566c4c1f4a04fe9b0f9a643": {
+      "name": "Grip Wheels",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-1a497f615f8b1e5fb0594ce493a9d044": {
+      "name": "Small Rollers",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-2b3dae8cc78a836a1d88a8dce207f8ba": {
+      "name": "Large Grip Wheels",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-8e7a042682a043a79f0789c3471f1ddb": {
+      "name": "Soccer Balls",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-d9cec42235505ead81a0b4f25b6a52b6": {
+      "name": "Tennis Balls",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-8dbb3595de617cf8b2469f410a1bcc53": {
+      "name": "Bouncy Balls",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-afad516f5bd46872fef2b9dc0f3977d4": {
+      "name": "Wiffle Balls",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-2ee452e14869cec5529927a7ae2afe18": {
+      "name": "Small Tires",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
+    },
+    "I-e0605b057faad886bbb7d00e43ad66fb": {
+      "name": "polycarbonate",
+      "category": "",
+      "keywords": "",
+      "description": "",
+      "productLink": "",
+      "vendor": "",
+      "notes": "",
+      "priceUnit": "",
+      "unitPrice": null,
+      "currency": ""
     }
   },
   "stocks": {
@@ -1562,7 +1838,7 @@
       "unit": "each",
       "notes": "",
       "archived": false,
-      "locationLabel": "Cable Storage Wire Shelf / EXTENSION CORDS"
+      "locationLabel": "Cable Storage Wire Shelf · R07 / EXTENSION CORDS"
     },
     "MS-094a62199df8b6fc7f7ce4cbf6e90410": {
       "itemId": "MI-094a62199df8b6fc7f7ce4cbf6e90410",
@@ -2283,6 +2559,282 @@
       "notes": "",
       "archived": false,
       "locationLabel": "Mechanical Storage Wire Shelf · S-34 / Mechanical Storage"
+    },
+    "ST-dd06fcbbe69beeb2e0ac46ca7e6fb7a3": {
+      "itemId": "I-0dce05df68fc8ffd63aafd8dff617f59",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-71ba8eef8fdefa505a9d299d3cdec9cc": {
+      "itemId": "I-c5c9aed1e6a9cec94cc08e6ff268ab69",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-e30418e7b99bd82942a5d961482a7066": {
+      "itemId": "I-77e649ee0308342d69406ae3a8730da9",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-956b28bfee6b6c0fd5d3f5f8c94dbfbb": {
+      "itemId": "I-74b05fd2f4c2f2e4da1a785eb10b85fe",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-c562ff613a8bff5a27b590e5b10bd7cb": {
+      "itemId": "I-12947daf3204728138592a2b5c3666c8",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-d445dc3600c77f6d45dd40410ab6fa59": {
+      "itemId": "I-10a17bc07e4275a1a6dae18107d0a19b",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-e5476b660fe9d331d104f78bcc120e21": {
+      "itemId": "I-9e3b07e9b28cc0967fb2d971ac99b33d",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-9170c48ea0dd5adcaffbd1f579d6a7bd": {
+      "itemId": "I-12156869676546363d0034d72b5ea53d",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-fa0e13d5835421e6847bc3e98ccd22ce": {
+      "itemId": "I-bfd08ed25d7ede5e9def8e5dd540ab54",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-37c1b484c01c6d84e88949982b3c3617": {
+      "itemId": "I-697dcb092404226f24a68c0e3927789f",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-2177b1f376bb9bead71b8fb271037b09": {
+      "itemId": "I-bcb9bdb386f358a63d0840c64e02afe1",
+      "shelfId": "F08",
+      "binId": null,
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Black Workbench · F08"
+    },
+    "ST-fb3c467e434ade4be067fdbcbe6ebef9": {
+      "itemId": "I-972b147c2507b5fbc2402c4b12b4eb98",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-caaf1abf593a314b691964b3c9420f15",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Swivel Wheels"
+    },
+    "ST-7cf7d7a9169444e54bd23ebef962e447": {
+      "itemId": "I-ce33f7cec2b43984349579106366050f",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-9f02e27b59c53fa4920d8982b1d12a93",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Round Things"
+    },
+    "ST-e2b8526837808a9c68d2ef1427252cdc": {
+      "itemId": "I-036d726af2d2f9c3534df7e3a69ab489",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-9f02e27b59c53fa4920d8982b1d12a93",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Round Things"
+    },
+    "ST-859bc6a38fd30580fc071848ad58d4b4": {
+      "itemId": "I-082f64b10566c4c1f4a04fe9b0f9a643",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-720e98f081432a281704a72c92fd86c6",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Wheels"
+    },
+    "ST-61c48bb7b02a2bbc769c6fc3516c6ce3": {
+      "itemId": "I-1a497f615f8b1e5fb0594ce493a9d044",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-e90ce00b40c41da204e11467c17cd9d3",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Wheels"
+    },
+    "ST-fe80e9ed08e1e7fa4f31832407844c00": {
+      "itemId": "I-2b3dae8cc78a836a1d88a8dce207f8ba",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-d865a29bdc59db16817bd6f0db0acdba",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Large Wheels"
+    },
+    "ST-78cf260fbcf562a1601c4539c8f220b3": {
+      "itemId": "I-8e7a042682a043a79f0789c3471f1ddb",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / balls  "
+    },
+    "ST-ba7e29663d98aec347f41b7037f9301f": {
+      "itemId": "I-d9cec42235505ead81a0b4f25b6a52b6",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-807bfbd8f41de313a96096f090a657ff",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / misc"
+    },
+    "ST-b9995e6f15e34c18999235afa31f9eab": {
+      "itemId": "I-8dbb3595de617cf8b2469f410a1bcc53",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / balls  "
+    },
+    "ST-0948cfb73a749f07d7a0dc207ae43e46": {
+      "itemId": "I-afad516f5bd46872fef2b9dc0f3977d4",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / balls  "
+    },
+    "ST-bf4625fb9a58d80bf616b79b6c91ab80": {
+      "itemId": "I-2ee452e14869cec5529927a7ae2afe18",
+      "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+      "binId": "B-caaf1abf593a314b691964b3c9420f15",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Balls and Wheels · S-26 / Swivel Wheels"
+    },
+    "ST-70d6231176bbb31942c0e94550ed78e9": {
+      "itemId": "I-e0605b057faad886bbb7d00e43ad66fb",
+      "shelfId": "S-bce756b4548db673870072f63b6ed443",
+      "binId": "B-7581ee8f9c2832b4f53390371241a56d",
+      "tracking": "presence",
+      "quantity": null,
+      "availability": null,
+      "unit": "each",
+      "notes": "",
+      "archived": false,
+      "locationLabel": "Material Storage Cart · S-52 / empty"
     }
   },
   "operations": {
@@ -2320,13 +2872,685 @@
       "itemId": "I-7e7fbca392d1566a436473d5f8db3362",
       "stockId": "ST-fe51d61ae3ae20f71a047547e86e287c",
       "revision": 9
+    },
+    "op-ebaaa2a53b2f63a17e75307748424756": {
+      "itemId": "MI-a2949d3331a9306bc52cd31fb03ea232",
+      "stockId": "MS-a2949d3331a9306bc52cd31fb03ea232",
+      "revision": 10
+    },
+    "op-06b3d4db5ae4385dee13a52c0db40747": {
+      "itemId": "I-0dce05df68fc8ffd63aafd8dff617f59",
+      "stockId": "ST-dd06fcbbe69beeb2e0ac46ca7e6fb7a3",
+      "item": {
+        "name": "Gorilla Tape",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-0dce05df68fc8ffd63aafd8dff617f59",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 11
+    },
+    "op-cfca7f11927deb054ba28aed6e57e639": {
+      "itemId": "I-c5c9aed1e6a9cec94cc08e6ff268ab69",
+      "stockId": "ST-71ba8eef8fdefa505a9d299d3cdec9cc",
+      "item": {
+        "name": "Electrical Tape",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-c5c9aed1e6a9cec94cc08e6ff268ab69",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 12
+    },
+    "op-7a1bbc95ba26fe3a2dbebe2e4efd6117": {
+      "itemId": "I-77e649ee0308342d69406ae3a8730da9",
+      "stockId": "ST-e30418e7b99bd82942a5d961482a7066",
+      "item": {
+        "name": "Color Tape",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-77e649ee0308342d69406ae3a8730da9",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 13
+    },
+    "op-edeea449c6a33bf9ff4c2994a59030ab": {
+      "itemId": "I-74b05fd2f4c2f2e4da1a785eb10b85fe",
+      "stockId": "ST-956b28bfee6b6c0fd5d3f5f8c94dbfbb",
+      "item": {
+        "name": "Signs",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-74b05fd2f4c2f2e4da1a785eb10b85fe",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 14
+    },
+    "op-9e0dd84b3ae4ee833e80585407af05d8": {
+      "itemId": "I-12947daf3204728138592a2b5c3666c8",
+      "stockId": "ST-c562ff613a8bff5a27b590e5b10bd7cb",
+      "item": {
+        "name": "Acrylic Markers",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-12947daf3204728138592a2b5c3666c8",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 15
+    },
+    "op-8d580b81595fdb0ede239d8dfd7b9aa3": {
+      "itemId": "I-10a17bc07e4275a1a6dae18107d0a19b",
+      "stockId": "ST-d445dc3600c77f6d45dd40410ab6fa59",
+      "item": {
+        "name": "Sharpies",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-10a17bc07e4275a1a6dae18107d0a19b",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 16
+    },
+    "op-0f11e76ccb48dacdd5821568a241cad2": {
+      "itemId": "I-9e3b07e9b28cc0967fb2d971ac99b33d",
+      "stockId": "ST-e5476b660fe9d331d104f78bcc120e21",
+      "item": {
+        "name": "Paint Brushes",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-9e3b07e9b28cc0967fb2d971ac99b33d",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 17
+    },
+    "op-56a140ec9353e08b90e682eb9450a2b0": {
+      "itemId": "I-12156869676546363d0034d72b5ea53d",
+      "stockId": "ST-9170c48ea0dd5adcaffbd1f579d6a7bd",
+      "item": {
+        "name": "Hot Glue Gun",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-12156869676546363d0034d72b5ea53d",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 18
+    },
+    "op-976ddfe2b8ff8ce734665e3e2b92de8c": {
+      "itemId": "I-bfd08ed25d7ede5e9def8e5dd540ab54",
+      "stockId": "ST-fa0e13d5835421e6847bc3e98ccd22ce",
+      "item": {
+        "name": "Super Glue",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-bfd08ed25d7ede5e9def8e5dd540ab54",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 19
+    },
+    "op-3ff4a25a3c036e9b4b326174dc53275a": {
+      "itemId": "I-697dcb092404226f24a68c0e3927789f",
+      "stockId": "ST-37c1b484c01c6d84e88949982b3c3617",
+      "item": {
+        "name": "Poster Board",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-697dcb092404226f24a68c0e3927789f",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 20
+    },
+    "op-251956e871a5e749be5cc057ca8ce7c2": {
+      "itemId": "I-bcb9bdb386f358a63d0840c64e02afe1",
+      "stockId": "ST-2177b1f376bb9bead71b8fb271037b09",
+      "item": {
+        "name": "Plastic Trash Bags",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-bcb9bdb386f358a63d0840c64e02afe1",
+        "shelfId": "F08",
+        "binId": null,
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Black Workbench · F08"
+      },
+      "revision": 21
+    },
+    "op-377ba199e4c90784e3c900c5993a1f0e": {
+      "itemId": "I-972b147c2507b5fbc2402c4b12b4eb98",
+      "stockId": "ST-fb3c467e434ade4be067fdbcbe6ebef9",
+      "item": {
+        "name": "Swivel Wheels",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-972b147c2507b5fbc2402c4b12b4eb98",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-caaf1abf593a314b691964b3c9420f15",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Swivel Wheels"
+      },
+      "revision": 22
+    },
+    "op-ee410dfe08b4e0696f3507656e35c751": {
+      "itemId": "I-ce33f7cec2b43984349579106366050f",
+      "stockId": "ST-7cf7d7a9169444e54bd23ebef962e447",
+      "item": {
+        "name": "Soccer Balls",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-ce33f7cec2b43984349579106366050f",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-9f02e27b59c53fa4920d8982b1d12a93",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Round Things"
+      },
+      "revision": 23
+    },
+    "op-e64e20090c2c5e811a30f2f713679dac": {
+      "itemId": "I-036d726af2d2f9c3534df7e3a69ab489",
+      "stockId": "ST-e2b8526837808a9c68d2ef1427252cdc",
+      "item": {
+        "name": "Large Omni Wheels",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-036d726af2d2f9c3534df7e3a69ab489",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-9f02e27b59c53fa4920d8982b1d12a93",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Round Things"
+      },
+      "revision": 24
+    },
+    "op-fd2b54b4327f0e5a5dd4191f736056e1": {
+      "itemId": "I-082f64b10566c4c1f4a04fe9b0f9a643",
+      "stockId": "ST-859bc6a38fd30580fc071848ad58d4b4",
+      "item": {
+        "name": "Grip Wheels",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-082f64b10566c4c1f4a04fe9b0f9a643",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-720e98f081432a281704a72c92fd86c6",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Wheels"
+      },
+      "revision": 25
+    },
+    "op-5ce8de3d0ee11c2054843be1941d4ae1": {
+      "itemId": "I-1a497f615f8b1e5fb0594ce493a9d044",
+      "stockId": "ST-61c48bb7b02a2bbc769c6fc3516c6ce3",
+      "item": {
+        "name": "Small Rollers",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-1a497f615f8b1e5fb0594ce493a9d044",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-e90ce00b40c41da204e11467c17cd9d3",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Wheels"
+      },
+      "revision": 26
+    },
+    "op-5a56d15c2acc52cf2e818a9303ca8efc": {
+      "itemId": "I-2b3dae8cc78a836a1d88a8dce207f8ba",
+      "stockId": "ST-fe80e9ed08e1e7fa4f31832407844c00",
+      "item": {
+        "name": "Large Grip Wheels",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-2b3dae8cc78a836a1d88a8dce207f8ba",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-d865a29bdc59db16817bd6f0db0acdba",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Large Wheels"
+      },
+      "revision": 27
+    },
+    "op-63094f37951ae3e44f8378f5de6b7f02": {
+      "itemId": "I-8e7a042682a043a79f0789c3471f1ddb",
+      "stockId": "ST-78cf260fbcf562a1601c4539c8f220b3",
+      "item": {
+        "name": "Soccer Balls",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-8e7a042682a043a79f0789c3471f1ddb",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / balls  "
+      },
+      "revision": 28
+    },
+    "op-26e316b40e73a37fc1a3a0abec2290ed": {
+      "itemId": "I-d9cec42235505ead81a0b4f25b6a52b6",
+      "stockId": "ST-ba7e29663d98aec347f41b7037f9301f",
+      "item": {
+        "name": "Tennis Balls",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-d9cec42235505ead81a0b4f25b6a52b6",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-807bfbd8f41de313a96096f090a657ff",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / misc"
+      },
+      "revision": 29
+    },
+    "op-e0e4b5ac6e413c461bcd63c7f50d5f26": {
+      "itemId": "I-8dbb3595de617cf8b2469f410a1bcc53",
+      "stockId": "ST-b9995e6f15e34c18999235afa31f9eab",
+      "item": {
+        "name": "Bouncy Balls",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-8dbb3595de617cf8b2469f410a1bcc53",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / balls  "
+      },
+      "revision": 30
+    },
+    "op-aa683268e92aabb7c5c4bbb46d9dba99": {
+      "itemId": "I-afad516f5bd46872fef2b9dc0f3977d4",
+      "stockId": "ST-0948cfb73a749f07d7a0dc207ae43e46",
+      "item": {
+        "name": "Wiffle Balls",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-afad516f5bd46872fef2b9dc0f3977d4",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-e51ffaa7b034e310e92b60cd0dd07c4b",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / balls  "
+      },
+      "revision": 31
+    },
+    "op-243dff2603020c1d3528972457694f04": {
+      "itemId": "I-2ee452e14869cec5529927a7ae2afe18",
+      "stockId": "ST-bf4625fb9a58d80bf616b79b6c91ab80",
+      "item": {
+        "name": "Small Tires",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-2ee452e14869cec5529927a7ae2afe18",
+        "shelfId": "S-9c6adc2feb0d8254894e0446da9becb6",
+        "binId": "B-caaf1abf593a314b691964b3c9420f15",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Balls and Wheels · S-26 / Swivel Wheels"
+      },
+      "revision": 32
+    },
+    "op-c0036b04387c9d06a74a4449a4042848": {
+      "itemId": "I-e0605b057faad886bbb7d00e43ad66fb",
+      "stockId": "ST-70d6231176bbb31942c0e94550ed78e9",
+      "item": {
+        "name": "polycarbonate",
+        "category": "",
+        "keywords": "",
+        "description": "",
+        "productLink": "",
+        "vendor": "",
+        "notes": "",
+        "priceUnit": "",
+        "unitPrice": null,
+        "currency": ""
+      },
+      "stock": {
+        "itemId": "I-e0605b057faad886bbb7d00e43ad66fb",
+        "shelfId": "S-bce756b4548db673870072f63b6ed443",
+        "binId": "B-7581ee8f9c2832b4f53390371241a56d",
+        "tracking": "presence",
+        "quantity": null,
+        "availability": null,
+        "unit": "each",
+        "notes": "",
+        "archived": false,
+        "locationLabel": "Material Storage Cart · S-52 / empty"
+      },
+      "revision": 33
     }
   },
   "lastChange": {
-    "savedAt": "2026-10-05T15:42:42.311742+00:00",
+    "savedAt": "2026-10-05T22:25:20.677922+00:00",
     "action": "save",
-    "reason": "Inventory correction / entry",
-    "operationId": "op-f1e62e0175c457e04767d0f793d238f8"
+    "reason": "Inventory save",
+    "operationId": "op-c0036b04387c9d06a74a4449a4042848"
   },
   "deletedItems": {
     "I-bb1235c12003b4b784484521197e1586": {
