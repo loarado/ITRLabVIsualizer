@@ -38,6 +38,32 @@ To change the starting password, set `ITR_ADMIN_PASSWORD` before starting the se
 ITR_ADMIN_PASSWORD='your-new-password' python3 server.py
 ```
 
+## Deploy on Vercel
+
+Vercel runs [api/index.py](api/index.py), which serves the same pages and API as
+`server.py`. Vercel's file system is read-only and its instances are short-lived, so
+saved data, login sessions and editor drafts are kept in an Upstash Redis database
+instead of `data/`.
+
+1. Import the repository in Vercel. Leave the framework preset as **Other**; no
+   build settings are needed (`vercel.json` configures everything).
+2. In the project, open **Storage → Create Database → Upstash for Redis** and connect
+   it to the project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`
+   (`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` also work).
+3. Under **Settings → Environment Variables**, add `ITR_ADMIN_PASSWORD`. Without it,
+   admin login stays disabled; the local default password `itr` is never used online.
+4. Redeploy. On the first request, the committed `data/` files are copied into
+   Redis once. From then on **Redis is the source of truth**: later pushes of
+   `data/` do not overwrite online edits. Use **Download full lab backup** on LAB INVENTORY (or
+   `/api/backup`) to bring online data back to a local copy with `restore_backup.py`.
+
+Without Redis connected, the deployment still opens in view-only mode and refuses
+saves rather than losing them. Checkpoints taken before destructive inventory
+changes are stored in the Redis hash `itr:backups` (base64 `.tar.gz`, current
+records only; history files are never modified). Set `ITR_STORE_PREFIX` to keep
+several deployments in one Redis database. Saves are serialized across instances,
+so revision conflicts behave as they do on the local server.
+
 ## Inventory: presence first, optional detail
 
 **LAB MAP** and **LAB INVENTORY** use the same item and stock records. Most entries

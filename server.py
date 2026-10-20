@@ -204,7 +204,6 @@ def blank_shelf(shelf_id, name=''):
 
 
 def write_json(path, doc):
-    path.parent.mkdir(parents=True, exist_ok=True)
     # One matrix row per line keeps shelf files easy to hand-edit.
     if 'matrix' in doc:
         header = {k: v for k, v in doc.items() if k != 'matrix'}
@@ -212,6 +211,9 @@ def write_json(path, doc):
             '    ' + json.dumps(row, ensure_ascii=False) for row in doc['matrix']) + '\n  ]\n}\n'
     else:
         payload = json.dumps(doc, indent=2, ensure_ascii=False) + '\n'
+    if not isinstance(path, Path):
+        return path.write_text(payload)  # Storage-backed paths replace each key atomically.
+    path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix('.tmp')
     with temporary.open('w') as f:
         f.write(payload)
@@ -224,10 +226,10 @@ class RevisionConflict(ValueError):
     pass
 
 
-class LabServer(ThreadingHTTPServer):
-    def __init__(self, address, data_dir, password, defaults_dir=None):
-        super().__init__(address, Handler)
-        self.data_dir = Path(data_dir)
+class LabState:
+    """Persistence, sessions and drafts, independent of how requests arrive."""
+    def init_state(self, data_dir, password, defaults_dir=None):
+        self.data_dir = data_dir if hasattr(data_dir, 'store') else Path(data_dir)
         self.defaults_dir = Path(defaults_dir) if defaults_dir else ROOT / 'defaults'
         self.password_hash = hashlib.sha256(password.encode()).digest()
         self.sessions = {}
@@ -242,6 +244,16 @@ class LabServer(ThreadingHTTPServer):
         self.migrate_locations()
         self.migrate_bin_contents()
         self.migrate_location_labels()
+
+    def backup(self, label):
+        """Checkpoint data and defaults before a destructive change; returns the archive name."""
+        backup_dir = self.data_dir.parent / '.itr-backups'
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup = backup_dir / ('before-' + label + '-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
+        with tarfile.open(backup, 'w:gz') as archive:
+            archive.add(self.data_dir, arcname='data')
+            archive.add(self.defaults_dir, arcname='defaults')
+        return backup.name
 
     def label_registry(self):
         path = self.data_dir / 'location-labels.json'
@@ -283,11 +295,7 @@ class LabServer(ThreadingHTTPServer):
         if layout != original: writes['lab.json'] = layout
         if registry != previous or not (self.data_dir/'location-labels.json').exists(): writes['location-labels.json'] = registry
         if not writes: return
-        backup_dir = self.data_dir.parent / '.itr-backups'
-        backup_dir.mkdir(parents=True, exist_ok=True)
-        backup = backup_dir / ('before-location-labels-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
-        with tarfile.open(backup,'w:gz') as archive:
-            archive.add(self.data_dir,arcname='data'); archive.add(self.defaults_dir,arcname='defaults')
+        self.backup('location-labels')
         write_json(self.data_dir/'pending-save.json',writes)
         self.finish_transaction()
 
@@ -312,12 +320,7 @@ class LabServer(ThreadingHTTPServer):
             writes["inventory.json"] = empty_inventory()
         if not writes:
             return
-        backup_dir = self.data_dir.parent / ".itr-backups"
-        backup_dir.mkdir(exist_ok=True)
-        backup = backup_dir / ("before-locations-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + secrets.token_hex(4) + ".tar.gz")
-        with tarfile.open(backup, "w:gz") as archive:
-            archive.add(self.data_dir, arcname="data")
-            archive.add(self.defaults_dir, arcname="defaults")
+        self.backup("locations")
         write_json(self.data_dir / "pending-save.json", writes)
         self.finish_transaction()
 
@@ -330,13 +333,8 @@ class LabServer(ThreadingHTTPServer):
         doc, shelves, report = convert_bin_contents(current, sources)
         for sid, shelf in shelves.items():
             validate_shelf(shelf, sid)
-        backup_dir = self.data_dir.parent / '.itr-backups'
-        backup_dir.mkdir(exist_ok=True)
-        backup = backup_dir / ('before-bin-contents-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
-        with tarfile.open(backup, 'w:gz') as archive:
-            archive.add(self.data_dir, arcname='data')
-            archive.add(self.defaults_dir, arcname='defaults')
-        report.update(savedAt=datetime.now(timezone.utc).isoformat(), backup=backup.name)
+        backup = self.backup('bin-contents')
+        report.update(savedAt=datetime.now(timezone.utc).isoformat(), backup=backup)
         writes = {'bin-contents-migration.json': report}
         for sid, shelf in shelves.items():
             if shelf != sources[sid]:
@@ -481,12 +479,7 @@ class LabServer(ThreadingHTTPServer):
         if not text(doc['lastChange']['reason'], 500):
             raise ValueError('Correction note is limited to 500 characters.')
         if action in ('delete-item', 'remove-location'):
-            backup_dir = self.data_dir.parent / '.itr-backups'
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            backup = backup_dir / ('before-inventory-delete-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + secrets.token_hex(4) + '.tar.gz')
-            with tarfile.open(backup, 'w:gz') as archive:
-                archive.add(self.data_dir, arcname='data')
-                archive.add(self.defaults_dir, arcname='defaults')
+            self.backup('inventory-delete')
         writes = {'inventory.json':doc}
         # Audit snapshots are independent of map versions and include before/after.
         for state in (current, doc):
@@ -620,6 +613,12 @@ class LabServer(ThreadingHTTPServer):
             cached['state']['dirty'] = False
 
 
+class LabServer(LabState, ThreadingHTTPServer):
+    def __init__(self, address, data_dir, password, defaults_dir=None):
+        ThreadingHTTPServer.__init__(self, address, Handler)
+        self.init_state(data_dir, password, defaults_dir)
+
+
 class Handler(BaseHTTPRequestHandler):
     def json_response(self, code, data, cookie=None, headers=None):
         raw = json.dumps(data).encode()
@@ -637,6 +636,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
         except (BrokenPipeError, ConnectionResetError):
             pass  # A client may navigate away while a read is in flight.
+
+    def client_ip(self):
+        return self.client_address[0]
 
     def token(self):
         jar = cookies.SimpleCookie()
@@ -660,7 +662,8 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get('Origin')
         if self.headers.get('Sec-Fetch-Site') == 'cross-site':
             return False
-        return not origin or origin == 'http://' + self.headers.get('Host', '')
+        host = self.headers.get('Host', '')
+        return not origin or origin in ('http://' + host, 'https://' + host)
 
     def resource(self):
         path = urlsplit(self.path).path
@@ -788,7 +791,7 @@ class Handler(BaseHTTPRequestHandler):
             with self.server.lock:
                 try:
                     if path == '/api/backup':
-                        files = {str(p.relative_to(self.server.data_dir)): json.loads(p.read_text())
+                        files = {p.relative_to(self.server.data_dir).as_posix(): json.loads(p.read_text())
                                  for p in self.server.data_dir.rglob('*.json') if p.name != 'pending-save.json'}
                         return self.json_response(200, dict(format='itr-full-backup', schemaVersion=1,
                             savedAt=datetime.now(timezone.utc).isoformat(), data=files,
@@ -981,7 +984,7 @@ class Handler(BaseHTTPRequestHandler):
                         result = dict(saved=True,revision=doc['revision'])
                     else:
                         doc,result = prepare_report(body,current,self.server.stock_locations(),self.server.stock_document(),
-                                                    self.server.report_attempts,self.client_address[0])
+                                                    self.server.report_attempts,self.client_ip())
                     if doc is not None:
                         write_json(self.server.data_dir/'pending-save.json', {'reports.json':doc})
                         self.server.finish_transaction()
@@ -1072,7 +1075,7 @@ class Handler(BaseHTTPRequestHandler):
             if path != '/api/login':
                 return self.json_response(404, {'error': 'Not found.'})
             now = time.time()
-            ip = self.client_address[0]
+            ip = self.client_ip()
             attempts = [t for t in self.server.attempts.get(ip, []) if t > now-60]
             if len(attempts) >= 10:
                 return self.json_response(429, {'error': 'Too many attempts. Try again in a minute.'})

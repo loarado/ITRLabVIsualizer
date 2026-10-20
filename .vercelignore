@@ -1,0 +1,6 @@
+tests/
+node_modules/
+.itr-backups/
+__pycache__/
+.venv/
+prompt.txt
